@@ -1,3 +1,4 @@
+"""quasi installation configuration"""
 import setuptools
 
 setuptools.setup(
