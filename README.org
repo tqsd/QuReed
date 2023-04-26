@@ -7,9 +7,15 @@ Framework for quantum simulations using realistic device models.
 
 * Framework Design
 
+** Signals
+Signals represent interface between the devices.
+Each signal type should inherit from the Abstract Base Class ~GenericSignal~,
+implemented in [[file:./quasi/signals/generic_signal.py][quasi/signals/generic_signals.py]].
+
+
 ** Devices
-Each device design stems from the Abstract Base Class ~GenericDevice(ABC)~
-implemented in [[file:./quasi/devices/generic_device.py][quasi/devices/generic_device.py]]
+Each device design stems from the Abstract Base Class ~GenericDevice(ABC)~,
+implemented in [[file:./quasi/devices/generic_device.py][quasi/devices/generic_device.py]].
 
 * Usage
 
