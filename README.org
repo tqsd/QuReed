@@ -18,10 +18,10 @@ In order to develop the framework:
 2. create a new branch,
 3. create new virtual environment:
    + with ~virtualenv~
-   #+begin_src bash
-virtualenv .venv
-source .venv/bin/activate
-   #+end_src
+      #+begin_src bash
+   virtualenv .venv
+   source .venv/bin/activate
+      #+end_src
    + or with conda:
      TODO
 
