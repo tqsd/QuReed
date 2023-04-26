@@ -11,12 +11,9 @@ class GenericSignal(ABC):
 
     @abstractmethod
     def __init__(self):
-        pass
-
 
     @abstractmethod
     def dummy(self):
         """
         Dummy method to appease the linters.
         """
-        pass
