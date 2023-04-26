@@ -1,7 +1,7 @@
 #+title: QuaSi: Quantum Hardware Simulation Framework
-#+macro: pylint https://github.com/tqsd/QuaSi/actions/workflows/pylint.yml/badge.svg?branch=master
 
-{{{pylint}}}
+[[https://github.com/tqsd/QuaSi/actions/workflows/pylint.yml/badge.svg?branch=master]]
+
 
 Framework for quantum simulations using realistic device models.
 
