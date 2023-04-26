@@ -7,6 +7,10 @@ Framework for quantum simulations using realistic device models.
 
 * Framework Design
 
+** Devices
+Each device design stems from the Abstract Base Class ~GenericDevice(ABC)~
+implemented in [[file:./quasi/devices/generic_device.py][quasi/devices/generic_device.py]]
+
 * Usage
 
 * Contributing
@@ -29,3 +33,7 @@ In order to develop the framework:
    #+begin_src bash
    pip install -e .
    #+end_src
+
+Tell my coworker nicely that he should post his post on different slack channel
+
+You could say: "Hey there, I think your post might be more relevant in a different channel. Would you mind sharing it there instead?"
