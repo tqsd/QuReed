@@ -4,7 +4,7 @@ from typing import Type
 
 from quasi.signals.generic_signal import GenericSignal
 
-class GenericDevice(ABC):
+class GenericDevice(ABC): # pylint: disable=too-few-public-methods
     """
     Generic Device class used to implement every device
     """
