@@ -9,3 +9,20 @@ Framework for quantum simulations using realistic device models.
 * Contributing
 
 ** Developing
+
+In order to develop the framework:
+1. clone the repository,
+2. create a new branch,
+3. create new virtual environment:
+   + with ~virtualenv~
+   #+begin_src bash
+virtualenv .venv
+source .venv/bin/activate
+   #+end_src
+   + or with conda:
+     TODO
+
+4. install the package in editable mode (this also installs all of the required packages):
+   #+begin_src bash
+   pip install -e .
+   #+end_src
