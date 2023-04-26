@@ -14,4 +14,3 @@ class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
         """
         Initialization method
         """
-

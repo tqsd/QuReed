@@ -20,4 +20,3 @@ class GenericDevice(ABC): # pylint: disable=too-few-public-methods
         It should rise an exception if the inputs were not
         yet computed.
         """
-        pass
