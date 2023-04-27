@@ -85,7 +85,7 @@ class GenericDevice(ABC): # pylint: disable=too-few-public-methods
 
     @property
     @abstractmethod
-    def peak_power(self):
+    def power_peak(self):
         """Peak Power Draw"""
         raise NotImplementedError("peak_power must be defined.")
 
@@ -107,11 +107,6 @@ class NoPortException(Exception):
 class PortConnectedException(Exception):
     """
     Raised when Signal is already registered for the port.
-    """
-
-class PortMissingAttributesException(Exception):
-    """
-    Raised when Attributes are not specified
     """
 
 class PortSignalMismatchException(Exception):
