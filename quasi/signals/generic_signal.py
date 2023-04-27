@@ -3,6 +3,8 @@ Generic signal implementation,
 used for defining inputs and outputs
 """
 from abc import ABC, abstractmethod
+from multiprocessing import Event
+
 
 class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
     """
@@ -14,3 +16,11 @@ class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
         """
         Initialization method
         """
+        self.computed = Event()
+
+
+    def set_computed(self):
+        self.computed.set()
+
+    def wait_till_compute(self, timeout=-1):
+        self.comptued.wait(timeout=timeout)

@@ -1,0 +1,5 @@
+#+title: Devices
+
+* How devices function?
+* What are the attributes?
+* How to create a new device?
