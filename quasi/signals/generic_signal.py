@@ -18,9 +18,14 @@ class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
         """
         self.computed = Event()
 
-
     def set_computed(self):
+        """
+        After signal is computed the computed flag should be set
+        """
         self.computed.set()
 
     def wait_till_compute(self, timeout=-1):
-        self.comptued.wait(timeout=timeout)
+        """
+        Blocking call, waits until the signal is computed
+        """
+        self.computed.wait(timeout=timeout)

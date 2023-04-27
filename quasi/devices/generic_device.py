@@ -1,18 +1,20 @@
-""" Generic Device definition """
+"""
+Generic Device definition
+"""
 from abc import ABC, abstractmethod
 from typing import Type
-from multiprocessing import Event
 
 from quasi.signals.generic_signal import GenericSignal
 
-def wait_input_compute(fn):
+def wait_input_compute(method):
     """
     Wrapper function, makes sure that the inputs are
     computed before computing outputs.
     """
-    def wrapper(self):
-        for input in self.inputs:
-            input.wait_till_compute()
+    def wrapper(self, *args, **kwargs):
+        for input_signal in self.input_signals:
+            input_signal.wait_till_compute()
+        return method(self, *args, **kwargs)
     return wrapper
 
 
@@ -21,11 +23,13 @@ class GenericDevice(ABC): # pylint: disable=too-few-public-methods
     Generic Device class used to implement every device
     """
 
-
     @abstractmethod
-    def __init__(self, inputs:Type[GenericSignal], outputs:Type[GenericSignal]):
-        self.inputs = inputs
-        self.outputs = outputs
+    def __init__(self, input_signals:Type[GenericSignal], output_signals:Type[GenericSignal]):
+        """
+        Initialization method
+        """
+        self.input_signals = input_signals
+        self.output_signals = output_signals
 
     @wait_input_compute
     @abstractmethod
@@ -37,12 +41,12 @@ class GenericDevice(ABC): # pylint: disable=too-few-public-methods
 
     @property
     @abstractmethod
-    def POWER_AVERAGE(cls):
+    def power_average(self):
         """Average Power Draw"""
-        raise NotImplementedError("POWER must be defined. It can be 0.")
+        raise NotImplementedError("power must be defined")
 
     @property
     @abstractmethod
-    def POWER_PEAK(cls):
+    def peak_power(self):
         """Peak Power Draw"""
-        raise NotImplementedError("POWER must be defined. It can be 0.")
+        raise NotImplementedError("peak_power must be defined.")
