@@ -40,6 +40,3 @@ In order to develop the framework:
    pip install -e .
    #+end_src
 
-Tell my coworker nicely that he should post his post on different slack channel
-
-You could say: "Hey there, I think your post might be more relevant in a different channel. Would you mind sharing it there instead?"
