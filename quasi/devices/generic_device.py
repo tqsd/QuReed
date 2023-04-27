@@ -2,9 +2,13 @@
 Generic Device definition
 """
 from abc import ABC, abstractmethod
-from typing import Type
+from typing import Dict
+from copy import deepcopy
+
 
 from quasi.signals.generic_signal import GenericSignal
+from quasi.devices.port import Port
+
 
 def wait_input_compute(method):
     """
@@ -12,8 +16,9 @@ def wait_input_compute(method):
     computed before computing outputs.
     """
     def wrapper(self, *args, **kwargs):
-        for input_signal in self.input_signals:
-            input_signal.wait_till_compute()
+        for port in self.ports:
+            if port.direction == "input":
+                port.signal.wait_till_compute()
         return method(self, *args, **kwargs)
     return wrapper
 
@@ -23,13 +28,40 @@ class GenericDevice(ABC): # pylint: disable=too-few-public-methods
     Generic Device class used to implement every device
     """
 
-    @abstractmethod
-    def __init__(self, input_signals:Type[GenericSignal], output_signals:Type[GenericSignal]):
+    def __init__(self):
         """
         Initialization method
         """
-        self.input_signals = input_signals
-        self.output_signals = output_signals
+        self.ports = deepcopy(self.__class__.ports)
+        for port in self.ports:
+            port.device = self
+
+
+    def register_signal(self, signal:GenericSignal,port_label:str,
+                        override:bool=False):
+        """
+        Register a signal to port
+        """
+        port = None
+        try:
+            port = self.ports[port_label]
+        except KeyError as exc:
+            raise NoPortException(f"Port with label {port_label} does not exist.") from exc
+
+        if not port.signal is None:
+            if not override:
+                raise PortConnectedException(
+                    "Signal was already registered for the port\n"+
+                    "If this is intended, set override to True")
+
+        if not (isinstance(signal, port.signal_type) or
+            issubclass(type(signal), port.signal_type)):
+            raise PortSignalMismatchException()
+
+        signal.register_port(port)
+        port.signal=signal
+
+
 
     @wait_input_compute
     @abstractmethod
@@ -38,6 +70,12 @@ class GenericDevice(ABC): # pylint: disable=too-few-public-methods
         Computes all outputs given the inputs.
         Output is computed when all of the input signal (COMPUTED is set)
         """
+
+    @property
+    @abstractmethod
+    def ports(self) -> Dict[str,Port]:
+        """Average Power Draw"""
+        raise NotImplementedError("power must be defined")
 
     @property
     @abstractmethod
@@ -50,3 +88,33 @@ class GenericDevice(ABC): # pylint: disable=too-few-public-methods
     def peak_power(self):
         """Peak Power Draw"""
         raise NotImplementedError("peak_power must be defined.")
+
+    @property
+    @abstractmethod
+    def reference(self):
+        """
+        Reference is used to compile references for specific
+        experiment.
+        """
+        raise NotImplementedError("Can be set to None")
+
+
+class NoPortException(Exception):
+    """
+    Raised when port, which should be accessed doesn't exist
+    """
+
+class PortConnectedException(Exception):
+    """
+    Raised when Signal is already registered for the port.
+    """
+
+class PortMissingAttributesException(Exception):
+    """
+    Raised when Attributes are not specified
+    """
+
+class PortSignalMismatchException(Exception):
+    """
+    Raised when signal doesn't match the port description
+    """

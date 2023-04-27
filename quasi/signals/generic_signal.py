@@ -1,17 +1,17 @@
 """
-Generic signal implementation,
+Generic Signal implementation,
 used for defining inputs and outputs
 """
-from abc import ABC, abstractmethod
+from abc import ABC
 from multiprocessing import Event
 
+from quasi.devices.port import Port
 
 class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
     """
     Generic Signal class used to implement any other signal class
     """
 
-    @abstractmethod
     def __init__(self):
         """
         Initialization method
@@ -29,3 +29,8 @@ class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
         Blocking call, waits until the signal is computed
         """
         self.computed.wait(timeout=timeout)
+
+    def register_port(self, port:Port):
+        """
+        Registers the port to the signal
+        """
