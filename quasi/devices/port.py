@@ -2,8 +2,13 @@
 Device port definitions
 """
 from __future__ import annotations
-from typing import Type, Literal
 from dataclasses import dataclass
+from typing import Type, Literal
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from quasi.devices.generic_device import GenericDevice
+    from quasi.signals.generic_signal import GenericSignal
+
 
 
 
