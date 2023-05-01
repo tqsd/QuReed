@@ -1,23 +1,27 @@
 #+title: Devices
 
-All device classes should inherit from generic device class.
-Generic device class specifies the following attributes:
- + ~ports~:
-   Expects a dictionary with ports, where port is an instance of ~Port~ class.
- + ~power_average~:
-   Average power usage; Can be set to 0 for passive devices.
- + ~power_peak~:
-   Peak power usage; Can be set to 0.
- + ~reference~:
-   Bib-styled reference of the model.
 
-~GenericDevice()~ class also specifies the following methods:
- + ~__input__(self)~
- + ~register_signal~:
-   Signals should be registered using this method.
-   It checks if the correct type of signal is registered for the port.
- + ~compute_outputs~:
-   Waits for input signals to be computed, before computing the outputs.
-   The decorator ~@wait_input_comput~ blocks ~compute_outputs~ until inputs
-   signals are computed.
-   *This method should be extended in the specific device class*
+* GenericDevice
+~GenericDevice(ABC)~ defined in [[.generic_device]] is an Abstract Base Class, which
+means that it cannot be used directly, but is used for extending. This is so to
+ensure the interoperability among different devices and signals.
+
+~GenericDevice(ABC)~ requires all of its children to have:
+  + *class* variable ~ports~ of dictionary type, where the key is the label and the
+    value is ~Port~ object implemented in [[./port.py]],
+  + *class* variable ~power_average~, specifying in type ~float~ the average power usage of device
+    in Watts (for passive devices can be set to 0),
+  + *class* variable ~power_peak~, specifying in type ~float~ the peak power draw of device
+    in Watts (for passive devices can be set to 0),
+  + *class* variable ~reference~, of type ~Reference~ implemented in
+    [[../extra/reference.py]]; if possible the device implementation should stem
+    form a published article; later simulations can compile list of the
+    references used in specific simulation,
+  + *method* ~compute_outputs(self)~, the method must be decorated with
+    ~@wait_input_compute~ and ~@ensure_output_compute~ decorators; The decorators
+    make sure that the computation only starts when the input Signals are
+    calculated and it raises an exception when the ~compute_outputs(self)~ method
+    finishes and doesn't set ~computed~ flag of the Signals on the output ports.
+
+** Beam Splitter
+We define a generic beam splitter to set the stage for the framework.
