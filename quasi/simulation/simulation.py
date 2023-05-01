@@ -1,6 +1,7 @@
 """
 Simulation Module
 """
+# pylint: skip-file
 
 
 class Simulation:

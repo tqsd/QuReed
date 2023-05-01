@@ -1,3 +1,5 @@
-#!/usr/bin/env python3
+"""
+Module __init__ file
+"""
 
 from .simulation import Simulation
