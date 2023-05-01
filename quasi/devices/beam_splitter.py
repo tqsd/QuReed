@@ -27,6 +27,8 @@ class BeamSplitter(GenericDevice):
                     url = {https://opg.optica.org/oe/abstract.cfm?URI=oe-29-8-11627},
                     doi = {10.1364/OE.421262},
                 }
+    inputHilbertSpaces = None
+    outputHilbertSpaces = None
     ports = {
         "A": Port(label="A", direction="input",signal=None,
                   signal_type=GenericQuantumSignal, device=None),
