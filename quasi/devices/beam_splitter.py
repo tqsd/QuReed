@@ -3,6 +3,7 @@ Beam Splitter
 """
 from quasi.devices.generic_device import GenericDevice
 from quasi.devices.generic_device import wait_input_compute
+from quasi.devices.generic_device import ensure_output_compute
 from quasi.devices.port import Port
 from quasi.signals import GenericQuantumSignal
 from quasi.extra import Reference
@@ -53,6 +54,7 @@ class BeamSplitter(GenericDevice):
                   signal_type=GenericQuantumSignal, device=None),
     }
 
+    @ensure_output_compute
     @wait_input_compute
     def compute_outpus(self):
         """
@@ -60,4 +62,6 @@ class BeamSplitter(GenericDevice):
         ---
         @wait_input_compute guarantees, that the signals at input ports
         are calculated.
+        @ensure_output_compute raises an exception if compute has finished,
+        but output signals compute flag was not set.
         """

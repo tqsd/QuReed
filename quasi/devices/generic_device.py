@@ -23,6 +23,16 @@ def wait_input_compute(method):
     return wrapper
 
 
+def ensure_output_compute(method):
+    """
+    Wrapper function, makes sure that the inputs are
+    computed before computing outputs.
+    TODO: write the logic
+    """
+    def wrapper(self, *args, **kwargs):
+        return method(self, *args, **kwargs)
+    return wrapper
+
 class GenericDevice(ABC): # pylint: disable=too-few-public-methods
     """
     Generic Device class used to implement every device
