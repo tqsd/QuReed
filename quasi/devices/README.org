@@ -2,7 +2,7 @@
 
 
 * GenericDevice
-~GenericDevice(ABC)~ defined in [[.generic_device]] is an Abstract Base Class, which
+~GenericDevice(ABC)~ defined in [[.generic_device.py]] is an Abstract Base Class, which
 means that it cannot be used directly, but is used for extending. This is so to
 ensure the interoperability among different devices and signals.
 
