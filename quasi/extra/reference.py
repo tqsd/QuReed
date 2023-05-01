@@ -31,7 +31,7 @@ class Reference:  # pylint: disable=too-few-public-methods
     Reference class, for recording references
     """
 
-    def __init__(self, doi:str|None=None, bib_dict=None):
+    def __init__(self, doi=None, bib_dict=None):
         """
         Initialization Method
         """
