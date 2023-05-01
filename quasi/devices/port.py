@@ -3,7 +3,7 @@ Device port definitions
 """
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Type, Literal
+from typing import Type, Literal, Optional
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from quasi.devices.generic_device import GenericDevice
@@ -19,7 +19,7 @@ class Port:
     """
     label: str
     direction: Literal["input", "output"]
-    signal: 'GenericSignal'
+    signal: Optional['GenericSignal']
     signal_type: Type['GenericSignal']
     device: 'GenericDevice'
 

@@ -2,9 +2,11 @@
 Beam Splitter
 """
 from quasi.devices.generic_device import GenericDevice
+from quasi.devices.generic_device import wait_input_compute
 from quasi.devices.port import Port
 from quasi.signals import GenericQuantumSignal
 from quasi.extra import Reference
+
 
 _BEAM_SPLITTER_BIB= {
     "author" : "Chunyu Deng and Mengjia Lu and Yu Sun and Lei Huang and"\
@@ -50,3 +52,12 @@ class BeamSplitter(GenericDevice):
         "D": Port(label="D", direction="output",signal=None,
                   signal_type=GenericQuantumSignal, device=None),
     }
+
+    @wait_input_compute
+    def compute_outpus(self):
+        """
+        Here the output signals should be computed.
+        ---
+        @wait_input_compute guarantees, that the signals at input ports
+        are calculated.
+        """
