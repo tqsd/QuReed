@@ -1,5 +1,5 @@
 from abc import ABC
-from quasi._math.fock import displacment, beamsplitter, phase
+from quasi._math.fock import displacment, beamsplitter, phase, squeezing
 
 
 class Components(ABC):
@@ -34,6 +34,17 @@ class Displacment(Components):
 
     def get_operator(self):
         return displacment(self.r, self.phi, self.cutoff)
+
+
+class Squeezing(Components):
+    def __init__(self, r, phi, cutoff) -> None:
+        self.theta = r
+        self.phi = phi
+        self.cutoff = cutoff
+        super().__init__()
+
+    def get_operator(self):
+        return squeezing(self.r, self.phi, self.cutoff)
 
 
 class Phase(Components):

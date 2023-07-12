@@ -2,7 +2,6 @@ import numpy as np
 from numba import njit
 from scipy.special import factorial
 
-
 r"""
 The functions implemented here is derived from this paper:
 https://arxiv.org/pdf/2004.11002.pdfs
@@ -128,3 +127,27 @@ def mean_photon_number(state):
     probabilities = np.diagonal(dm)
     n = np.arange(len(state))
     return np.sum(n * probabilities).real
+
+
+@njit
+def squeezing(r, theta, cutoff):
+
+    S = np.zeros((cutoff, cutoff), dtype=np.complex128)
+
+    sqrt_values = np.sqrt(np.arange(cutoff, dtype=np.complex128))
+    sech_r = 1.0 / np.cosh(r)
+    tanh_r_complex = np.exp(1j * theta) * np.tanh(r)
+
+    S[0, 0] = sech_r**0.5
+
+    for m in range(2, cutoff, 2):
+        S[m, 0] = sqrt_values[m - 1] / sqrt_values[m] * -tanh_r_complex * S[m - 2, 0]
+
+    for m in range(0, cutoff):
+        for n in range(1, cutoff):
+            if (m + n) % 2 == 0:
+                S[m, n] = (1 / sqrt_values[n]) * (
+                    sqrt_values[m] * sech_r * S[m - 1, n - 1]
+                    + sqrt_values[n - 1] * tanh_r_complex.conj() * S[m, n - 2]
+                )
+    return S

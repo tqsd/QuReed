@@ -1,1 +1,1 @@
-from .gates import Beamsplitter, Displacment, Phase
+from .gates import Beamsplitter, Displacment, Phase, Squeezing

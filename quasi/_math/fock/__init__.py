@@ -8,4 +8,5 @@ from .ops import (
     a,
     mean_photon_number,
     fock_probability,
+    squeezing,
 )
