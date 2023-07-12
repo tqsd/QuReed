@@ -6,6 +6,7 @@ Simulation Module
 
 class Simulation:
     """Singleton object"""
+
     __instance = None
 
     @staticmethod
@@ -16,7 +17,6 @@ class Simulation:
         if Simulation.__instance is None:
             Simulation()
         return Simulation.__instance
-
 
     def __init__(self):
         """
