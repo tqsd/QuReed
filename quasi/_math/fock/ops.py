@@ -151,3 +151,10 @@ def squeezing(r, theta, cutoff):
                     + sqrt_values[n - 1] * tanh_r_complex.conj() * S[m, n - 2]
                 )
     return S
+
+
+@njit
+def kerr(k, cutoff):
+    n = np.arange(cutoff)
+    ret = np.diag(np.exp(1j * k * n**2))
+    return ret
