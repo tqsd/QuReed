@@ -158,3 +158,18 @@ def kerr(k, cutoff):
     n = np.arange(cutoff)
     ret = np.diag(np.exp(1j * k * n**2))
     return ret
+
+
+@njit
+def calculate_fidelity(state_1, state_2):
+
+    if state_1.ndim == 2 and state_2.ndim == 2:
+        return np.abs(np.sum(np.sqrt(np.linalg.eigvals(state_1 @ state_2)))) ** 2
+
+    elif state_1.ndim == 1 and state_2.ndim == 2:
+        return (state_1.conj() @ state_2 @ state_1).real
+
+    elif state_1.ndim == 1 and state_2.ndim == 1:
+        return np.abs(np.dot(state_1.conj(), state_2)) ** 2
+    else:
+        return (state_2.conj() @ state_1 @ state_2).real
