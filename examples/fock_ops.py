@@ -7,8 +7,11 @@ qumode = 1
 cutoff = 10
 init_state = vacuum_state(n=qumode, cutoff=cutoff)
 
-user_defined_component = Components(cutoff=cutoff)
+doi = "https://doi.org/10.1088/1742-6596/1612/1/012015"
+user_defined_component = Components(cutoff=cutoff, doi=doi)
+
 user_defined_component.matrix = np.identity(n=10)
+bibtex_file = user_defined_component.generate_bibtex(doi)
 
 displacement_operator = Displacment(1, 0.5, cutoff=10).matrix
 
