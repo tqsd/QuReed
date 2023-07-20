@@ -1,5 +1,5 @@
 from .fock.ops import (
-    displacment,
+    displacement,
     phase,
     mean_photon_number,
     squeezing,

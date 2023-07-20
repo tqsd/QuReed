@@ -24,7 +24,7 @@ def adagger(cutoff):
     r"""
     The creation operator :math:`a^\dagger`
     """
-    return a(cutoff).conj().T
+    return np.conjugate(a(cutoff)).T
 
 
 @njit
@@ -95,24 +95,31 @@ def coherent_state(r, phi, cutoff):
 
 
 @njit
-def displacment(
-    r,
-    phi,
-    cutoff,
-):
+def displacement(r, phi, cutoff, dtype=np.complex128):
+    r"""Calculates the matrix elements of the displacement gate using a recurrence
+    relation.
 
-    sqrt_values = np.sqrt(np.arange(cutoff, dtype=np.complex128))
-    alpha = r * np.exp(1j * phi)
-    D = np.zeros((cutoff, cutoff), dtype=np.complex128)
-    D[0, 0] = np.exp(-(r**2) / 2)  # equation 56
+    Args:
+        r (float): displacement magnitude
+        phi (float): displacement angle
+        cutoff (int): Fock ladder cutoff
+        dtype (data type): Specifies the data type used for the calculation
 
-    for row in range(1, cutoff):  # equation 57
-        D[row, 0] = alpha / sqrt_values[row] * D[row - 1, 0]
+    Returns:
+        array[complex]: matrix representing the displacement operation.
+    """
+    D = np.zeros((cutoff, cutoff), dtype=dtype)
+    sqrt = np.sqrt(np.arange(cutoff, dtype=dtype))
+    mu = np.array([r * np.exp(1j * phi), -r * np.exp(-1j * phi)])
 
-    for row in range(cutoff):  # equation 58
-        for col in range(1, cutoff):
-            D[row, col] = (-np.conj(alpha) / sqrt_values[col] * D[row, col - 1]) + (
-                sqrt_values[row] / sqrt_values[col] * D[row - 1, col - 1]
+    D[0, 0] = np.exp(-0.5 * r**2)
+    for m in range(1, cutoff):
+        D[m, 0] = mu[0] / sqrt[m] * D[m - 1, 0]
+
+    for m in range(cutoff):
+        for n in range(1, cutoff):
+            D[m, n] = (
+                mu[1] / sqrt[n] * D[m, n - 1] + sqrt[m] / sqrt[n] * D[m - 1, n - 1]
             )
 
     return D
@@ -123,32 +130,48 @@ def fock_probability(n, state):
 
 
 def mean_photon_number(state):
-    dm = np.outer(state, state.conj())
+    dm = np.outer(state, np.conjugate(state))
     probabilities = np.diagonal(dm)
     n = np.arange(len(state))
     return np.sum(n * probabilities).real
 
 
 @njit
-def squeezing(r, theta, cutoff):
+def squeezing(r, phi, cutoff, dtype=np.complex128):
+    r"""Calculates the matrix elements of the squeezing gate using a recurrence
+    relation.
 
-    S = np.zeros((cutoff, cutoff), dtype=np.complex128)
+    Args:
+        r (float): squeezing magnitude
+        phi (float): squeezing angle
+        cutoff (int): Fock ladder cutoff
+        dtype (data type): Specifies the data type used for the calculation
 
-    sqrt_values = np.sqrt(np.arange(cutoff, dtype=np.complex128))
-    sech_r = 1.0 / np.cosh(r)
-    tanh_r_complex = np.exp(1j * theta) * np.tanh(r)
+    Returns:
+        array[complex]: matrix representing the squeezing gate.
+    """
+    S = np.zeros((cutoff, cutoff), dtype=dtype)
+    sqrt = np.sqrt(np.arange(cutoff, dtype=dtype))
 
-    S[0, 0] = sech_r**0.5
+    eitheta_tanhr = np.exp(1j * phi) * np.tanh(r)
+    sechr = 1.0 / np.cosh(r)
+    R = np.array(
+        [
+            [-eitheta_tanhr, sechr],
+            [sechr, np.conj(eitheta_tanhr)],
+        ]
+    )
 
+    S[0, 0] = np.sqrt(sechr)
     for m in range(2, cutoff, 2):
-        S[m, 0] = sqrt_values[m - 1] / sqrt_values[m] * -tanh_r_complex * S[m - 2, 0]
+        S[m, 0] = sqrt[m - 1] / sqrt[m] * R[0, 0] * S[m - 2, 0]
 
     for m in range(0, cutoff):
         for n in range(1, cutoff):
             if (m + n) % 2 == 0:
-                S[m, n] = (1 / sqrt_values[n]) * (
-                    sqrt_values[m] * sech_r * S[m - 1, n - 1]
-                    + sqrt_values[n - 1] * tanh_r_complex.conj() * S[m, n - 2]
+                S[m, n] = (
+                    sqrt[n - 1] / sqrt[n] * R[1, 1] * S[m, n - 2]
+                    + sqrt[m] / sqrt[n] * R[0, 1] * S[m - 1, n - 1]
                 )
     return S
 
@@ -167,9 +190,9 @@ def calculate_fidelity(state_1, state_2):
         return np.abs(np.sum(np.sqrt(np.linalg.eigvals(state_1 @ state_2)))) ** 2
 
     elif state_1.ndim == 1 and state_2.ndim == 2:
-        return (state_1.conj() @ state_2 @ state_1).real
+        return (np.conjugate(state_1) @ state_2 @ state_1).real
 
     elif state_1.ndim == 1 and state_2.ndim == 1:
-        return np.abs(np.dot(state_1.conj(), state_2)) ** 2
+        return np.abs(np.dot(np.conjugate(state_1), state_2)) ** 2
     else:
-        return (state_2.conj() @ state_1 @ state_2).real
+        return (np.conjugate(state_2) @ state_1 @ state_2).real

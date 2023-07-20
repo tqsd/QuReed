@@ -1,5 +1,5 @@
 from .ops import (
-    displacment,
+    displacement,
     beamsplitter,
     phase,
     vacuum_state,

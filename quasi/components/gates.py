@@ -3,7 +3,7 @@ from builtins import str
 import requests
 
 from abc import ABC
-from quasi._math.fock import displacment, beamsplitter, phase, squeezing
+from quasi._math.fock import displacement, beamsplitter, phase, squeezing
 
 
 class Components(ABC):
@@ -16,7 +16,7 @@ class Components(ABC):
 
     def __init__(
         self,
-        cutoff: int,
+        cutoff: int = None,
         physical_description: dict = None,
         math_eqation: str = None,
         doi: str = None,
@@ -26,14 +26,15 @@ class Components(ABC):
         self.physical_description = physical_description
         self.math_equation = math_eqation
         self.doi = doi
+        self.author_name = author_name
         self.matrix = None
         self.author_name = None
 
-    def physical_properties(self, physical_description):
-        self.frequency = physical_description["frequency"]
-        self.gaussian = physical_description["gaussianity"]
-        self.passive = physical_description["passive"]
-        self.name = physical_description["name"]
+    def physical_properties(self):
+        self.frequency = self.physical_description["frequency"]
+        self.gaussian = self.physical_description["gaussianity"]
+        self.passive = self.physical_description["passive"]
+        self.name = self.physical_description["name"]
         """
         many parameters to set here
 
@@ -68,12 +69,15 @@ class Beamsplitter(Components):
         physical_description: dict = None,
         math_eqation: str = None,
         doi: str = None,
+        author_name: str = None,
     ) -> None:
         self.theta = theta
+        self.doi = doi
         self.phi = phi
         self.cutoff = cutoff
-        self.matrix = None
-        super().__init__()
+        self.math_equation = math_eqation
+        self.matrix = self.get_operator(self.math_equation)
+        self.author_name = author_name
 
     def get_operator(self, math_equation):
         if math_equation is None:
@@ -81,8 +85,8 @@ class Beamsplitter(Components):
         else:
             raise NotImplementedError
 
-    def generate_bibtex(self, doi):
-        return super().generate_bibtex(doi)
+    def generate_bibtex(self):
+        return super().generate_bibtex(self.doi)
 
 
 class Displacment(Components):
@@ -94,21 +98,25 @@ class Displacment(Components):
         physical_description: dict = None,
         math_eqation: str = None,
         doi: str = None,
+        author_name: str = None,
     ) -> None:
-        self.theta = r
+        self.r = r
+        self.doi = doi
+        self.author_name = author_name
         self.phi = phi
         self.cutoff = cutoff
-        self.matrix
-        super().__init__()
+        self.math_equation = math_eqation
+        self.matrix = self.get_operator()
+        self.author_name = author_name
 
-    def get_operator(self, math_equation):
-        if math_equation is None:
-            self.matrix = displacment(self.theta, self.phi, self.cutoff)
+    def get_operator(self):
+        if self.math_equation is None:
+            return displacement(self.r, self.phi, self.cutoff)
         else:
             raise NotImplementedError
 
-    def generate_bibtex(self, doi):
-        return super().generate_bibtex(doi)
+    def generate_bibtex(self):
+        return super().generate_bibtex(self.doi)
 
 
 class Squeezing(Components):
@@ -120,20 +128,25 @@ class Squeezing(Components):
         physical_description: dict = None,
         math_eqation: str = None,
         doi: str = None,
+        author_name: str = None,
     ) -> None:
-        self.theta = r
+        self.r = r
         self.phi = phi
+        self.doi = doi
+        self.author_name = author_name
         self.cutoff = cutoff
-        super().__init__()
+        self.math_equation = math_eqation
+        self.matrix = self.get_operator()
+        self.physical_description = physical_description
 
-    def get_operator(self, math_equation):
-        if math_equation is None:
-            self.matrix = squeezing(self.theta, self.phi, self.cutoff)
+    def get_operator(self):
+        if self.math_equation is None:
+            return squeezing(self.r, self.phi, self.cutoff)
         else:
             raise NotImplementedError
 
-    def generate_bibtex(self, doi):
-        return super().generate_bibtex(doi)
+    def generate_bibtex(self):
+        return super().generate_bibtex(self.doi)
 
 
 class Phase(Components):
@@ -144,17 +157,20 @@ class Phase(Components):
         physical_description: dict = None,
         math_eqation: str = None,
         doi: str = None,
+        author_name: str = None,
     ) -> None:
         self.phi = phi
+        self.doi = doi
+        self.author_name = author_name
         self.cutoff = cutoff
-        self.matrix = None
-        super().__init__()
+        self.math_equation = math_eqation
+        self.matrix = self.get_operator(self.math_equation)
 
-    def get_operator(self, math_equation):
-        if math_equation is None:
+    def get_operator(self):
+        if self.math_equation is None:
             self.matrix = phase(self.theta, self.phi, self.cutoff)
         else:
             raise NotImplementedError
 
-    def generate_bibtex(self, doi):
-        return super().generate_bibtex(doi)
+    def generate_bibtex(self):
+        return super().generate_bibtex(self.doi)
