@@ -2,6 +2,7 @@
 Simulation Module
 """
 # pylint: skip-file
+from enum import Enum, auto
 import uuid
 from threading import Thread
 
@@ -27,6 +28,12 @@ class DeviceInformation:
     @property
     def device_type(self):
         return self.obj_ref.__class__.__name__
+
+
+class SimulationType:
+    FOCK = auto()
+    MIXED = auto()
+    
 
 class Simulation:
     """Singleton object"""
@@ -56,6 +63,7 @@ class Simulation:
             Simulation.__instance = self
             self.devices = []
             self.initial_trigger_devices = []
+            self.simulation_type = SimulationType.FOCK
         else:
             raise Exception("Simulation is a singleton class")
 
@@ -66,6 +74,11 @@ class Simulation:
         """
         self.devices.append(device_information)
 
+    def set_simulation_type(self, simulation_type:SimulationType):
+        self.simulation_type = simulation_type
+
+    def get_dimensiosn(self):
+        return self.simulation_type
 
     @classmethod
     def set_dimensions(cls, dimensions):
@@ -76,10 +89,8 @@ class Simulation:
         return cls.dimensions
 
     def run(self):
-        print("Triggering the devices")
         for d in self.initial_trigger_devices:
             d = d.obj_ref
-            print(d.name)
             sig = d.ports["TRIGGER"].signal
             sig.set_contents = True
             sig.set_computed()
@@ -107,8 +118,6 @@ class Simulation:
                 self.initial_trigger_devices.append(d)
 
 
-
-
     def list_devices(self):
         self._list_devices(self.devices, "DEVICES")
 
@@ -125,6 +134,7 @@ class Simulation:
         u = 36
         total_top =0
         total_bot = 11 + n + t + u - 4
+        title = " "+title+" "
         print("╭─"+ title.center(total_bot, "─") +"─╮")
         print(f"│- {'NAME'.center(n, ' ')} - {'TYPE'.center(t, ' ')} - {'UUID'.center(u, ' ')} │")
         print("├─"+"─"*total_bot+"─┤")

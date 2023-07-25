@@ -8,6 +8,7 @@ from quasi.devices.port import Port
 from quasi.extra import Reference
 from quasi.signals import GenericQuantumSignal
 from quasi.signals import GenericBoolSignal
+from quasi.simulation import Simulation, SimulationType
 
 
 _SINGLE_PHOTON_SOURCE_BIB = {
@@ -37,13 +38,19 @@ class IdealSinglePhotonSource(GenericDevice):
     def __init__(self, wavelength=1550, name=None):
         super().__init__(name)
         self.wavelength = wavelength
+        self.simulation = Simulation.get_instance()
 
     @ensure_output_compute
     @wait_input_compute
     def compute_outputs(self):
         """
-        Waits for the input singlas to be computed
-        and then the outputs are computed by this method
+        Method router
+          Based on the simulation type and received signal we
+          select the method which computes the outputs 
         """
-        print("Generating a Photon")
-    
+        # ROUTERS NEED TO BE IMPLEMENTED
+        if self.simulation.simulation_type == SimulationType.FOCK:
+            self.fock()
+
+    def fock(self):
+        pass

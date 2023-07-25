@@ -37,3 +37,5 @@ class IdealFiber(GenericDevice):
         Waits for the input singlas to be computed
         and then the outputs are computed by this method
         """
+        print("FIBER RECEIVED SOMETHING")
+        self.ports["OUT"].signal.set_computed()
