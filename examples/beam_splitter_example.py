@@ -35,6 +35,9 @@ fib2 = Fiber(name="FIB2", length=10)
 fib3 = Fiber(name="FIB3", length=10)
 fib4 = Fiber(name="FIB4", length=10)
 
+# Prints a table of devices, registered with the simulation
+# Each object instance registers itself with simulation with
+# Initiation method
 Sim.list_devices()
 
 """       ╭────────────────────╮ 
