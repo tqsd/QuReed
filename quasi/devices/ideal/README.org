@@ -1,0 +1,6 @@
+#+TITLE: Ideal Devices
+
+This directory contains the devices implemented to act as an idealized versions.
+
+
+* Beam Splitter
