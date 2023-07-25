@@ -3,6 +3,8 @@ Simulation Module
 """
 # pylint: skip-file
 import uuid
+from threading import Thread
+
 from dataclasses import dataclass
 from quasi.signals.generic_bool_signal import GenericBoolSignal
 
@@ -53,6 +55,7 @@ class Simulation:
         if Simulation.__instance is None:
             Simulation.__instance = self
             self.devices = []
+            self.initial_trigger_devices = []
         else:
             raise Exception("Simulation is a singleton class")
 
@@ -73,7 +76,22 @@ class Simulation:
         return cls.dimensions
 
     def run(self):
-        print("RUNNING SIMULATION")
+        print("Triggering the devices")
+        for d in self.initial_trigger_devices:
+            d = d.obj_ref
+            print(d.name)
+            sig = d.ports["TRIGGER"].signal
+            sig.set_contents = True
+            sig.set_computed()
+        processes = []
+        for d in self.devices:
+            p = Thread(target=d.obj_ref.compute_outputs, args=())
+            processes.append(p)
+        for p in processes:
+            p.start()
+        for p in processes:
+            p.join()
+
 
 
     def register_triggers(self, *devices):
@@ -84,15 +102,22 @@ class Simulation:
         for d in devices:
             sig = GenericBoolSignal()
             d.register_signal(signal=sig, port_label="TRIGGER")
-            sig.contents = True
-            sig.set_computed()
+            d = [x for x in self.devices if x.obj_ref == d][0]
+            if not d in self.initial_trigger_devices:
+                self.initial_trigger_devices.append(d)
 
 
 
 
     def list_devices(self):
+        self._list_devices(self.devices, "DEVICES")
+
+    def list_triggered_devices(self):
+        self._list_devices(self.initial_trigger_devices, "TRIGGERED DEVICES")
+
+    def _list_devices(self, devices, title):
         """
-        Prints a table of devices registered with the simulation object
+        List a table of given device list with title
         """
         n = 10
         d = 10
@@ -100,9 +125,9 @@ class Simulation:
         u = 36
         total_top =0
         total_bot = 11 + n + t + u - 4
-        print("╭─"+ "DEVICES".center(total_bot, "─") +"─╮")
+        print("╭─"+ title.center(total_bot, "─") +"─╮")
         print(f"│- {'NAME'.center(n, ' ')} - {'TYPE'.center(t, ' ')} - {'UUID'.center(u, ' ')} │")
         print("├─"+"─"*total_bot+"─┤")
-        for d in self.devices:
+        for d in devices:
             print(f"├─ {str(d.name).ljust(n)} : {str(d.device_type).ljust(t)} : {str(d.uuid).ljust(u)} │")
         print("╰─"+"─"*total_bot+"─╯")

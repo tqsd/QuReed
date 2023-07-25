@@ -44,6 +44,8 @@ Sim.list_devices()
 """       ╭────────────────────╮ 
           │  EXPERIMENT SETUP  │
           ╰────────────────────╯
+We should create a utility where the devices and connections
+can be set up using yaml language
 """
 
 # Connect the devices, through signals
@@ -82,10 +84,10 @@ spd2.register_signal(signal=sig8, port_label="IN")
 # Registers which devices should be triggered when
 # simulation starts
 Sim.register_triggers(sps1,sps2)
-
+Sim.list_triggered_devices()
 """       ╭────────────────────╮ 
           │   RUN SIMULATION   │
           ╰────────────────────╯
 """
-
+Sim.set_dimensions(50)
 Sim.run()

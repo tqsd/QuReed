@@ -15,7 +15,8 @@ def wait_input_compute(method):
     computed before computing outputs.
     """
     def wrapper(self, *args, **kwargs):
-        for port in self.ports:
+        for port in self.ports.keys():
+            port = self.ports[port]
             if port.direction == "input":
                 port.signal.wait_till_compute()
         return method(self, *args, **kwargs)
@@ -43,6 +44,7 @@ class GenericDevice(ABC): # pylint: disable=too-few-public-methods
         """
         Initialization method
         """
+        self.name = name
         self.ports = deepcopy(self.__class__.ports)
         for port in self.ports.keys():
             self.ports[port].device = self
@@ -87,6 +89,7 @@ class GenericDevice(ABC): # pylint: disable=too-few-public-methods
         Computes all outputs given the inputs.
         Output is computed when all of the input signal (COMPUTED is set)
         """
+
 
     @property
     @abstractmethod

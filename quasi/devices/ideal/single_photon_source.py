@@ -45,4 +45,5 @@ class IdealSinglePhotonSource(GenericDevice):
         Waits for the input singlas to be computed
         and then the outputs are computed by this method
         """
-        pass
+        print("Generating a Photon")
+    

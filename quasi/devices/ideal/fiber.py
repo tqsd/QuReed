@@ -37,4 +37,3 @@ class IdealFiber(GenericDevice):
         Waits for the input singlas to be computed
         and then the outputs are computed by this method
         """
-        pass
