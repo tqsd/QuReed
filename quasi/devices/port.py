@@ -12,6 +12,12 @@ if TYPE_CHECKING:
 
 
 
+def connect_ports(source:Port, destination:Port):
+    """
+    Function for connecting ports
+    """
+    pass
+
 @dataclass
 class Port:
     """

@@ -1,0 +1,9 @@
+#+TITLE: Ideal Devices
+
+This directory contains the devices implemented to act as an idealized versions.
+They can be used for simulation of experiment using ideal components, for
+comparison or for as a guiding tool for implementation of other non-perfect devices.
+
+* Fiber
+* Beam Splitter
+* Single Photon Source

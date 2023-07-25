@@ -3,9 +3,8 @@ Generic Signal implementation,
 used for defining inputs and outputs
 """
 from abc import ABC
-from multiprocessing import Event
+from threading import Event
 
-from quasi.devices.port import Port
 
 class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
     """
@@ -24,13 +23,13 @@ class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
         """
         self.computed.set()
 
-    def wait_till_compute(self, timeout=-1):
+    def wait_till_compute(self, timeout=None):
         """
         Blocking call, waits until the signal is computed
         """
-        self.computed.wait(timeout=timeout)
+        self.computed.wait(timeout)
 
-    def register_port(self, port:Port):
+    def register_port(self, port):
         """
         Registers the port to the signal
         """

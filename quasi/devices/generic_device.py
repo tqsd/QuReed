@@ -1,13 +1,12 @@
 """
 Generic Device definition
 """
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Dict
 from copy import deepcopy
 
-
-from quasi.signals.generic_signal import GenericSignal
-from quasi.devices.port import Port
+from quasi.simulation import Simulation, DeviceInformation
 
 
 def wait_input_compute(method):
@@ -16,7 +15,8 @@ def wait_input_compute(method):
     computed before computing outputs.
     """
     def wrapper(self, *args, **kwargs):
-        for port in self.ports:
+        for port in self.ports.keys():
+            port = self.ports[port]
             if port.direction == "input":
                 port.signal.wait_till_compute()
         return method(self, *args, **kwargs)
@@ -33,21 +33,30 @@ def ensure_output_compute(method):
         return method(self, *args, **kwargs)
     return wrapper
 
+    
+
 class GenericDevice(ABC): # pylint: disable=too-few-public-methods
     """
     Generic Device class used to implement every device
     """
 
-    def __init__(self):
+    def __init__(self, name=None):
         """
         Initialization method
         """
+        self.name = name
         self.ports = deepcopy(self.__class__.ports)
-        for port in self.ports:
-            port.device = self
+        for port in self.ports.keys():
+            self.ports[port].device = self
+
+        # Regitering the device to the simulation
+        simulation = Simulation.get_instance()
+        ref = DeviceInformation(name,self)
+        simulation.register_device(ref)
+        
 
 
-    def register_signal(self, signal:GenericSignal,port_label:str,
+    def register_signal(self, signal,port_label:str,
                         override:bool=False):
         """
         Register a signal to port
@@ -81,9 +90,10 @@ class GenericDevice(ABC): # pylint: disable=too-few-public-methods
         Output is computed when all of the input signal (COMPUTED is set)
         """
 
+
     @property
     @abstractmethod
-    def ports(self) -> Dict[str,Port]:
+    def ports(self):
         """Average Power Draw"""
         raise NotImplementedError("power must be defined")
 
