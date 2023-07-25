@@ -1,12 +1,11 @@
 """
 Generic Device definition
 """
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Dict
 from copy import deepcopy
 
-from quasi.signals.generic_signal import GenericSignal
-from quasi.devices.port import Port
 from quasi.simulation import Simulation, DeviceInformation
 
 
@@ -55,7 +54,7 @@ class GenericDevice(ABC): # pylint: disable=too-few-public-methods
         
 
 
-    def register_signal(self, signal:GenericSignal,port_label:str,
+    def register_signal(self, signal,port_label:str,
                         override:bool=False):
         """
         Register a signal to port
@@ -91,7 +90,7 @@ class GenericDevice(ABC): # pylint: disable=too-few-public-methods
 
     @property
     @abstractmethod
-    def ports(self) -> Dict[str,Port]:
+    def ports(self):
         """Average Power Draw"""
         raise NotImplementedError("power must be defined")
 

@@ -7,6 +7,7 @@ from quasi.devices.generic_device import ensure_output_compute
 from quasi.devices.port import Port
 from quasi.extra import Reference
 from quasi.signals import GenericQuantumSignal
+from quasi.signals import GenericBoolSignal
 
 
 _SINGLE_PHOTON_SOURCE_BIB = {
@@ -23,6 +24,8 @@ class IdealSinglePhotonSource(GenericDevice):
     Ideal Single Photon Emitter
     """
     ports = {
+        "TRIGGER": Port(label="A", direction="input",signal=None,
+                  signal_type=GenericBoolSignal, device=None),
         "OUT": Port(label="A", direction="output",signal=None,
                   signal_type=GenericQuantumSignal, device=None),
     }

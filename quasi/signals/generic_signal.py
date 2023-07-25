@@ -5,7 +5,6 @@ used for defining inputs and outputs
 from abc import ABC
 from multiprocessing import Event
 
-from quasi.devices.port import Port
 
 class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
     """
@@ -30,7 +29,7 @@ class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
         """
         self.computed.wait(timeout=timeout)
 
-    def register_port(self, port:Port):
+    def register_port(self, port):
         """
         Registers the port to the signal
         """

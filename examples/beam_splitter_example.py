@@ -8,6 +8,7 @@ from quasi.devices.ideal import SinglePhotonSource
 from quasi.devices.ideal import SinglePhotonDetector
 from quasi.devices.ideal import Fiber
 from quasi.devices import connect_ports
+from quasi.signals import GenericQuantumSignal
 
 Sim = Simulation()
 
@@ -45,16 +46,42 @@ Sim.list_devices()
           ╰────────────────────╯
 """
 
-# Connect the devices
-connect_ports(sps1.ports["OUT"],fib1.ports["IN"])
-connect_ports(sps2.ports["OUT"],fib2.ports["IN"])
-connect_ports(fib1.ports["OUT"],bs.ports["A"])
-connect_ports(fib2.ports["OUT"],bs.ports["B"])
-connect_ports(bs.ports["C"],fib3.ports["IN"])
-connect_ports(bs.ports["D"],fib4.ports["IN"])
-connect_ports(fib3.ports["IN"],spd1.ports["IN"])
-connect_ports(fib4.ports["IN"],spd2.ports["IN"])
+# Connect the devices, through signals
+sig1 = GenericQuantumSignal()
+sps1.register_signal(signal=sig1, port_label="OUT")
+fib1.register_signal(signal=sig1, port_label="IN")
 
+sig2 = GenericQuantumSignal()
+sps2.register_signal(signal=sig2, port_label="OUT")
+fib2.register_signal(signal=sig2, port_label="IN")
+
+sig3 = GenericQuantumSignal()
+fib1.register_signal(signal=sig3, port_label="OUT")
+bs.register_signal(signal=sig3, port_label="A")
+
+sig4 = GenericQuantumSignal()
+fib2.register_signal(signal=sig4, port_label="OUT")
+bs.register_signal(signal=sig4, port_label="B")
+
+sig5 = GenericQuantumSignal()
+bs.register_signal(signal=sig5, port_label="C")
+fib3.register_signal(signal=sig5, port_label="IN")
+
+sig6 = GenericQuantumSignal()
+bs.register_signal(signal=sig6, port_label="D")
+fib4.register_signal(signal=sig6, port_label="IN")
+
+sig7 = GenericQuantumSignal()
+fib3.register_signal(signal=sig7, port_label="OUT")
+spd1.register_signal(signal=sig7, port_label="IN")
+
+sig8 = GenericQuantumSignal()
+fib4.register_signal(signal=sig8, port_label="OUT")
+spd2.register_signal(signal=sig8, port_label="IN")
+
+# Registers which devices should be triggered when
+# simulation starts
+Sim.register_triggers(sps1,sps2)
 
 """       ╭────────────────────╮ 
           │   RUN SIMULATION   │

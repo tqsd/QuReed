@@ -4,6 +4,7 @@ Simulation Module
 # pylint: skip-file
 import uuid
 from dataclasses import dataclass
+from quasi.signals.generic_bool_signal import GenericBoolSignal
 
 @dataclass
 class DeviceInformation:
@@ -70,6 +71,23 @@ class Simulation:
     @classmethod
     def get_dimensiosn(cls, dimensions):
         return cls.dimensions
+
+    def run(self):
+        print("RUNNING SIMULATION")
+
+
+    def register_triggers(self, *devices):
+        """
+        Given devices will be triggered in when
+        simulation starts using classical signals
+        """
+        for d in devices:
+            sig = GenericBoolSignal()
+            d.register_signal(signal=sig, port_label="TRIGGER")
+            sig.contents = True
+            sig.set_computed()
+
+
 
 
     def list_devices(self):
