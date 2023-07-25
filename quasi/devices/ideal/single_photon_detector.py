@@ -1,32 +1,29 @@
 """
-Ideal Fiber
+Ideal Single Photon Source
 """
-
 from quasi.devices.generic_device import GenericDevice
 from quasi.devices.generic_device import wait_input_compute
 from quasi.devices.generic_device import ensure_output_compute
+from quasi.devices.port import Port
 from quasi.extra import Reference
 from quasi.signals import GenericQuantumSignal
-from quasi.devices.port import Port
 
 
 
-class IdealFiber(GenericDevice):
+class IdealSinglePhotonDetector(GenericDevice):
     """
-    Ideal Beam Fiber Device
-    Just transferrs the inputs to the outputs
+    Ideal Single Photon Emitter
     """
-    power_average = 0
-    power_peak = 0
-    reference = None
     ports = {
-        "IN": Port(label="B", direction="input",signal=None,
-                  signal_type=GenericQuantumSignal, device=None),
-        "OUT": Port(label="D", direction="output",signal=None,
+        "IN": Port(label="D", direction="input",signal=None,
                   signal_type=GenericQuantumSignal, device=None),
     }
+    
+    reference = None
+    power_average = 1
+    power_peak = 1
 
-    def __init__(self, length ,  wavelength=1550, name=None):
+    def __init__(self, wavelength=1550, name=None):
         super().__init__(name)
         self.wavelength = wavelength
 

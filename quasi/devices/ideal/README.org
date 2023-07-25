@@ -6,4 +6,4 @@ comparison or for as a guiding tool for implementation of other non-perfect devi
 
 * Fiber
 * Beam Splitter
-* Single Photon Emitter
+* Single Photon Source

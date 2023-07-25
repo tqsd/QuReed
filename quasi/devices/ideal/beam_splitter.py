@@ -5,6 +5,7 @@ Ideal Beam Splitter
 from quasi.devices.generic_device import GenericDevice
 from quasi.devices.generic_device import wait_input_compute
 from quasi.devices.generic_device import ensure_output_compute
+from quasi.devices.port import Port
 from quasi.extra import Reference
 from quasi.signals import GenericQuantumSignal
 
@@ -17,18 +18,19 @@ _BEAM_SPLITTER_BIB = {
   "number":6,
   "pages":"485--490",
   "year":1987,
-  "publisher"="Elsevier"
+  "publisher":"Elsevier"
 }
 
-_BEAM_SPLITTER_DOI = "https://doi.org/10.1016/0030-4018(87)90275-6"
+_BEAM_SPLITTER_DOI = "10.1016/0030-4018(87)90275-6"
 
 
 
-class BeamSplitter(GenericDevice):
+class IdealBeamSplitter(GenericDevice):
     """
     Ideal Beam Splitter Device
     """
-
+    power_average = 0
+    power_peak = 0
     reference = Reference(doi=_BEAM_SPLITTER_DOI, bib_dict=_BEAM_SPLITTER_BIB)
 
     ports = {
@@ -49,3 +51,4 @@ class BeamSplitter(GenericDevice):
         Waits for the input singlas to be computed
         and then the outputs are computed by this method
         """
+        pass
