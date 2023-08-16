@@ -1,0 +1,118 @@
+project_name: Beam Splitter Example
+
+simulation:
+  dimensions: 50
+
+components:
+  sps1:
+    type: quasi.devices.ideal.SinglePhotonSource
+    # Trigger means that experiment will trigger devices
+    # with this property at x ps after the experiment began
+    trigger: 0 #ps
+
+  sps2:
+    type: quasi.devices.ideal.SinglePhotonSource
+    trigger: 0 #ps
+
+  bs:
+    type: quasi.devices.ideal.BeamSplitter
+
+  spd1:
+    type: quasi.devices.ideal.SinglePhotonDetector
+
+  spd2:
+    type: quasi.devices.ideal.SinglePhotonDetector
+
+  fib1:
+    type: quasi.devices.ideal.Fiber
+    params:
+      length: 10 #km
+
+  fib2:
+    type: quasi.devices.ideal.Fiber
+    params:
+      length: 10 #km
+
+  fib3:
+    type: quasi.devices.ideal.Fiber
+    params:
+      length: 10 #km
+
+  fib4:
+    type: quasi.devices.ideal.Fiber
+    params:
+      length: 10 #km
+
+
+connections:
+  qc1:
+    type: quasi.signals.GenericQuantumSignal
+    in:
+      device: sps1
+      port: OUT
+    out:
+      device: fib1
+      port: IN
+
+  qc2:
+    type: quasi.signals.GenericQuantumSignal
+    in:
+      device: sps2
+      port: OUT
+    out:
+      device: fib1
+      port: IN
+  
+  qc3:
+    type: quasi.signals.GenericQuantumSignal
+    in:
+      device: fib1
+      port: OUT
+    out:
+      device: bs
+      port: A
+
+  qc4:
+    type: quasi.signals.GenericQuantumSignal
+    in:
+      device: fib2
+      port: OUT
+    out:
+      device: bs
+      port: B
+
+  qc5:
+    type: quasi.signals.GenericQuantumSignal
+    in:
+      device: bs
+      port: C
+    out:
+      device: fib3
+      port: IN
+
+  qc6:
+    type: quasi.signals.GenericQuantumSignal
+    in:
+      device: bs
+      port: D
+    out:
+      device: fib4
+      port: IN
+
+  qc7:
+    type: quasi.signals.GenericQuantumSignal
+    in:
+      device: fib3
+      port: OUT
+    out:
+      device: spd1
+      port: IN
+
+  qc8:
+    type: quasi.signals.GenericQuantumSignal
+    in:
+      device: fib4
+      port: OUT
+    out:
+      device: spd2
+      port: IN
