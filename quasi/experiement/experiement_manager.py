@@ -6,7 +6,7 @@ class Experiement:
     @staticmethod
     def get_instance():
         """
-        Method that returns a single Simulation object
+        Method that returns a single Experiment object
         """
         if Experiement.__instance is None:
             Experiement()
@@ -20,3 +20,9 @@ class Experiement:
             Experiement.__instance = self
         else:
             raise Exception("Experiment is a singleton class")
+        
+    def state_init():
+        pass
+    
+    def add_operation():
+        pass
