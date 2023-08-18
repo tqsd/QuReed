@@ -1,6 +1,7 @@
 import numpy as np
 from numba import njit
 from scipy.special import factorial
+import string
 
 r"""
 The functions implemented here is derived from this paper:
@@ -8,6 +9,79 @@ https://arxiv.org/pdf/2004.11002.pdfs
 
 """
 
+
+def_type = np.complex128
+indices = string.ascii_lowercase
+
+
+def genOfRange(size):
+    """
+    Converts a range into a generator.
+    """
+    for i in range(size):
+        yield i
+
+
+def genOfTuple(t):
+    """
+    Converts a tuple into a generator
+    """
+    for val in t:
+        yield val
+
+
+def indexRange(lst, trunc):
+    """
+    Returns a generator ranging over the possible values for unspecified
+    indices in `lst`.
+
+    Example:
+        .. code-block:: python
+
+                >>> for i in indexRange([0, None, 1, None], 3): print i
+                (0, 0, 1, 0)
+                (0, 0, 1, 1)
+                (0, 0, 1, 2)
+                (0, 1, 1, 0)
+                (0, 1, 1, 1)
+                (0, 1, 1, 2)
+                (0, 2, 1, 0)
+                (0, 2, 1, 1)
+                (0, 2, 1, 2)
+
+    Args:
+        lst (list<int or None>): a list of (possible unspecified) integers
+        trunc (int): the number to range unspecified values up to
+
+    Returns:
+        Generator of ints
+    """
+
+    for vals in product(*([range(trunc) for x in lst if x is None])):
+        gen = genOfTuple(vals)
+        yield [next(gen) if v is None else v for v in lst] #pylint: disable=stop-iteration-return
+
+
+def index(lst, trunc):
+    """
+    Converts an n-ary index to a 1-dimensional index.
+    """
+    return sum([lst[i] * trunc**(len(lst)-i-1) for i in range(len(lst))])
+
+
+def unIndex(i, n, trunc):
+    """
+    Converts a 1-dimensional index ``i`` with truncation ``trunc`` and
+    number of modes ``n`` to a n-ary index.
+    """
+    return [i // trunc**(n - 1 - m) % trunc for m in range(n)]
+
+
+def sliceExp(axes, ind, n):
+    """
+    Generates a slice expression for a list of pairs of axes (modes) and indices.
+    """
+    return [ind[i] if i in axes else slice(None, None, None) for i in range(n)]
 
 @njit
 def a(cutoff):
@@ -196,3 +270,48 @@ def calculate_fidelity(state_1, state_2):
         return np.abs(np.dot(np.conjugate(state_1), state_2)) ** 2
     else:
         return (np.conjugate(state_2) @ state_1 @ state_2).real
+
+
+
+
+def apply_gate_einsum(mat, state, pure, modes, n, trunc):
+    """
+    Gate application based on einsum.
+    Assumes the input matrix has shape (out1, in1, ...)
+    """
+    # pylint: disable=unused-argument
+
+    size = len(modes)
+
+    if pure:
+        if n == 1:
+            return np.dot(mat, state)
+
+        left_str = [indices[:size*2]]
+
+        j = genOfRange(size)
+        right_str = [indices[2*next(j) + 1] if i in modes else indices[size*2 + i] \
+            for i in range(n)]
+
+        j = genOfRange(size)
+        out_str = [indices[2*next(j)] if i in modes else indices[size*2 + i] \
+            for i in range(n)]
+
+        einstring = ''.join(left_str + [','] + right_str + ['->'] + out_str)
+        return np.einsum(einstring, mat, state)
+    else:
+
+        if n == 1:
+            return np.dot(mat, np.dot(state, dagger(mat)))
+
+        in_str = indices[:n*2]
+
+        j = genOfRange(n*2)
+        out_str = ''.join([indices[n*2 + next(j)] if i//2 in modes else indices[i] for i in range(n*2)])
+
+        j = genOfRange(size*2)
+        left_str = ''.join([out_str[modes[i//2]*2] if (i%2) == 0 else in_str[modes[i//2]*2] for i in range(size*2)])
+        right_str = ''.join([out_str[modes[i//2]*2 + 1] if (i%2) == 0 else in_str[modes[i//2]*2 + 1] for i in range(size*2)])
+
+        einstring = ''.join([left_str, ',', in_str, ',', right_str, '->', out_str])
+        return np.einsum(einstring, mat, state, mat.conj())
