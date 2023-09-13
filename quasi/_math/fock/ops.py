@@ -1,11 +1,12 @@
+import string
+
 import numpy as np
 from numba import njit
-from scipy.special import factorial
-import string
+from scipy.special import factorial as fac
 
 r"""
 The functions implemented here is derived from this paper:
-https://arxiv.org/pdf/2004.11002.pdfs
+https://arxiv.org/pdf/2004.11002.pdf
 
 """
 
@@ -59,7 +60,7 @@ def indexRange(lst, trunc):
 
     for vals in product(*([range(trunc) for x in lst if x is None])):
         gen = genOfTuple(vals)
-        yield [next(gen) if v is None else v for v in lst] #pylint: disable=stop-iteration-return
+        yield [next(gen) if v is None else v for v in lst]  # pylint: disable=stop-iteration-return
 
 
 def index(lst, trunc):
@@ -82,6 +83,7 @@ def sliceExp(axes, ind, n):
     Generates a slice expression for a list of pairs of axes (modes) and indices.
     """
     return [ind[i] if i in axes else slice(None, None, None) for i in range(n)]
+
 
 @njit
 def a(cutoff):
@@ -193,7 +195,8 @@ def displacement(r, phi, cutoff, dtype=np.complex128):
     for m in range(cutoff):
         for n in range(1, cutoff):
             D[m, n] = (
-                mu[1] / sqrt[n] * D[m, n - 1] + sqrt[m] / sqrt[n] * D[m - 1, n - 1]
+                mu[1] / sqrt[n] * D[m, n - 1] +
+                sqrt[m] / sqrt[n] * D[m - 1, n - 1]
             )
 
     return D
@@ -272,8 +275,6 @@ def calculate_fidelity(state_1, state_2):
         return (np.conjugate(state_2) @ state_1 @ state_2).real
 
 
-
-
 def apply_gate_einsum(mat, state, pure, modes, n, trunc):
     """
     Gate application based on einsum.
@@ -290,28 +291,62 @@ def apply_gate_einsum(mat, state, pure, modes, n, trunc):
         left_str = [indices[:size*2]]
 
         j = genOfRange(size)
-        right_str = [indices[2*next(j) + 1] if i in modes else indices[size*2 + i] \
-            for i in range(n)]
+        right_str = [
+            indices[2*next(j) + 1] if i in modes else indices[size*2 + i] for i in range(n)]
 
         j = genOfRange(size)
-        out_str = [indices[2*next(j)] if i in modes else indices[size*2 + i] \
-            for i in range(n)]
+        out_str = [indices[2*next(j)] if i in modes else indices[size*2 + i]
+                   for i in range(n)]
 
         einstring = ''.join(left_str + [','] + right_str + ['->'] + out_str)
         return np.einsum(einstring, mat, state)
     else:
 
         if n == 1:
-            return np.dot(mat, np.dot(state, dagger(mat)))
+            return np.dot(mat, np.dot(state, mat.conj().T))
 
         in_str = indices[:n*2]
 
         j = genOfRange(n*2)
-        out_str = ''.join([indices[n*2 + next(j)] if i//2 in modes else indices[i] for i in range(n*2)])
+        out_str = ''.join([indices[n*2 + next(j)] if i //
+                          2 in modes else indices[i] for i in range(n*2)])
 
         j = genOfRange(size*2)
-        left_str = ''.join([out_str[modes[i//2]*2] if (i%2) == 0 else in_str[modes[i//2]*2] for i in range(size*2)])
-        right_str = ''.join([out_str[modes[i//2]*2 + 1] if (i%2) == 0 else in_str[modes[i//2]*2 + 1] for i in range(size*2)])
+        left_str = ''.join([out_str[modes[i//2]*2] if (i % 2) ==
+                           0 else in_str[modes[i//2]*2] for i in range(size*2)])
+        right_str = ''.join([out_str[modes[i//2]*2 + 1] if (i % 2) ==
+                            0 else in_str[modes[i//2]*2 + 1] for i in range(size*2)])
 
-        einstring = ''.join([left_str, ',', in_str, ',', right_str, '->', out_str])
+        einstring = ''.join(
+            [left_str, ',', in_str, ',', right_str, '->', out_str])
         return np.einsum(einstring, mat, state, mat.conj())
+
+def proj(i, j, trunc):
+    r"""
+    The projector :math:`P = \ket{j}\bra{i}`.
+    """
+    P = np.zeros((trunc, trunc), dtype=def_type)
+    P[j][i] = 1.0 + 0.0j
+    return P
+
+
+def lossChannel(T, trunc):
+    r"""
+    The Kraus operators for the loss channel :math:`\mathcal{N}(T)`.
+    """
+
+    TToAdaggerA = np.array(np.diag([T ** (i / 2)
+                           for i in range(trunc)]), dtype=def_type)
+
+    def aToN(n):
+        """the nth matrix power of the annihilation operator matrix a"""
+        return np.linalg.matrix_power(a(trunc), n)
+
+    def E(n):
+        """the loss channel amplitudes in the Fock basis"""
+        return ((1 - T) / T) ** (n / 2) * np.dot(aToN(n) / np.sqrt(fac(n)), TToAdaggerA)
+
+    if T == 0:
+        return [proj(i, 0, trunc) for i in range(trunc)]
+
+    return [E(n) for n in range(trunc)]
