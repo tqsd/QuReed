@@ -350,3 +350,38 @@ def lossChannel(T, trunc):
         return [proj(i, 0, trunc) for i in range(trunc)]
 
     return [E(n) for n in range(trunc)]
+
+
+def reduced_dm(state, modes, **kwargs):
+
+    if modes == list(range(state._modes)):
+
+        return state.dm()
+
+    keep_indices = indices[: 2 * len(modes)]
+    trace_indices = indices[2 * len(modes) : len(modes) + state._modes]
+
+    ind = [i * 2 for i in trace_indices]
+    ctr = 0
+
+    for m in range(state._modes):
+        if m in modes:
+            ind.insert(m, keep_indices[2 * ctr : 2 * (ctr + 1)])
+            ctr += 1
+
+    indStr = "".join(ind) + "->" + keep_indices
+    return np.einsum(indStr, state.dm())
+
+def homodyne(state, phi, mode, hbar):
+    
+    anni = a(state._modes)
+    create = adagger(state._cutoff)
+    
+    x = np.sqrt(hbar / 2) * (anni + create)
+    p = -1j * np.sqrt(hbar / 2) * (anni - create)
+    
+    xphi = np.cos(phi) * x + np.sin(phi) * p
+    
+    rho = reduced_dm(state, mode)
+
+    return np.trace(np.dot(xphi, rho)).real
