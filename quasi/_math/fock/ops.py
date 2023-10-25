@@ -1,4 +1,5 @@
 import string
+from itertools import chain
 
 import numpy as np
 from numba import njit
@@ -284,42 +285,24 @@ def apply_gate_einsum(mat, state, pure, modes, n, trunc):
 
     size = len(modes)
 
-    if pure:
-        if n == 1:
-            return np.dot(mat, state)
+    if n == 1:
+        return np.dot(mat, np.dot(state, mat.conj().T))
 
-        left_str = [indices[:size*2]]
+    in_str = indices[:n*2]
 
-        j = genOfRange(size)
-        right_str = [
-            indices[2*next(j) + 1] if i in modes else indices[size*2 + i] for i in range(n)]
+    j = genOfRange(n*2)
+    out_str = ''.join([indices[n*2 + next(j)] if i //
+                        2 in modes else indices[i] for i in range(n*2)])
 
-        j = genOfRange(size)
-        out_str = [indices[2*next(j)] if i in modes else indices[size*2 + i]
-                   for i in range(n)]
+    j = genOfRange(size*2)
+    left_str = ''.join([out_str[modes[i//2]*2] if (i % 2) ==
+                        0 else in_str[modes[i//2]*2] for i in range(size*2)])
+    right_str = ''.join([out_str[modes[i//2]*2 + 1] if (i % 2) ==
+                        0 else in_str[modes[i//2]*2 + 1] for i in range(size*2)])
 
-        einstring = ''.join(left_str + [','] + right_str + ['->'] + out_str)
-        return np.einsum(einstring, mat, state)
-    else:
-
-        if n == 1:
-            return np.dot(mat, np.dot(state, mat.conj().T))
-
-        in_str = indices[:n*2]
-
-        j = genOfRange(n*2)
-        out_str = ''.join([indices[n*2 + next(j)] if i //
-                          2 in modes else indices[i] for i in range(n*2)])
-
-        j = genOfRange(size*2)
-        left_str = ''.join([out_str[modes[i//2]*2] if (i % 2) ==
-                           0 else in_str[modes[i//2]*2] for i in range(size*2)])
-        right_str = ''.join([out_str[modes[i//2]*2 + 1] if (i % 2) ==
-                            0 else in_str[modes[i//2]*2 + 1] for i in range(size*2)])
-
-        einstring = ''.join(
-            [left_str, ',', in_str, ',', right_str, '->', out_str])
-        return np.einsum(einstring, mat, state, mat.conj())
+    einstring = ''.join(
+        [left_str, ',', in_str, ',', right_str, '->', out_str])
+    return np.einsum(einstring, mat, state, mat.conj())
 
 def proj(i, j, trunc):
     r"""
@@ -385,3 +368,18 @@ def homodyne(state, phi, mode, hbar):
     rho = reduced_dm(state, mode)
 
     return np.trace(np.dot(xphi, rho)).real
+
+
+def trace(state):
+    eqn_indices = [[indices[idx]] * 2 for idx in range(state._modes)] 
+    eqn = "".join(chain.from_iterable(eqn_indices))
+    return np.einsum(eqn, state.dm()).real
+
+
+
+def partial_trace(state, n, modes):
+    left_str = [indices[2*i] + indices[2*i] if i in modes else indices[2*i:2*i+2] for i in range(n)]
+    out_str = ['' if i in modes else indices[2*i:2*i+2] for i in range(n)]
+    einstr = ''.join(left_str + ['->'] + out_str)
+
+    return np.einsum(einstr, state)
