@@ -3,6 +3,7 @@ from itertools import chain
 
 import numpy as np
 from numba import njit
+from scipy.linalg import expm as matrixExp
 from scipy.special import factorial as fac
 
 r"""
@@ -292,7 +293,7 @@ def apply_gate_einsum(mat, state, pure, modes, n, trunc):
 
     j = genOfRange(n*2)
     out_str = ''.join([indices[n*2 + next(j)] if i //
-                        2 in modes else indices[i] for i in range(n*2)])
+                       2 in modes else indices[i] for i in range(n*2)])
 
     j = genOfRange(size*2)
     left_str = ''.join([out_str[modes[i//2]*2] if (i % 2) ==
@@ -303,6 +304,7 @@ def apply_gate_einsum(mat, state, pure, modes, n, trunc):
     einstring = ''.join(
         [left_str, ',', in_str, ',', right_str, '->', out_str])
     return np.einsum(einstring, mat, state, mat.conj())
+
 
 def proj(i, j, trunc):
     r"""
@@ -342,43 +344,44 @@ def reduced_dm(state, modes, **kwargs):
         return state.dm()
 
     keep_indices = indices[: 2 * len(modes)]
-    trace_indices = indices[2 * len(modes) : len(modes) + state._modes]
+    trace_indices = indices[2 * len(modes): len(modes) + state._modes]
 
     ind = [i * 2 for i in trace_indices]
     ctr = 0
 
     for m in range(state._modes):
         if m in modes:
-            ind.insert(m, keep_indices[2 * ctr : 2 * (ctr + 1)])
+            ind.insert(m, keep_indices[2 * ctr: 2 * (ctr + 1)])
             ctr += 1
 
     indStr = "".join(ind) + "->" + keep_indices
     return np.einsum(indStr, state.dm())
 
+
 def homodyne(state, phi, mode, hbar):
-    
+
     anni = a(state._modes)
     create = adagger(state._cutoff)
-    
+
     x = np.sqrt(hbar / 2) * (anni + create)
     p = -1j * np.sqrt(hbar / 2) * (anni - create)
-    
+
     xphi = np.cos(phi) * x + np.sin(phi) * p
-    
+
     rho = reduced_dm(state, mode)
 
     return np.trace(np.dot(xphi, rho)).real
 
 
 def trace(state):
-    eqn_indices = [[indices[idx]] * 2 for idx in range(state._modes)] 
+    eqn_indices = [[indices[idx]] * 2 for idx in range(state._modes)]
     eqn = "".join(chain.from_iterable(eqn_indices))
     return np.einsum(eqn, state.dm()).real
 
 
-
 def partial_trace(state, n, modes):
-    left_str = [indices[2*i] + indices[2*i] if i in modes else indices[2*i:2*i+2] for i in range(n)]
+    left_str = [indices[2*i] + indices[2*i]
+                if i in modes else indices[2*i:2*i+2] for i in range(n)]
     out_str = ['' if i in modes else indices[2*i:2*i+2] for i in range(n)]
     einstr = ''.join(left_str + ['->'] + out_str)
 
@@ -403,7 +406,20 @@ def thermalState(nbar, trunc):
         st = fock_state(0, trunc)
         state = np.outer(st, st.conjugate())
     else:
-        coeff = np.array([nbar ** n / (nbar + 1) ** (n + 1) for n in range(trunc)])
+        coeff = np.array([nbar ** n / (nbar + 1) ** (n + 1)
+                         for n in range(trunc)])
         state = np.diag(coeff)
 
     return state
+
+
+def cubicPhase(gamma, hbar, trunc):
+    r"""
+    The cubic phase gate :math:`\exp{(i\frac{\gamma}{3\hbar}\hat{x}^3)}`.
+    """
+    a_ = a(trunc)
+    x = (a_ + np.conj(a_).T) * np.sqrt(hbar/2)
+    x3 = x @ x @ x
+    ret = matrixExp(1j * gamma / (3*hbar) * x3)
+
+    return ret
