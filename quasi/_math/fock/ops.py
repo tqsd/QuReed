@@ -383,3 +383,27 @@ def partial_trace(state, n, modes):
     einstr = ''.join(left_str + ['->'] + out_str)
 
     return np.einsum(einstr, state)
+
+
+def vacuumStateMixed(n, trunc):
+    r"""
+    The `n`-mode mixed vacuum state :math:`\ket{00\dots 0}\bra{00\dots 0}`
+    """
+
+    state = np.zeros([trunc for i in range(n*2)])
+    state.ravel()[0] = 1.0 + 0.0j
+    return state
+
+
+def thermalState(nbar, trunc):
+    r"""
+    The thermal state :math:`\rho(\overline{nbar})`.
+    """
+    if nbar == 0:
+        st = fock_state(0, trunc)
+        state = np.outer(st, st.conjugate())
+    else:
+        coeff = np.array([nbar ** n / (nbar + 1) ** (n + 1) for n in range(trunc)])
+        state = np.diag(coeff)
+
+    return state
