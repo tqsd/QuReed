@@ -112,7 +112,8 @@ class Displacment(Components):
 
     def get_operator(self):
         if self.math_equation is None:
-            return displacement(self.r, self.phi, self.cutoff)
+            self.matrix = displacement(self.r, self.phi, self.cutoff)
+            return self.matrix
         else:
             raise NotImplementedError
 
