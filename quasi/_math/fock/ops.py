@@ -5,6 +5,7 @@ import numpy as np
 from numba import njit
 from scipy.linalg import expm as matrixExp
 from scipy.special import factorial
+from .states import FockState
 
 r"""
 The functions implemented here is derived from this paper:
@@ -278,7 +279,7 @@ def calculate_fidelity(state_1, state_2):
         return (np.conjugate(state_2) @ state_1 @ state_2).real
 
 
-def apply_gate_einsum(mat, state, pure, modes, n, trunc):
+def apply_gate_einsum(mat, state, modes, n):
     """
     Gate application based on einsum.
     Assumes the input matrix has shape (out1, in1, ...)
@@ -347,7 +348,7 @@ def lossChannel(T, trunc):
     def E(n):
         """the loss channel amplitudes in the Fock basis"""
         return ((1 - T) / T) ** (n / 2) * np.dot(
-            aToN(n) / np.sqrt(fac(n)), TToAdaggerA
+            aToN(n) / np.sqrt(factorial(n)), TToAdaggerA
         )
 
     if T == 0:
@@ -389,13 +390,13 @@ def homodyne(state, phi, mode, hbar):
     return np.trace(np.dot(xphi, rho)).real
 
 
-def trace(state):
-    eqn_indices = [[indices[idx]] * 2 for idx in range(state._modes)]
+def calculate_trace(state):
+    eqn_indices = [[indices[idx]] * 2 for idx in range(state._num_modes)]
     eqn = "".join(chain.from_iterable(eqn_indices))
-    return np.einsum(eqn, state.dm()).real
+    return np.einsum(eqn, state).real
 
 
-def partial_trace(state, n, modes):
+def partial_trace(state: np.ndarray, n, modes):
     left_str = [
         indices[2 * i] + indices[2 * i]
         if i in modes
@@ -444,5 +445,27 @@ def cubicPhase(gamma, hbar, trunc):
     x = (a_ + np.conj(a_).T) * np.sqrt(hbar / 2)
     x3 = x @ x @ x
     ret = matrixExp(1j * gamma / (3 * hbar) * x3)
-
     return ret
+
+
+def apply_channel(state: FockState, kraus_ops, modes):
+    """Master channel application function. Applies a channel represented by
+    Kraus operators.
+
+    .. note::
+            Always results in a mixed state.
+
+    Args:
+        kraus_ops (list<array>): A list of Kraus operators
+        modes (list<non-negative int>): The modes to apply the channel to
+    """
+
+    states = [
+        apply_gate_einsum(k, state, modes, state._num_modes) for k in kraus_ops
+    ]
+    return sum(states)
+
+
+def norm(state: FockState):
+    """returns the norm of the state"""
+    return calculate_trace(state.dm())
