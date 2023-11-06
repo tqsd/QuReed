@@ -7,6 +7,7 @@ from multiprocessing import Event
 
 from quasi.devices.port import Port
 
+
 class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
     """
     Generic Signal class used to implement any other signal class
@@ -30,7 +31,7 @@ class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
         """
         self.computed.wait(timeout=timeout)
 
-    def register_port(self, port:Port):
+    def register_port(self, port: Port):
         """
         Registers the port to the signal
         """

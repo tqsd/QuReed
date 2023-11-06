@@ -1,10 +1,10 @@
 import string
-from itertools import chain
+from itertools import chain, product
 
 import numpy as np
 from numba import njit
 from scipy.linalg import expm as matrixExp
-from scipy.special import factorial as fac
+from scipy.special import factorial
 
 r"""
 The functions implemented here is derived from this paper:
@@ -62,14 +62,16 @@ def indexRange(lst, trunc):
 
     for vals in product(*([range(trunc) for x in lst if x is None])):
         gen = genOfTuple(vals)
-        yield [next(gen) if v is None else v for v in lst]  # pylint: disable=stop-iteration-return
+        yield [
+            next(gen) if v is None else v for v in lst
+        ]  # pylint: disable=stop-iteration-return
 
 
 def index(lst, trunc):
     """
     Converts an n-ary index to a 1-dimensional index.
     """
-    return sum([lst[i] * trunc**(len(lst)-i-1) for i in range(len(lst))])
+    return sum([lst[i] * trunc ** (len(lst) - i - 1) for i in range(len(lst))])
 
 
 def unIndex(i, n, trunc):
@@ -77,7 +79,7 @@ def unIndex(i, n, trunc):
     Converts a 1-dimensional index ``i`` with truncation ``trunc`` and
     number of modes ``n`` to a n-ary index.
     """
-    return [i // trunc**(n - 1 - m) % trunc for m in range(n)]
+    return [i // trunc ** (n - 1 - m) % trunc for m in range(n)]
 
 
 def sliceExp(axes, ind, n):
@@ -107,7 +109,6 @@ def adagger(cutoff):
 
 @njit
 def beamsplitter(theta, phi, cutoff, dtype=np.complex128):
-
     sqrt_values = np.sqrt(np.arange(cutoff, dtype=dtype))
     cos_theta = np.cos(theta)
     sin_theta_complex = np.sin(theta) * np.exp(1j * phi)
@@ -146,12 +147,10 @@ def beamsplitter(theta, phi, cutoff, dtype=np.complex128):
 
 
 def phase(theta, cutoff):
-
     return np.array(np.diag([np.exp(1j * n * theta) for n in range(cutoff)]))
 
 
 def vacuum_state(n, cutoff):
-
     state = np.zeros([cutoff for i in range(n)], dtype=np.complex128)
     state.ravel()[0] = 1.0 + 0.0j
     return state
@@ -159,8 +158,9 @@ def vacuum_state(n, cutoff):
 
 @njit
 def fock_state(n, cutoff):
-
-    return np.array([1.0 + 0.0j if i == n else 0.0 + 0.0j for i in range(cutoff)])
+    return np.array(
+        [1.0 + 0.0j if i == n else 0.0 + 0.0j for i in range(cutoff)]
+    )
 
 
 def coherent_state(r, phi, cutoff):
@@ -197,8 +197,8 @@ def displacement(r, phi, cutoff, dtype=np.complex128):
     for m in range(cutoff):
         for n in range(1, cutoff):
             D[m, n] = (
-                mu[1] / sqrt[n] * D[m, n - 1] +
-                sqrt[m] / sqrt[n] * D[m - 1, n - 1]
+                mu[1] / sqrt[n] * D[m, n - 1]
+                + sqrt[m] / sqrt[n] * D[m - 1, n - 1]
             )
 
     return D
@@ -264,9 +264,10 @@ def kerr(k, cutoff):
 
 @njit
 def calculate_fidelity(state_1, state_2):
-
     if state_1.ndim == 2 and state_2.ndim == 2:
-        return np.abs(np.sum(np.sqrt(np.linalg.eigvals(state_1 @ state_2)))) ** 2
+        return (
+            np.abs(np.sum(np.sqrt(np.linalg.eigvals(state_1 @ state_2)))) ** 2
+        )
 
     elif state_1.ndim == 1 and state_2.ndim == 2:
         return (np.conjugate(state_1) @ state_2 @ state_1).real
@@ -289,20 +290,35 @@ def apply_gate_einsum(mat, state, pure, modes, n, trunc):
     if n == 1:
         return np.dot(mat, np.dot(state, mat.conj().T))
 
-    in_str = indices[:n*2]
+    in_str = indices[: n * 2]
 
-    j = genOfRange(n*2)
-    out_str = ''.join([indices[n*2 + next(j)] if i //
-                       2 in modes else indices[i] for i in range(n*2)])
+    j = genOfRange(n * 2)
+    out_str = "".join(
+        [
+            indices[n * 2 + next(j)] if i // 2 in modes else indices[i]
+            for i in range(n * 2)
+        ]
+    )
 
-    j = genOfRange(size*2)
-    left_str = ''.join([out_str[modes[i//2]*2] if (i % 2) ==
-                        0 else in_str[modes[i//2]*2] for i in range(size*2)])
-    right_str = ''.join([out_str[modes[i//2]*2 + 1] if (i % 2) ==
-                        0 else in_str[modes[i//2]*2 + 1] for i in range(size*2)])
+    j = genOfRange(size * 2)
+    left_str = "".join(
+        [
+            out_str[modes[i // 2] * 2]
+            if (i % 2) == 0
+            else in_str[modes[i // 2] * 2]
+            for i in range(size * 2)
+        ]
+    )
+    right_str = "".join(
+        [
+            out_str[modes[i // 2] * 2 + 1]
+            if (i % 2) == 0
+            else in_str[modes[i // 2] * 2 + 1]
+            for i in range(size * 2)
+        ]
+    )
 
-    einstring = ''.join(
-        [left_str, ',', in_str, ',', right_str, '->', out_str])
+    einstring = "".join([left_str, ",", in_str, ",", right_str, "->", out_str])
     return np.einsum(einstring, mat, state, mat.conj())
 
 
@@ -320,8 +336,9 @@ def lossChannel(T, trunc):
     The Kraus operators for the loss channel :math:`\mathcal{N}(T)`.
     """
 
-    TToAdaggerA = np.array(np.diag([T ** (i / 2)
-                           for i in range(trunc)]), dtype=def_type)
+    TToAdaggerA = np.array(
+        np.diag([T ** (i / 2) for i in range(trunc)]), dtype=def_type
+    )
 
     def aToN(n):
         """the nth matrix power of the annihilation operator matrix a"""
@@ -329,7 +346,9 @@ def lossChannel(T, trunc):
 
     def E(n):
         """the loss channel amplitudes in the Fock basis"""
-        return ((1 - T) / T) ** (n / 2) * np.dot(aToN(n) / np.sqrt(fac(n)), TToAdaggerA)
+        return ((1 - T) / T) ** (n / 2) * np.dot(
+            aToN(n) / np.sqrt(fac(n)), TToAdaggerA
+        )
 
     if T == 0:
         return [proj(i, 0, trunc) for i in range(trunc)]
@@ -338,20 +357,18 @@ def lossChannel(T, trunc):
 
 
 def reduced_dm(state, modes, **kwargs):
-
     if modes == list(range(state._modes)):
-
         return state.dm()
 
     keep_indices = indices[: 2 * len(modes)]
-    trace_indices = indices[2 * len(modes): len(modes) + state._modes]
+    trace_indices = indices[2 * len(modes) : len(modes) + state._modes]
 
     ind = [i * 2 for i in trace_indices]
     ctr = 0
 
     for m in range(state._modes):
         if m in modes:
-            ind.insert(m, keep_indices[2 * ctr: 2 * (ctr + 1)])
+            ind.insert(m, keep_indices[2 * ctr : 2 * (ctr + 1)])
             ctr += 1
 
     indStr = "".join(ind) + "->" + keep_indices
@@ -359,7 +376,6 @@ def reduced_dm(state, modes, **kwargs):
 
 
 def homodyne(state, phi, mode, hbar):
-
     anni = a(state._modes)
     create = adagger(state._cutoff)
 
@@ -380,10 +396,16 @@ def trace(state):
 
 
 def partial_trace(state, n, modes):
-    left_str = [indices[2*i] + indices[2*i]
-                if i in modes else indices[2*i:2*i+2] for i in range(n)]
-    out_str = ['' if i in modes else indices[2*i:2*i+2] for i in range(n)]
-    einstr = ''.join(left_str + ['->'] + out_str)
+    left_str = [
+        indices[2 * i] + indices[2 * i]
+        if i in modes
+        else indices[2 * i : 2 * i + 2]
+        for i in range(n)
+    ]
+    out_str = [
+        "" if i in modes else indices[2 * i : 2 * i + 2] for i in range(n)
+    ]
+    einstr = "".join(left_str + ["->"] + out_str)
 
     return np.einsum(einstr, state)
 
@@ -393,7 +415,7 @@ def vacuumStateMixed(n, trunc):
     The `n`-mode mixed vacuum state :math:`\ket{00\dots 0}\bra{00\dots 0}`
     """
 
-    state = np.zeros([trunc for i in range(n*2)])
+    state = np.zeros([trunc for i in range(n * 2)])
     state.ravel()[0] = 1.0 + 0.0j
     return state
 
@@ -406,8 +428,9 @@ def thermalState(nbar, trunc):
         st = fock_state(0, trunc)
         state = np.outer(st, st.conjugate())
     else:
-        coeff = np.array([nbar ** n / (nbar + 1) ** (n + 1)
-                         for n in range(trunc)])
+        coeff = np.array(
+            [nbar**n / (nbar + 1) ** (n + 1) for n in range(trunc)]
+        )
         state = np.diag(coeff)
 
     return state
@@ -418,8 +441,8 @@ def cubicPhase(gamma, hbar, trunc):
     The cubic phase gate :math:`\exp{(i\frac{\gamma}{3\hbar}\hat{x}^3)}`.
     """
     a_ = a(trunc)
-    x = (a_ + np.conj(a_).T) * np.sqrt(hbar/2)
+    x = (a_ + np.conj(a_).T) * np.sqrt(hbar / 2)
     x3 = x @ x @ x
-    ret = matrixExp(1j * gamma / (3*hbar) * x3)
+    ret = matrixExp(1j * gamma / (3 * hbar) * x3)
 
     return ret
