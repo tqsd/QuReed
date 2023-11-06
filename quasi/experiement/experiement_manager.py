@@ -73,7 +73,7 @@ class Experiement:
 
         vac = ops.vacuumStateMixed(n, self.cutoff)
 
-        self.data = ops.tensor(self.state, vac, self.num_modes)
+        self.data = ops.tensor(self.state.dm(), vac, self.num_modes)
         self.state = FockState(
             state_data=self.data,
             num_modes=self.num_modes,
@@ -86,12 +86,24 @@ class Experiement:
 
     def _state_init(self, state_preparation: int, modes):
         vector = ops.fock_state(state_preparation, self.cutoff)
-        self.prepare_multimode(np.outer(vector, vector.conjugate()), modes)
-        if len(modes) != len(self.num_modes):
-            self.alloc()
+        self.data = np.outer(vector, vector.conjugate())
+        self.state = FockState(
+            state_data=self.data,
+            num_modes=self.num_modes,
+            cutoff_dim=self.cutoff,
+            hbar=self.hbar,
+        )
+#        self.prepare_multimode(np.outer(vector, vector.conjugate()), modes)
+
+        self.alloc()
 
     def execute(self):
-        self.prepare_experiment()
+        if len(self.state_preparations) > 0:
+            for photon_number, modes in self.state_preparations:
+                self._state_init(photon_number, modes)
+        else:
+            
+            self.prepare_experiment()
 
         if len(self.channels) > 0:
             for channel, modes in self.channels:
@@ -103,13 +115,14 @@ class Experiement:
                     num_modes=self.num_modes,
                     cutoff_dim=self.cutoff,
                 )
+        if len(self.operations) > 0:
 
-        for operator, modes in self.operations:
-            self.data = ops.apply_gate_BLAS(
-                operator, self.state.dm(), modes, self.num_modes, self.cutoff
-            )
-            self.state = FockState(
-                state_data=self.data,
-                num_modes=self.num_modes,
-                cutoff_dim=self.cutoff,
-            )
+            for operator, modes in self.operations:
+                self.data = ops.apply_gate_BLAS(
+                    operator, self.state.dm(), modes, self.num_modes, self.cutoff
+                )
+                self.state = FockState(
+                    state_data=self.data,
+                    num_modes=self.num_modes,
+                    cutoff_dim=self.cutoff,
+                )

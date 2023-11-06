@@ -209,11 +209,11 @@ def fock_probability(n, state):
     return np.abs(state[tuple(n)]) ** 2
 
 
-def mean_photon_number(state):
-    dm = np.outer(state, np.conjugate(state))
-    probabilities = np.diagonal(dm)
-    n = np.arange(len(state))
-    return np.sum(n * probabilities).real
+def mean_photon(state, mode,):
+    # pylint: disable=unused-argument
+    n = np.arange(state._cutoff)
+    probs = np.diagonal(state.reduced_dm(mode))
+    return np.sum(n*probs).real
 
 
 @njit
@@ -404,9 +404,7 @@ def lossChannel(T, trunc):
     return [E(n) for n in range(trunc)]
 
 
-def reduced_dm(state, modes, **kwargs):
-    if modes == list(range(state._modes)):
-        return state.dm()
+def reduced_dm(state, modes, ):
 
     keep_indices = indices[: 2 * len(modes)]
     trace_indices = indices[2 * len(modes) : len(modes) + state._modes]
@@ -537,3 +535,16 @@ def tensor(u, v, n, pos=None):
             w = np.rollaxis(w, scale * n + i, scale * pos + i)
 
     return w
+
+
+def mix(state, n):
+    """
+    Transforms a pure state into a mixed state. Does not do any checks on the
+    shape of the input state.
+    """
+
+    left_str = [indices[i] for i in range(0, 2 * n, 2)]
+    right_str = [indices[i] for i in range(1, 2 * n, 2)]
+    out_str = [indices[: 2 * n]]
+    einstr = "".join(left_str + [","] + right_str + ["->"] + out_str)
+    return np.einsum(einstr, state, state.conj())

@@ -36,6 +36,7 @@ class FockState(State):
 
         self._data = state_data
         self._cutoff = cutoff_dim
+        self._num_modes = num_modes
         self._basis = "fock"
 
     @property
@@ -80,3 +81,25 @@ class FockState(State):
         ).real
 
         return np.reshape(probs, [self._cutoff] * self._num_modes)
+    
+    def reduced_dm(self, modes, ):
+
+        keep_indices = indices[: 2 * len(modes)]
+        trace_indices = indices[2 * len(modes) : len(modes) + self._num_modes]
+
+        ind = [i * 2 for i in trace_indices]
+        ctr = 0
+
+        for m in range(self._num_modes):
+            if m in modes:
+                ind.insert(m, keep_indices[2 * ctr : 2 * (ctr + 1)])
+                ctr += 1
+
+        indStr = "".join(ind) + "->" + keep_indices
+        return np.einsum(indStr, self.dm())
+  
+    def mean_photon(self, mode, **kwargs):
+        # pylint: disable=unused-argument
+        n = np.arange(self._cutoff)
+        probs = np.diagonal(self.reduced_dm(mode))
+        return np.sum(n*probs).real
