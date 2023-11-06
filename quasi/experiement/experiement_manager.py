@@ -77,7 +77,7 @@ class Experiement:
         vector = ops.fock_state(state_preparation, self.cutoff)
         self.prepare_multimode(np.outer(vector, vector.conjugate()), modes)
 
-    def run(self):
+    def execute(self):
         self.state = self.prepare_experiment()
         if len(self.state_preparations) > 0:
             for photon_number, modes in self.state_preparations:
