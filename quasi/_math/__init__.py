@@ -12,4 +12,12 @@ from .fock.ops import (
     fock_state,
     fock_probability,
     kerr,
+    apply_channel,
+    apply_gate_einsum,
+    thermalState,
+    partial_trace,
+    calculate_trace,
+    cubicPhase,
+    lossChannel,
+    tensor,
 )

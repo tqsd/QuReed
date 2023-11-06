@@ -1,8 +1,6 @@
 import abc
 import string
-from itertools import chain
-from copy import copy
-from .ops import calculate_trace
+
 import numpy as np
 
 
@@ -52,18 +50,6 @@ class FockState(State):
 
     def dm(self) -> np.ndarray:
         return self._data
-
-    def trace(self, **kwargs):
-        r"""Trace of the density operator corresponding to the state.
-
-
-        For physical states this should always be 1, any deviations from this value are due
-        to numerical errors and Hilbert space truncation artefacts.
-
-        Returns:
-          float: trace of the state
-        """
-        return calculate_trace(self.dm())
 
     def all_fock_probs(self):
         r"""Probabilities of all possible Fock basis states for the current circuit state.

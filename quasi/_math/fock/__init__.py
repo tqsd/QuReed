@@ -9,4 +9,11 @@ from .ops import (
     mean_photon_number,
     fock_probability,
     squeezing,
+    calculate_fidelity,
+    calculate_trace,
+    lossChannel,
+    cubicPhase,
+    apply_channel,
+    apply_gate_einsum,
+    tensor,
 )

@@ -76,12 +76,13 @@ class Beamsplitter(Components):
         self.phi = phi
         self.cutoff = cutoff
         self.math_equation = math_eqation
-        self.matrix = self.get_operator(self.math_equation)
+        self.matrix = None
         self.author_name = author_name
 
-    def get_operator(self, math_equation):
-        if math_equation is None:
+    def get_operator(self):
+        if self.math_equation is None:
             self.matrix = beamsplitter(self.theta, self.phi, self.cutoff)
+            return self.matrix
         else:
             raise NotImplementedError
 
@@ -106,7 +107,7 @@ class Displacment(Components):
         self.phi = phi
         self.cutoff = cutoff
         self.math_equation = math_eqation
-        self.matrix = self.get_operator()
+        self.matrix = None
         self.author_name = author_name
 
     def get_operator(self):
@@ -136,7 +137,7 @@ class Squeezing(Components):
         self.author_name = author_name
         self.cutoff = cutoff
         self.math_equation = math_eqation
-        self.matrix = self.get_operator()
+        self.matrix = None
         self.physical_description = physical_description
 
     def get_operator(self):
@@ -164,11 +165,12 @@ class Phase(Components):
         self.author_name = author_name
         self.cutoff = cutoff
         self.math_equation = math_eqation
-        self.matrix = self.get_operator(self.math_equation)
+        self.matrix = None
 
     def get_operator(self):
         if self.math_equation is None:
-            self.matrix = phase(self.theta, self.phi, self.cutoff)
+            self.matrix = phase(self.phi, self.cutoff)
+            return self.matrix
         else:
             raise NotImplementedError
 

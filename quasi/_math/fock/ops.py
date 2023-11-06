@@ -5,7 +5,7 @@ import numpy as np
 from numba import njit
 from scipy.linalg import expm as matrixExp
 from scipy.special import factorial
-from .states import FockState
+from quasi._math.states import FockState
 
 r"""
 The functions implemented here is derived from this paper:
@@ -323,6 +323,53 @@ def apply_gate_einsum(mat, state, modes, n):
     return np.einsum(einstring, mat, state, mat.conj())
 
 
+def apply_gate_BLAS(mat, state, modes, n, trunc):
+    """
+    Gate application based on custom indexing and matrix multiplication.
+    Assumes the input matrix has shape (out1, in1, ...).
+
+    This implementation uses indexing and BLAS. As per stack overflow,
+    einsum doesn't actually use BLAS but rather a c implementation. In theory
+    if reshaping is efficient this should be faster.
+    """
+
+    size = len(modes)
+    dim = trunc**size
+    stshape = [trunc for i in range(size)]
+
+    # Apply the following matrix transposition:
+    # |m1><m1| |m2><m2| ... |mn><mn| -> |m1>|m2>...|mn><m1|<m2|...<mn|
+    transpose_list = [2 * i for i in range(size)] + [
+        2 * i + 1 for i in range(size)
+    ]
+    matview = np.transpose(mat, transpose_list).reshape((dim, dim))
+
+    if n == 1:
+        return np.dot(mat, np.dot(state, mat.conj().T))
+
+    # Transpose the state into the following form:
+    # |psi><psi||mode[0]>|mode[1]>...|mode[n]><mode[0]|<mode[1]|...<mode[n]|
+    transpose_list = [i for i in range(n * 2) if not i // 2 in modes]
+    transpose_list = (
+        transpose_list + [2 * i for i in modes] + [2 * i + 1 for i in modes]
+    )
+    view = np.transpose(state, transpose_list)
+
+    # Apply matrix to each substate
+    ret = np.zeros([trunc for i in range(n * 2)], dtype=def_type)
+    for i in product(*([range(trunc) for j in range((n - size) * 2)])):
+        ret[i] = np.dot(
+            matview, np.dot(view[i].reshape((dim, dim)), matview.conj().T)
+        ).reshape(stshape + stshape)
+
+    # "untranspose" the return matrix ret
+    untranspose_list = [0] * len(transpose_list)
+    for i in range(len(transpose_list)):
+        untranspose_list[transpose_list[i]] = i
+
+    return np.transpose(ret, untranspose_list)
+
+
 def proj(i, j, trunc):
     r"""
     The projector :math:`P = \ket{j}\bra{i}`.
@@ -396,7 +443,12 @@ def calculate_trace(state):
     return np.einsum(eqn, state).real
 
 
-def partial_trace(state: np.ndarray, n, modes):
+def partial_trace(state, n, modes):
+    """
+    Computes the partial trace of a state over the modes in `modes`.
+
+    Expects state to be in mixed state form.
+    """
     left_str = [
         indices[2 * i] + indices[2 * i]
         if i in modes
@@ -416,7 +468,7 @@ def vacuumStateMixed(n, trunc):
     The `n`-mode mixed vacuum state :math:`\ket{00\dots 0}\bra{00\dots 0}`
     """
 
-    state = np.zeros([trunc for i in range(n * 2)])
+    state = np.zeros([trunc for i in range(n * 2)], dtype=def_type)
     state.ravel()[0] = 1.0 + 0.0j
     return state
 
@@ -469,3 +521,19 @@ def apply_channel(state: FockState, kraus_ops, modes):
 def norm(state: FockState):
     """returns the norm of the state"""
     return calculate_trace(state.dm())
+
+
+def tensor(u, v, n, pos=None):
+    """
+    Returns the tensor product of `u` and `v`, optionally spliced into a
+    at location `pos`.
+    """
+
+    w = np.tensordot(u, v, axes=0)
+
+    if pos is not None:
+        scale = 2
+        for i in range(v.ndim):
+            w = np.rollaxis(w, scale * n + i, scale * pos + i)
+
+    return w

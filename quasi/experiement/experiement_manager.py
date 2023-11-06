@@ -1,4 +1,4 @@
-from quasi._math.fock.states import FockState
+from quasi._math.states import FockState
 from quasi._math.fock import ops
 
 import numpy as np
@@ -12,17 +12,13 @@ class Experiement:
         Initialization method
         """
         self.data = None
+        self.init_modes = 1
         self.cutoff = cutoff
         self.num_modes = num_modes
         self.hbar = hbar
         self.state_preparations: list = []
         self.operations: list = []
         self.channels: list = []
-
-        if Experiement.__instance is None:
-            Experiement.__instance = self
-        else:
-            raise Exception("Experiment is a singleton class")
 
     def add_operation(self, operator, modes):
         self.operations.append((operator, modes))
@@ -47,6 +43,7 @@ class Experiement:
         """
         if isinstance(modes, int):
             modes = [modes]
+
         reduced_state = ops.partial_trace(data, self.num_modes, modes)
 
         self.data = np.tensordot(reduced_state, data, axes=0)
@@ -70,18 +67,31 @@ class Experiement:
             hbar=self.hbar,
         )
 
+    def alloc(self, n=1):
+        """allocate a number of modes at the end of the state."""
+        # base_shape = [self._trunc for i in range(n)]
+
+        vac = ops.vacuumStateMixed(n, self.cutoff)
+
+        self.data = ops.tensor(self.state, vac, self.num_modes)
+        self.state = FockState(
+            state_data=self.data,
+            num_modes=self.num_modes,
+            cutoff_dim=self.cutoff,
+            hbar=self.hbar,
+        )
+
     def state_init(self, photon_number, modes):
         self.state_preparations.append((photon_number, modes))
 
     def _state_init(self, state_preparation: int, modes):
         vector = ops.fock_state(state_preparation, self.cutoff)
         self.prepare_multimode(np.outer(vector, vector.conjugate()), modes)
+        if len(modes) != len(self.num_modes):
+            self.alloc()
 
     def execute(self):
-        self.state = self.prepare_experiment()
-        if len(self.state_preparations) > 0:
-            for photon_number, modes in self.state_preparations:
-                self._state_init(photon_number, modes)
+        self.prepare_experiment()
 
         if len(self.channels) > 0:
             for channel, modes in self.channels:
@@ -95,8 +105,8 @@ class Experiement:
                 )
 
         for operator, modes in self.operations:
-            self.data = ops.apply_gate_einsum(
-                operator, self.state.dm(), modes, self.cutoff
+            self.data = ops.apply_gate_BLAS(
+                operator, self.state.dm(), modes, self.num_modes, self.cutoff
             )
             self.state = FockState(
                 state_data=self.data,
