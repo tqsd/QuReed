@@ -4,10 +4,28 @@ import json
 
 class LocalData():
 
+    """ LocalData is a singleton class """
+    __instance = None
+
+    @staticmethod
+    def get_instance():
+        if LocalData.__instance == None:
+            LocalData()
+        return LocalData.__instance
+
+
+    def __init__(self): 
+        if LocalData.__instance is None:
+            self.data = None
+            self.load_user_config()
+        else:
+            raise Exception("This is a singleton class")
+
     @classmethod
     def initialize(cls):
         LocalData.create_config_dir_if_not_exist()
         LocalData.create_config_file()
+
 
     @classmethod
     def get_config_dir(cls):
@@ -41,21 +59,34 @@ class LocalData():
     def create_config_file(cls):
         filename = LocalData.get_config_file_path()
         if not os.path.exists(filename):
-            open(filename, 'w').close()
+            with open(filename, 'w') as config_file:
+                json.dump({}, config_file)
 
 
-    @classmethod
-    def get_from_config_dict(cls):
+    def load_user_config(self):
         try:
             with open(LocalData.get_config_file_path(), 'r') as file:
-                data = json.load("file")
-            return data
+                data = json.load(file)
+            self.data = data
         except FileNotFoundError:
             print(f"Error: File data.json file not found")
         except json.JSONDecodeError as e:
             print(f"Error Decoding JSON: {e}")
     
 
-    @classmethod
-    def write_to_config_file(cls, key, data):
-        pass
+    def save_user_config(self):
+        with open(LocalData.get_config_file_path(), "w") as cf:
+            cf.write(json.dumps(self.data))
+
+
+    def add_to_recent_projects(self, project, path):
+        p = {"name":project, "paht":path}
+        if "recent_projects" not in self.data.keys():
+            self.data["recent_projects"] = []
+
+        self.data["recent_projects"].insert(0, p)
+        self.data["recent_projects"] = self.data["recent_projects"][:20]
+        self.save_user_config()
+        
+
+            

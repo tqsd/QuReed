@@ -29,7 +29,7 @@ class MainFrame(QWidget):
         side_widget.setFixedWidth(300)
 
         side_bar= SideBar(side_widget)
-        side_bar.setFixedWidth(10)
+        side_bar.setFixedWidth(5)
 
         splitter = QSplitter()
         splitter.addWidget(main_widget)

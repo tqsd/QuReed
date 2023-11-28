@@ -1,10 +1,12 @@
-from PyQt6.QtWidgets import QMainWindow, QApplication, QPushButton, QToolBar, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QMainWindow, QApplication, QPushButton, QToolBar, QVBoxLayout, QWidget, QDialog
 from PyQt6.QtGui import QAction, QIcon, QPalette, QColor
 from PyQt6.QtCore import QCoreApplication
 import sys
 
 from quasi.gui.frames.main_frame import MainFrame
+from quasi.gui.menu_bar.file_menu import NewProjectDialog
 from quasi.gui.initialization import LocalData
+
 
 
 
@@ -35,6 +37,7 @@ class MainWindow(QMainWindow):
         )
         button_action_new = QAction("New Project", self)
         button_action_new.setStatusTip("Start new project")
+        button_action_new.triggered.connect(self.show_new_project_dialog)
 
         button_action_open = QAction("Open Project", self)
         button_action_open.setStatusTip("Open existing project")
@@ -78,7 +81,13 @@ class MainWindow(QMainWindow):
 
         help_menu = menu.addMenu("&Help")
         help_menu.addAction(button_action_about)
-        
+
+    def show_new_project_dialog(self):
+        new_project_dialog = NewProjectDialog()
+        result = new_project_dialog.exec()
+
+        if not( result == QDialog.DialogCode.Accepted):
+            print("Create new project")
 
     def quit(self):
         """
