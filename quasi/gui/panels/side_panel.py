@@ -10,7 +10,7 @@ import flet as ft
 
 import quasi.devices.sources as quasi_sources
 import quasi.devices.beam_splitters as quasi_beam_splitters
-import quasi.devices.control_devices as quasi_control
+import quasi.devices.investigation_devices as quasi_investigation
 from quasi.devices import GenericDevice
 
 
@@ -22,8 +22,6 @@ class DraggableDevice(ft.Draggable):
     def __init__(self, d_cls, group: str, content: ft.Control,
                  content_feedback):
         self.device_class = d_cls["class"]
-        print("CREATED DRAGGABLE DEVICE")
-        print(type(self.device_class))
         super().__init__(group=group,
                          content=content,
                          content_feedback=content_feedback)
@@ -67,8 +65,6 @@ class DeviceList(ft.UserControl):
         return_list = []
         for d in list_of_devices:
             device_class = getattr(module, d)
-            print(type(device_class))
-            print(dir(device_class))
             return_list.append({
                 "name": device_class.gui_name,
                 "icon": device_class.gui_icon,
@@ -88,7 +84,8 @@ class DeviceList(ft.UserControl):
         devices_dict["Sources"] = self._get_device_class(quasi_sources)
         devices_dict["Beam Splitters"] = self._get_device_class(
             quasi_beam_splitters)
-        devices_dict["Control"] = self._get_device_class(quasi_control)
+        devices_dict["Investigation"] = self._get_device_class(
+            quasi_investigation)
         return devices_dict
 
     def build_device_list_view(self) -> ft.ListView():
@@ -129,3 +126,5 @@ class SidePanel(ft.UserControl):
                          height=25), dlist],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER)
         )
+
+

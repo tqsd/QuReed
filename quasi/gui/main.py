@@ -3,13 +3,14 @@ QuaSi Gui program.
 
 This file contains the initialization code for the QuaSi Quantum Simulator.
 """
+import logging
 
 import flet as ft
 
 from quasi.gui.panels.main_panel import MainPanel
 from quasi.gui.panels.side_panel import SidePanel
-import logging
-logging.basicConfig(level=logging.DEBUG)
+
+#logging.basicConfig(level=logging.DEBUG)
 
 
 class MenuBar(ft.UserControl):

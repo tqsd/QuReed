@@ -17,10 +17,14 @@ class IdealBeamSplitter(GenericDevice):
     Implements Ideal Single Photon Source
     """
     ports = {
-        "control": Port(label="A", direction="input", signal=None,
-                        signal_type=GenericSignal, device=None),
-        "output": Port(label="A", direction="output", signal=None,
-                       signal_type=GenericQuantumSignal, device=None),
+        "A": Port(label="A", direction="input", signal=None,
+                  signal_type=GenericSignal, device=None),
+        "B": Port(label="A", direction="output", signal=None,
+                  signal_type=GenericQuantumSignal, device=None),
+        "C": Port(label="A", direction="input", signal=None,
+                  signal_type=GenericSignal, device=None),
+        "D": Port(label="A", direction="output", signal=None,
+                  signal_type=GenericQuantumSignal, device=None),
     }
 
     # Gui Configuration

@@ -17,7 +17,7 @@ class WignerControl(GenericDevice):
     Implements Ideal Single Photon Source
     """
     ports = {
-        "output": Port(label="A", direction="output", signal=None,
+        "input": Port(label="A", direction="input", signal=None,
                        signal_type=GenericQuantumSignal, device=None),
     }
 
