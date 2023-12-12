@@ -23,6 +23,9 @@ class MenuBar(ft.UserControl):
     def build(self) -> ft.Container:
         """Build the MenuBar."""
         return ft.Container(
+            top=0,
+            left=0,
+            right=0,
             content=ft.Row([
                 ft.Text("File", color="white"),
                 ft.Text("Simulate", color="white"),
@@ -40,26 +43,22 @@ def main(page: ft.Page):
     page.window_width = 900
     page.window_frameless = False
 
-    mb = MenuBar()
-    side_panel = SidePanel(300, page.window_height-mb.height)
-    main_panel = MainPanel(page,
-                           page.window_width-side_panel.width,
-                           page.window_height-mb.height)
-    column = ft.Column(
-        [
-          mb,
-          ft.Row(
-              [main_panel, side_panel],
-              spacing=0,
-          )
-        ],
-        spacing=0,
-        height=page.window_height-mb.height,
-        width=page.window_width
+    menu_bar = MenuBar()
+    side_panel = SidePanel(offset_top=menu_bar.height)
+    main_panel = MainPanel(page)
 
+    container = ft.Container(
+        expand=True,
+        content=ft.Stack(
+              [
+                  main_panel,
+                  side_panel,
+                  menu_bar,
+              ]
+        )
     )
 
-    page.add(column)
+    page.add(container)
 
 
 if __name__ == "__main__":

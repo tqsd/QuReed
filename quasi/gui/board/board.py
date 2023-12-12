@@ -11,18 +11,14 @@ class AlignControl():
 
 class Board(ft.UserControl):
     __instance = None
-    def __init__(self, page: ft.Page, width: float, height: float ):
+    def __init__(self, page: ft.Page):
         super().__init__()
-        self.height = height
-        self.width = width
         self.page = page
         self.group = "device"
         self.offset_x = 0
         self.offset_y = 0
         # Canvas draws connection paths
 
-        stroke_paint = ft.Paint(stroke_width=2, style=ft.PaintingStyle.STROKE)
-        fill_paint = ft.Paint(style=ft.PaintingStyle.FILL)
         self.canvas = cv.Canvas(
             [
             ],
@@ -58,8 +54,7 @@ class Board(ft.UserControl):
         self.board_wrapper = ft.DragTarget(
             group="device",
             content=ft.Container(
-                width=self.width,
-                height=self.height,
+                expand=True,
                 bgcolor="#27262c",
                 content= self.board),
             on_accept=self.drag_accept

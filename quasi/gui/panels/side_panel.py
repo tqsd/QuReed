@@ -109,22 +109,26 @@ class SidePanel(ft.UserControl):
     """
     Container for the side pannel
     """
-    def __init__(self, width, height) -> None:
+    def __init__(self, offset_top: float) -> None:
         super().__init__()
-        self.height = height
-        self.width = width
+        self.offset_top = offset_top
+        self.default_width = 300
 
     def build(self) -> ft.Container:
-        dlist = DeviceList(self.width-5, self.height-30)
+        dlist = DeviceList(self.default_width-5, 800)
         return ft.Container(
-            width=self.width,
-            height=self.height,
+            top=self.offset_top,
+            bottom=0,
+            right=0,
+            width=self.default_width,
             bgcolor="#41322E",
             content=ft.Column(
-                [ft.Text("Component Library",
+                [
+                    ft.Text("Component Library",
                          color="white",
-                         height=25), dlist],
+                         height=25),
+                    dlist
+                ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER)
         )
-
 

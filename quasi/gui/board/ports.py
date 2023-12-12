@@ -8,7 +8,7 @@ import flet as ft
 import flet.canvas as cv
 
 from quasi.devices.port import Port
-
+from quasi.gui.board.connections import Connection
 
 class PortComponent(ft.UserControl):
     """
@@ -227,8 +227,11 @@ class BoardConnector():
             self.first_click.activate()
         else:
             self.first_click.connect()
+            conn = Connection(port_A=self.first_click,
+                              port_B=port)
             port.connect()
-            self.draw_connection(
-                point1=self.first_location,
-                point2=port.get_location_on_board())
+            conn.draw()
+            #self.draw_connection(
+                #point1=self.first_location,
+                #point2=port.get_location_on_board())
             self.first_click = None
