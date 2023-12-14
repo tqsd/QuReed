@@ -19,11 +19,11 @@ class IdealBeamSplitter(GenericDevice):
     ports = {
         "A": Port(label="A", direction="input", signal=None,
                   signal_type=GenericSignal, device=None),
-        "B": Port(label="A", direction="output", signal=None,
+        "B": Port(label="B", direction="output", signal=None,
                   signal_type=GenericQuantumSignal, device=None),
-        "C": Port(label="A", direction="input", signal=None,
+        "C": Port(label="C", direction="input", signal=None,
                   signal_type=GenericSignal, device=None),
-        "D": Port(label="A", direction="output", signal=None,
+        "D": Port(label="D", direction="output", signal=None,
                   signal_type=GenericQuantumSignal, device=None),
     }
 
@@ -32,7 +32,6 @@ class IdealBeamSplitter(GenericDevice):
     gui_tags = ["ideal"]
     gui_name = "Ideal Beam Splitter"
 
-    @ensure_output_compute
     @wait_input_compute
     def compute_outputs(self):
-        pass
+        print("TEST")

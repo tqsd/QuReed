@@ -6,6 +6,7 @@ for handling connections between devices
 import flet as ft
 import flet.canvas as cv
 
+from quasi.gui.simulation import SimulationWrapper
 
 class Connection():
     """
@@ -24,8 +25,15 @@ class Connection():
         self.connection = None
         self._start_point = port_a.get_location_on_board()
         self._end_point = port_b.get_location_on_board()
-        print(self._start_point)
-        print(self._end_point)
+        self._simulation_create_signal()
+
+    def _simulation_create_signal(self):
+        print("Creating signal in the simulation kernel")
+        print(type(self.port_a))
+        print(dir(self.port_a.device))
+        print(self.port_a.device)
+        print(self.port_b.device)
+        print("SIGNAL CREATED")
 
     def draw(self):
         """
@@ -82,7 +90,6 @@ class Connection():
         """
         Removes the connection, with also deleting itself
         """
-        print("Removing connection")
         self.port_a.connection = None
         self.port_b.connection = None
         self.port_a.deactivate()

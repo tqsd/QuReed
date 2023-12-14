@@ -209,7 +209,7 @@ def fock_probability(n, state):
     return np.abs(state[tuple(n)]) ** 2
 
 
-def mean_photon(state, mode,):
+def mean_photon_number(state, mode,):
     # pylint: disable=unused-argument
     n = np.arange(state._cutoff)
     probs = np.diagonal(state.reduced_dm(mode))

@@ -9,6 +9,7 @@ import flet.canvas as cv
 
 from quasi.devices.port import Port
 from quasi.gui.board.connections import Connection
+from quasi.gui.simulation import SimulationWrapper
 
 class PortComponent(ft.UserControl):
     """
@@ -20,13 +21,17 @@ class PortComponent(ft.UserControl):
                  page: ft.Page,
                  index:  int,
                  num_of_ports: int,
-                 device,
+                 label,
+                 device_comp,
+                 device_cls,
                  side: str):
         super().__init__()
         self.num_of_ports = num_of_ports
         self.index = index
         self.page = page
-        self.device = device
+        self.label = label
+        self.device = device_comp
+        self.device_cls = device_cls
         self.side = side
         self.connection = None
         if side == Ports.left_side:
@@ -121,7 +126,7 @@ class PortComponent(ft.UserControl):
         """
         _ = e
         bc = BoardConnector(self.page)
-        bc.handle_connect(self)
+        bc.handle_connect(self, self.device_cls, self.label)
 
 
     def handle_on_right_click(self, e):
@@ -154,17 +159,21 @@ class Ports(ft.UserControl):
     right_side = "RIGHT"
     left_side = "LEFT"
 
-    def __init__(self, page: ft.Page, device,
-                 ports: List[Port],
-                 direction: str = "input"):
+    def __init__(
+            self,
+            page: ft.Page,
+            device,
+            device_cls,
+            direction: str = "input"):
         super().__init__()
         self.page = page
         self.device = device
+        self.device_cls = device_cls
         self.ports = []
         self.ports_controls = []
-        for _, item in ports.items():
+        for _, item in device_cls.ports.items():
             if item.direction == direction:
-                self.ports.append(Port)
+                self.ports.append(item)
         self.left_radius = 0
         self.right_radius = 0
         if direction == "input":
@@ -184,14 +193,16 @@ class Ports(ft.UserControl):
         """
         Creates ports component
         """
-        for i, _  in enumerate(self.ports):
+        for i, port in enumerate(self.ports):
             self.ports_controls.append(
                 PortComponent(
                     index=i,
                     num_of_ports=len(self.ports),
+                    label=port.label,
                     page=self.page,
                     side=side,
-                    device=self.device
+                    device_comp=self.device,
+                    device_cls=self.device_cls
                 )
             )
 
@@ -256,7 +267,7 @@ class BoardConnector():
         if port.connection is not None:
             port.connection.remove()
 
-    def handle_connect(self, port: Port):
+    def handle_connect(self, port: Port, device_cls, label):
         """
         Handler for connection creation.
         """
@@ -266,15 +277,44 @@ class BoardConnector():
                 self.first_click = None
             return
         if self.first_click is None:
-            self.first_click = port
+            self.first_click = {
+                "port": port,
+                "device_cls": device_cls,
+                "label": label
+            }
             self.first_location = port.get_location_on_board()
-            self.first_click.activate()
+            self.first_click["port"].activate()
         else:
-            self.first_click.connect()
-            conn = Connection(port_a=self.first_click,
+
+            # INFORM THE SIMULATION KERNEL ABOUT THE CONNECTION
+            sim_wrp = SimulationWrapper()
+            # Checking if the signals match
+            sig_1_cls = self.first_click["device_cls"].ports[self.first_click["label"]].signal_type
+            sig_2_cls = device_cls.ports[label].signal_type
+            print(sig_1_cls)
+            print(sig_2_cls)
+            parent_sig_cls = None
+            if issubclass(sig_1_cls, sig_2_cls):
+                parent_sig_cls = sig_2_cls
+            elif issubclass(sig_2_cls, sig_1_cls):
+                parent_sig_cls = sig_1_cls
+            else:
+                print("PORTS INCOMPATIBLE; CONNECTION NOT POSSIBLE")
+                self.first_click = None
+                return
+            parent_sig_obj = parent_sig_cls()
+            sim_wrp.create_connection(
+                sig=parent_sig_obj,
+                dev1=self.first_click["device_cls"],
+                port_label_1=self.first_click["label"],
+                dev2=device_cls,
+                port_label_2=label
+            )
+            self.first_click["port"].connect()
+            conn = Connection(port_a=self.first_click["port"],
                               port_b=port)
             port.connect()
             conn.draw()
-            self.first_click.assign_connection(conn)
+            self.first_click["port"].assign_connection(conn)
             port.assign_connection(conn)
             self.first_click = None

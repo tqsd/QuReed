@@ -93,16 +93,17 @@ class Board(ft.UserControl):
         Accepts drag device
         """
         dev = self.page.get_control(e.src_id)
+        dev_instance = dev.device_class()
         d = Device(
             page=self.page,
             board=self,
             top=(e.y-self.offset_y)/2,
             left=(e.x-self.offset_x)/2,
-            device_class=dev.device_class)
-
+            device_class=dev_instance)
+        
         self.content.controls.append(d)
         self.content.update()
-        self.sim_wrapper.add_device(dev.device_class)
+        self.sim_wrapper.add_device(dev_instance)
         e.control.update()
 
     def build(self) -> ft.Container():

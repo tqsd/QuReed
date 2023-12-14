@@ -4,7 +4,7 @@ from quasi._math.fock import ops
 import numpy as np
 
 
-class Experiement:
+class Experiment:
     """Singleton object"""
 
     def __init__(self, num_modes, hbar=2, cutoff=10):

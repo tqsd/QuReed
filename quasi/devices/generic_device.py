@@ -3,7 +3,7 @@ Generic Device definition
 """
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Type
 from copy import deepcopy
 
 from quasi.simulation import Simulation, DeviceInformation
@@ -14,12 +14,14 @@ def wait_input_compute(method):
     Wrapper function, makes sure that the inputs are
     computed before computing outputs.
     """
-
     def wrapper(self, *args, **kwargs):
+        print(args)
+        print(kwargs)
         for port in self.ports.keys():
             port = self.ports[port]
             if port.direction == "input":
-                port.signal.wait_till_compute()
+                if port.signal is not None:
+                    port.signal.wait_till_compute()
         return method(self, *args, **kwargs)
 
     return wrapper
@@ -33,8 +35,9 @@ def ensure_output_compute(method):
     """
 
     def wrapper(self, *args, **kwargs):
+        print(args)
+        print(kwargs)
         return method(self, *args, **kwargs)
-
     return wrapper
 
 
@@ -58,15 +61,9 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         simulation.register_device(ref)
         
 
-<<<<<<< HEAD
-
-    def register_signal(self, signal,port_label:str,
-                        override:bool=False):
-=======
     def register_signal(
         self, signal: GenericSignal, port_label: str, override: bool = False
     ):
->>>>>>> origin/beam_splitter
         """
         Register a signal to port
         """
@@ -105,11 +102,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
 
     @property
     @abstractmethod
-<<<<<<< HEAD
-    def ports(self):
-=======
-    def ports(self) -> Dict[str, Port]:
->>>>>>> origin/beam_splitter
+    def ports(self) -> Dict[str, Type["Port"]]:
         """Average Power Draw"""
         raise NotImplementedError("power must be defined")
 

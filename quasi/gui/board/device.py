@@ -40,7 +40,8 @@ class Device(ft.UserControl):
             bgcolor="black",
             content=ft.GestureDetector(
                 drag_interval=1,
-                on_vertical_drag_update=self.handle_device_move
+                on_vertical_drag_update=self.handle_device_move,
+                mouse_cursor=ft.MouseCursor.GRAB
             )
         )
 
@@ -84,12 +85,12 @@ class Device(ft.UserControl):
         self.ports_in = Ports(
             device=self,
             page=self.page,
-            ports=self.device_class.ports,
+            device_cls=self.device_class,
             direction="input")
         self.ports_out = Ports(
             device=self,
             page=self.page,
-            ports=self.device_class.ports,
+            device_cls=self.device_class,
             direction="output")
 
     def _calculate_height(self) -> float:

@@ -1,5 +1,5 @@
 """
-Ideal Single Photon Source implementation
+Create wigner distribution plots
 """
 
 from quasi.devices import (GenericDevice,

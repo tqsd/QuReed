@@ -29,8 +29,15 @@ class SimpleTrigger(GenericDevice):
     gui_icon = icon_list.SIMPLE_TRIGGER
     gui_tags = ["control"]
     gui_name = "Simple Trigger"
+    power = 0
+    power_average = 0
+    power_peak = 0
+    reference = None
 
     @ensure_output_compute
     @wait_input_compute
-    def compute_outputs(self):
-        pass
+    def compute_outputs(self, *args, **kwargs):
+        print("TRIGGERING")
+        self.ports["T"].data = True
+        self.ports["T"].signal.set_computed()
+
