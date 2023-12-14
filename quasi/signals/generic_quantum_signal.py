@@ -11,6 +11,7 @@ class QuantumContentType(Enum):
     FOCK = auto()
     QOPS = auto()
 
+
 class GenericQuantumSignal(GenericSignal):
     """
     All Quantum Signals should extend this class

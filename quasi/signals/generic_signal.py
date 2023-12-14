@@ -6,6 +6,7 @@ from abc import ABC
 from threading import Event
 
 
+
 class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
     """
     Generic Signal class used to implement any other signal class
@@ -29,7 +30,7 @@ class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
         """
         self.computed.wait(timeout)
 
-    def register_port(self, port):
+    def register_port(self, port: Port):
         """
         Registers the port to the signal
         """

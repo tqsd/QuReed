@@ -37,6 +37,7 @@ class SimulationType:
 
 class Simulation:
     """Singleton object"""
+
     __instance = None
 
     """
@@ -53,7 +54,6 @@ class Simulation:
         if Simulation.__instance is None:
             Simulation()
         return Simulation.__instance
-
 
     def __init__(self):
         """

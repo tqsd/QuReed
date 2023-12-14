@@ -5,34 +5,30 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Type, Literal, Optional
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from quasi.devices.generic_device import GenericDevice
     from quasi.signals.generic_signal import GenericSignal
 
-
-
-
-def connect_ports(source:Port, destination:Port):
-    """
-    Function for connecting ports
-    """
-    pass
 
 @dataclass
 class Port:
     """
     Port Dataclass
     """
+
     label: str
     direction: Literal["input", "output"]
-    signal: Optional['GenericSignal']
-    signal_type: Type['GenericSignal']
-    device: 'GenericDevice'
+    signal: Optional["GenericSignal"]
+    signal_type: Type["GenericSignal"]
+    device: "GenericDevice"
 
     def __post_init__(self):
         if None in [self.label, self.direction, self.signal_type]:
             raise PortMissingAttributesException(
-                "label, direction and signal_type must be specified")
+                "label, direction and signal_type must be specified"
+            )
+
 
 class PortMissingAttributesException(Exception):
     """
