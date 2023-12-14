@@ -91,3 +91,21 @@ class Connection():
         self.canvas.shapes.remove(self.connection)
         self.canvas.update()
         del self
+
+
+    def hover(self):
+        self.connection.paint = ft.Paint(
+            stroke_width=3,
+            style=ft.PaintingStyle.STROKE,
+            color="red"
+        )
+        self.canvas.update()
+
+    def hover_end(self):
+        self.connection.paint = ft.Paint(
+            stroke_width=3,
+            style=ft.PaintingStyle.STROKE,
+            color="black"
+        )
+        self.canvas.update()
+        

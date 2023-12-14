@@ -36,6 +36,8 @@ class PortComponent(ft.UserControl):
             self.right_radius = 0
             self.left_radius = 5
         self.port_comp = ft.GestureDetector(
+            on_enter=self.connection_hover_enter,
+            on_exit=self.connection_hover_exit,
             on_secondary_tap=self.handle_on_right_click,
             on_tap=self.handle_on_left_click,
             mouse_cursor=ft.MouseCursor.CLICK,
@@ -51,6 +53,14 @@ class PortComponent(ft.UserControl):
 
     def build(self) -> ft.Container:
         return self.port_comp
+
+    def connection_hover_enter(self, e):
+        if self.connection is not None:
+            self.connection.hover()
+
+    def connection_hover_exit(self, e):
+        if self.connection is not None:
+            self.connection.redraw()
 
     def get_location_on_board(self) -> Tuple[float, float]:
         """
@@ -94,7 +104,6 @@ class PortComponent(ft.UserControl):
         """
         Modifies the port when activated
         """
-        print("Activate")
         self.port_comp.content.bgcolor = Ports.active_color
         self.port_comp.content.update()
 
@@ -244,7 +253,6 @@ class BoardConnector():
         Handles disconnect, when port is clicked
         with right click
         """
-        print("DISCONNECT")
         if port.connection is not None:
             port.connection.remove()
 
@@ -259,7 +267,6 @@ class BoardConnector():
             return
         if self.first_click is None:
             self.first_click = port
-            print("GETTING LOCATION ON BOARD")
             self.first_location = port.get_location_on_board()
             self.first_click.activate()
         else:
