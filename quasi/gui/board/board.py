@@ -1,18 +1,20 @@
+"""
+Implements the optical board visualization
+and behvaiours
+"""
+
 import flet as ft
 import flet.canvas as cv
-import math
+
 from quasi.gui.board.device import Device
-
-
-class AlignControl():
-    pass
-
+from quasi.gui.simulation.simulation_wrapper import SimulationWrapper
 
 
 class Board(ft.UserControl):
     __instance = None
     def __init__(self, page: ft.Page):
         super().__init__()
+        self.sim_wrapper = SimulationWrapper()
         self.page = page
         self.group = "device"
         self.offset_x = 0
@@ -50,12 +52,11 @@ class Board(ft.UserControl):
             ),
             self.content,
         ])
-        self.devices = []
         self.board_wrapper = ft.DragTarget(
             group="device",
             content=ft.Container(
                 expand=True,
-                bgcolor="#27262c",
+                bgcolor="#a19bac",#"#27262c",
                 content= self.board),
             on_accept=self.drag_accept
         )
@@ -74,15 +75,21 @@ class Board(ft.UserControl):
         """
         Handles the movement of the board
         """
-        print(dir(self.content))
-        print(self.content.top)
-        self.canvas_container.top = self.canvas_container.top + e.delta_y
-        self.canvas_container.left = self.canvas_container.left + e.delta_x
-
-        self.content.top = self.content.top + e.delta_y
-        self.content.left = self.content.left + e.delta_x
         self.offset_x += e.delta_x
         self.offset_y += e.delta_y
+
+        #self.canvas_container.top = self.offset_y
+        #self.canvas_container.left = self.offset_x
+
+        #self.content.top += e.delta_y
+        #self.content.left += e.delta_x
+
+        self.canvas_container.top = min(self.canvas_container.top + e.delta_y,
+                                        0)
+        self.canvas_container.left = min(self.canvas_container.left + e.delta_x,
+                                         0)
+        self.content.top = min(self.content.top + e.delta_y, 0)
+        self.content.left = min(self.content.left + e.delta_x, 0)
         self.content.update()
         self.canvas_container.update()
 
@@ -93,16 +100,19 @@ class Board(ft.UserControl):
         dev = self.page.get_control(e.src_id)
         d = Device(
             page=self.page,
+            board=self,
             top=(e.y-self.offset_y)/2,
             left=(e.x-self.offset_x)/2,
             device_class=dev.device_class)
 
-
         self.content.controls.append(d)
-        self.devices.append(d)
         self.content.update()
+        self.sim_wrapper.add_device(dev.device_class)
         e.control.update()
 
-
     def build(self) -> ft.Container():
+        """
+        Implements the functionality
+        required by flet framework
+        """
         return self.board_wrapper

@@ -13,19 +13,19 @@ class Device(ft.UserControl):
     control
     """
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, page: ft.Page, top: float, left: float, device_class):
+    def __init__(self, page: ft.Page, top: float, left: float, device_class, board):
         super().__init__()
         self.page = page
         self.top = top
         self.left = left
-        print(f"Device Location {self.top}, {self.left}")
+        self.board = board
         self.device_class = device_class
         self.ports_out = None
         self.ports_in = None
         self._compute_ports()
         self._header_height = 10
         self._device_height = self._calculate_height()
-        self._device_width = 70
+        self._device_width = self._calculate_width() 
         self._ports_width = 10
 
         self.image = ft.Image(
@@ -38,24 +38,27 @@ class Device(ft.UserControl):
             height=self._header_height,
             width=self._device_width,
             bgcolor="black",
-            on_click=lambda e: print("Clicked somethign"),
             content=ft.GestureDetector(
                 drag_interval=1,
                 on_vertical_drag_update=self.handle_device_move
             )
         )
 
+        self._body_controls = []
+        if len(self.ports_in.ports) > 0:
+            self._body_controls.append(self.ports_in)
+        self._body_controls.append(self.image)
+        if len(self.ports_out.ports) > 0:
+            self._body_controls.append(self.ports_out)
+
         self._body = ft.Container(
             height=self._device_height - self._header_height,
             width=self._device_width,
             bgcolor="#3f3e42",
             content=ft.Row(
+                alignment=ft.MainAxisAlignment.SPACE_AROUND,
                 spacing=0,
-                controls=[
-                    self.ports_in,
-                    self.image,
-                    self.ports_out
-                ]
+                controls=self._body_controls
             )
         )
 
@@ -96,17 +99,34 @@ class Device(ft.UserControl):
         """
         return 50
 
+    def _calculate_width(self) -> float:
+        """
+        Implement Logic to calculate height based on
+        the number of ports
+        """
+        width = 50
+        if len(self.ports_in.ports) > 0:
+            width += 10
+        if len(self.ports_out.ports) > 0:
+            width += 10
+        return width
+
     def build(self) -> ft.Container():
-        print(f"Device returns:{self.contents}")
+        """
+        Builds the actual device
+        """
         return self.contents
 
     def handle_device_move(self, e):
         """
         Handler for moving the device component
         """
-        self.top = self.top + e.delta_y
-        self.left = self.left + e.delta_x
+        self.top += e.delta_y/2
+        self.left += e.delta_x/2
         self.contents.top = self.top
         self.contents.left = self.left
+        self.ports_in.move(e.delta_x, e.delta_y)
+        self.ports_out.move(e.delta_x, e.delta_y)
         self.contents.update()
+        self.board.content.update()
         e.control.update()

@@ -9,31 +9,11 @@ import flet as ft
 
 from quasi.gui.panels.main_panel import MainPanel
 from quasi.gui.panels.side_panel import SidePanel
+from quasi.gui.menus.menu_bar import MenuBar
 
 #logging.basicConfig(level=logging.DEBUG)
 
 
-class MenuBar(ft.UserControl):
-    """MenuBar."""
-    def __init__(self) -> None:
-        """Initialize the MenuBar instance."""
-        super().__init__()
-        self.height = 25
-
-    def build(self) -> ft.Container:
-        """Build the MenuBar."""
-        return ft.Container(
-            top=0,
-            left=0,
-            right=0,
-            content=ft.Row([
-                ft.Text("File", color="white"),
-                ft.Text("Simulate", color="white"),
-                ft.Text("Export", color="white")
-            ]),
-            height=self.height,
-            bgcolor="#1f1c1e"
-        )
 
 
 def main(page: ft.Page):
@@ -41,9 +21,9 @@ def main(page: ft.Page):
     page.padding = 0
     page.window_height = 800
     page.window_width = 900
-    page.window_frameless = False
+    page.window_frameless = True
 
-    menu_bar = MenuBar()
+    menu_bar = MenuBar(page)
     side_panel = SidePanel(offset_top=menu_bar.height)
     main_panel = MainPanel(page)
 

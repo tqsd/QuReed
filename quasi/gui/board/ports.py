@@ -28,20 +28,25 @@ class PortComponent(ft.UserControl):
         self.page = page
         self.device = device
         self.side = side
+        self.connection = None
         if side == Ports.left_side:
             self.right_radius = 5
             self.left_radius = 0
         else:
             self.right_radius = 0
             self.left_radius = 5
-        self.port_comp = ft.Container(
-            height=10,
-            width=10,
-            bgcolor=Ports.default_color,
-            on_click=self.handle_on_click,
-            border_radius=ft.border_radius.horizontal(
-                left=self.left_radius,
-                right=self.right_radius)
+        self.port_comp = ft.GestureDetector(
+            on_secondary_tap=self.handle_on_right_click,
+            on_tap=self.handle_on_left_click,
+            mouse_cursor=ft.MouseCursor.CLICK,
+            content=ft.Container(
+                height=10,
+                width=10,
+                bgcolor=Ports.default_color,
+                border_radius=ft.border_radius.horizontal(
+                    left=self.left_radius,
+                    right=self.right_radius)
+            )
         )
 
     def build(self) -> ft.Container:
@@ -53,19 +58,14 @@ class PortComponent(ft.UserControl):
         port relative to the
         ft.Stack()
         """
-        print("GET location on board")
         x = 2*self.device.left
-        print(self.side)
         if self.side == Ports.right_side:
-            print("RIGHT")
             x += self.device._device_width - 5
         elif self.side == Ports.left_side:
-            print("LEFT")
             x += 5
         y = 2*self.device.top + self.device._header_height
         y += self.vertical_offset()
-        print(f"Port loctaion {x},{y}")
-        return (x, y)
+        return [x, y]
 
     def vertical_offset(self) -> float:
         """
@@ -80,31 +80,32 @@ class PortComponent(ft.UserControl):
         """
         Modifies the port on when connected
         """
-        self.port_comp.bgcolor = Ports.connected_color
-        self.port_comp.update()
+        self.port_comp.content.bgcolor = Ports.connected_color
+        self.port_comp.content.update()
 
     def disconnect(self):
         """
         Modifies the port when disconnected
         """
-        self.port_comp.bgcolor = Ports.default_color
-        self.port_comp.update()
+        self.port_comp.content.bgcolor = Ports.default_color
+        self.port_comp.content.update()
 
     def activate(self):
         """
         Modifies the port when activated
         """
-        self.port_comp.bgcolor = Ports.active_color
-        self.port_comp.update()
+        print("Activate")
+        self.port_comp.content.bgcolor = Ports.active_color
+        self.port_comp.content.update()
 
     def deactivate(self):
         """
         Modifies the port when deactivated
         """
-        self.port_comp.bgcolor = Ports.default_color
-        self.port_comp.update()
+        self.port_comp.content.bgcolor = Ports.default_color
+        self.port_comp.content.update()
 
-    def handle_on_click(self, e):
+    def handle_on_left_click(self, e):
         """
         Handles functionality when
         the port is clicked
@@ -112,6 +113,24 @@ class PortComponent(ft.UserControl):
         _ = e
         bc = BoardConnector(self.page)
         bc.handle_connect(self)
+
+
+    def handle_on_right_click(self, e):
+        _ = e
+        bc = BoardConnector(self.page)
+        bc.handle_disconnect(self)
+
+    def assign_connection(self, connection):
+        self.connection = connection
+
+    def move(self, delta_x, delta_y):
+        """
+        Handles the behaviour, when the device
+        component is moved on the board
+        """
+        if self.connection is not None:
+            self.connection.move(self, delta_x, delta_y)
+
 
 
 class Ports(ft.UserControl):
@@ -152,7 +171,7 @@ class Ports(ft.UserControl):
             controls=self.ports_controls
         )
 
-    def create_ports(self,side):
+    def create_ports(self, side):
         """
         Creates ports component
         """
@@ -166,6 +185,10 @@ class Ports(ft.UserControl):
                     device=self.device
                 )
             )
+
+    def move(self, delta_x, delta_y):
+        for p in self.ports_controls:
+            p.move(delta_x, delta_y)
 
 
 class BoardConnector():
@@ -216,10 +239,24 @@ class BoardConnector():
         self.canvas.shapes.append(conn)
         self.canvas.update()
 
+    def handle_disconnect(self, port: Port):
+        """
+        Handles disconnect, when port is clicked
+        with right click
+        """
+        print("DISCONNECT")
+        if port.connection is not None:
+            port.connection.remove()
+
     def handle_connect(self, port: Port):
         """
         Handler for connection creation.
         """
+        if port.connection is not None:
+            if self.first_click is not None:
+                self.first_click.deactivate()
+                self.first_click = None
+            return
         if self.first_click is None:
             self.first_click = port
             print("GETTING LOCATION ON BOARD")
@@ -227,11 +264,10 @@ class BoardConnector():
             self.first_click.activate()
         else:
             self.first_click.connect()
-            conn = Connection(port_A=self.first_click,
-                              port_B=port)
+            conn = Connection(port_a=self.first_click,
+                              port_b=port)
             port.connect()
             conn.draw()
-            #self.draw_connection(
-                #point1=self.first_location,
-                #point2=port.get_location_on_board())
+            self.first_click.assign_connection(conn)
+            port.assign_connection(conn)
             self.first_click = None

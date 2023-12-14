@@ -8,11 +8,11 @@ from types import ModuleType
 
 import flet as ft
 
+from quasi.devices import GenericDevice
 import quasi.devices.sources as quasi_sources
 import quasi.devices.beam_splitters as quasi_beam_splitters
 import quasi.devices.investigation_devices as quasi_investigation
-from quasi.devices import GenericDevice
-
+import quasi.devices.control as quasi_control
 
 class DraggableDevice(ft.Draggable):
     """
@@ -39,8 +39,13 @@ class DeviceItem(ft.UserControl):
         return DraggableDevice(
             d_cls=self.device,
             group="device",
-            content=ft.Row([ft.Text(self.device["name"], size=13)]),
-            content_feedback=ft.Container(width=50, height=50, bgcolor="red")
+            content=ft.Row([ft.Text(self.device["name"], size=13, color="white")]),
+            content_feedback=ft.Container(
+                width=70,
+                height=50,
+                bgcolor="black",
+                opacity=0.2,
+            )
         )
 
 
@@ -84,6 +89,8 @@ class DeviceList(ft.UserControl):
         devices_dict["Sources"] = self._get_device_class(quasi_sources)
         devices_dict["Beam Splitters"] = self._get_device_class(
             quasi_beam_splitters)
+        devices_dict["Control"] = self._get_device_class(
+            quasi_control)
         devices_dict["Investigation"] = self._get_device_class(
             quasi_investigation)
         return devices_dict
