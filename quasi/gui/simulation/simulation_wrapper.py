@@ -2,7 +2,7 @@
 This is the connection between the GUI and
 the simulation engine
 """
-
+from quasi.simulation import Simulation
 
 class SimulationWrapper:
     """

@@ -60,7 +60,6 @@ class Board(ft.UserControl):
                 content= self.board),
             on_accept=self.drag_accept
         )
-        print(self.board_wrapper)
         Board.__instance = self
 
     @classmethod
@@ -78,16 +77,12 @@ class Board(ft.UserControl):
         self.offset_x += e.delta_x
         self.offset_y += e.delta_y
 
-        #self.canvas_container.top = self.offset_y
-        #self.canvas_container.left = self.offset_x
-
-        #self.content.top += e.delta_y
-        #self.content.left += e.delta_x
-
-        self.canvas_container.top = min(self.canvas_container.top + e.delta_y,
-                                        0)
-        self.canvas_container.left = min(self.canvas_container.left + e.delta_x,
-                                         0)
+        self.canvas_container.top = min(
+            self.canvas_container.top + e.delta_y,
+            0)
+        self.canvas_container.left = min(
+            self.canvas_container.left + e.delta_x,
+            0)
         self.content.top = min(self.content.top + e.delta_y, 0)
         self.content.left = min(self.content.left + e.delta_x, 0)
         self.content.update()
