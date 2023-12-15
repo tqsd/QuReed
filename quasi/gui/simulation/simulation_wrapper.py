@@ -36,7 +36,7 @@ class SimulationWrapper:
         print(self.signals)
         self.simulation.run()
 
-    def add_device(self, device):
+    def add_device(self, device, coordinator):
         self.devices.append(device)
 
     def create_connection(self, sig,

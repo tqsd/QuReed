@@ -5,6 +5,7 @@ import numpy as np
 
 from quasi.devices import (GenericDevice,
                            wait_input_compute,
+                           coordinate_gui,
                            ensure_output_compute)
 from quasi.devices.port import Port
 from quasi.signals import (GenericSignal,
@@ -47,6 +48,7 @@ class IdealSinglePhotonSource(GenericDevice):
     reference = None
 
     @ensure_output_compute
+    @coordinate_gui
     @wait_input_compute
     def compute_outputs(self, *args, **kwargs):
         mm = ModeManager()

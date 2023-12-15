@@ -99,11 +99,11 @@ class Board(ft.UserControl):
             board=self,
             top=(e.y-self.offset_y)/2,
             left=(e.x-self.offset_x)/2,
-            device_class=dev_instance)
+            device_instance=dev_instance)
         
         self.content.controls.append(d)
         self.content.update()
-        self.sim_wrapper.add_device(dev_instance)
+        self.sim_wrapper.add_device(dev_instance, d.sim_gui_coordinator)
         e.control.update()
 
     def build(self) -> ft.Container():

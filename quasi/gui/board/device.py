@@ -13,35 +13,65 @@ class Device(ft.UserControl):
     control
     """
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, page: ft.Page, top: float, left: float, device_class, board):
+    def __init__(
+            self,
+            page: ft.Page,
+            top: float,
+            left: float,
+            device_instance,
+            board):
         super().__init__()
+        # Display parameters
         self.page = page
         self.top = top
         self.left = left
         self.board = board
-        self.device_class = device_class
         self.ports_out = None
         self.ports_in = None
+        self.sim_device_instance = device_instance
         self._compute_ports()
         self._header_height = 10
         self._device_height = self._calculate_height()
-        self._device_width = self._calculate_width() 
+        self._device_width = self._calculate_width()
         self._ports_width = 10
 
+        # Simulation Connection Components
+        self.sim_gui_coordinator = DeviceSimGuiCoordinator(self)
+        self.sim_device_instance.set_coordinator(
+            self.sim_gui_coordinator
+        )
+
+        # Gui Components
         self.image = ft.Image(
-            src=self.device_class.gui_icon,
+            src=self.sim_device_instance.gui_icon,
             width=self._device_width - 2 * self._ports_width,
             height=self._device_height - self._header_height
+        )
+
+        self.processing = ft.Container(
+            top=2,
+            left=2,
+            height=5,
+            width=5,
+            visible=False,
+            content= ft.ProgressRing(
+                color="white",
+                stroke_width=2
+            )
         )
 
         self._header = ft.Container(
             height=self._header_height,
             width=self._device_width,
             bgcolor="black",
-            content=ft.GestureDetector(
-                drag_interval=1,
-                on_vertical_drag_update=self.handle_device_move,
-                mouse_cursor=ft.MouseCursor.GRAB
+            content=ft.Stack(
+                controls = [
+                    self.processing,
+                    ft.GestureDetector(
+                        drag_interval=1,
+                        on_vertical_drag_update=self.handle_device_move,
+                        mouse_cursor=ft.MouseCursor.GRAB
+                    )]
             )
         )
 
@@ -64,7 +94,6 @@ class Device(ft.UserControl):
         )
 
         self.contents = ft.Container(
-            bgcolor=ft.colors.GREEN_200,
             width=self._device_width,
             height=self._device_height,
             top=self.top,
@@ -85,12 +114,12 @@ class Device(ft.UserControl):
         self.ports_in = Ports(
             device=self,
             page=self.page,
-            device_cls=self.device_class,
+            device_cls=self.sim_device_instance,
             direction="input")
         self.ports_out = Ports(
             device=self,
             page=self.page,
-            device_cls=self.device_class,
+            device_cls=self.sim_device_instance,
             direction="output")
 
     def _calculate_height(self) -> float:
@@ -131,3 +160,26 @@ class Device(ft.UserControl):
         self.contents.update()
         self.board.content.update()
         e.control.update()
+
+    def start_processing(self):
+        self.processing.visible = True
+        self.contents.update()
+
+    def stop_processing(self):
+        self.processing.visible = False
+        self.contents.update()
+
+class DeviceSimGuiCoordinator():
+    """
+    Manages the coordination between the
+    simulated device and the display device
+    """
+
+    def __init__(self, gui_device: Device):
+        self.device = gui_device
+    
+    def start_processing(self):
+        self.device.start_processing()
+
+    def processing_finished(self):
+        self.device.stop_processing()

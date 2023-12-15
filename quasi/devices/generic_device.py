@@ -15,8 +15,6 @@ def wait_input_compute(method):
     computed before computing outputs.
     """
     def wrapper(self, *args, **kwargs):
-        print(args)
-        print(kwargs)
         for port in self.ports.keys():
             port = self.ports[port]
             if port.direction == "input":
@@ -35,10 +33,24 @@ def ensure_output_compute(method):
     """
 
     def wrapper(self, *args, **kwargs):
-        print(args)
-        print(kwargs)
         return method(self, *args, **kwargs)
     return wrapper
+
+def coordinate_gui(method):
+    """
+    Wrapper funciton, informs the gui about the
+    status of the simulation
+    """
+    def wrapper(self, *args, **kwargs):
+        if self.coordinator is not None:
+            self.coordinator.start_processing()
+        method(self, *args, **kwargs)
+        if self.coordinator is not None:
+            self.coordinator.processing_finished()
+
+    return wrapper
+
+
 
 
 class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
@@ -59,6 +71,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         simulation = Simulation.get_instance()
         ref = DeviceInformation(name,self)
         simulation.register_device(ref)
+        self.coordinator = None
         
 
     def register_signal(
@@ -92,6 +105,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         port.signal = signal
 
     @wait_input_compute
+    @coordinate_gui
     @abstractmethod
     def compute_outputs(self):
         """
@@ -126,6 +140,14 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         experiment.
         """
         raise NotImplementedError("Can be set to None")
+
+    def set_coordinator(self, coordinator):
+        """
+        Sets the coordinator
+        this is required to have feedback in the gui
+        """
+        self.coordinator = coordinator
+        
 
 
 class NoPortException(Exception):
