@@ -1,1 +1,2 @@
 from .ideal_single_photon_source import IdealSinglePhotonSource
+from .ideal_coherent_source import IdealCoherentSource

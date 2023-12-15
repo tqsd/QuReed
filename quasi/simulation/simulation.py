@@ -77,15 +77,13 @@ class Simulation:
     def set_simulation_type(self, simulation_type: SimulationType):
         self.simulation_type = simulation_type
 
-    def get_dimensiosn(self):
-        return self.simulation_type
 
     @classmethod
     def set_dimensions(cls, dimensions):
         cls.dimensions = dimensions
 
     @classmethod
-    def get_dimensions(cls, dimensions):
+    def get_dimensions(cls):
         return cls.dimensions
 
     def run(self):
