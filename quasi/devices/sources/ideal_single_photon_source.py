@@ -18,6 +18,7 @@ from quasi.simulation import ModeManager
 
 from quasi._math.fock.ops import adagger, a
 
+
 class IdealSinglePhotonSource(GenericDevice):
     """
     Implements Ideal Single Photon Source

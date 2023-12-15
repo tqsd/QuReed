@@ -33,7 +33,7 @@ class DeviceInformation:
 class SimulationType:
     FOCK = auto()
     MIXED = auto()
-    
+
 
 class Simulation:
     """Singleton object"""

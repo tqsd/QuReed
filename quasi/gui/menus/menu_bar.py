@@ -20,10 +20,6 @@ class MenuBar(ft.UserControl):
             [
                 ft.Container(width=2),
                 FileMenu(),
-                ft.Container(
-                    content=ft.Text("Simulate", color="white"),
-                    on_click=self.on_click_simulate
-                )
             ]
         )
         self.menu_items = ft.Row(

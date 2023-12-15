@@ -75,10 +75,10 @@ class PortComponent(ft.UserControl):
         """
         x = 2*self.device.left
         if self.side == Ports.right_side:
-            x += self.device._device_width - 5
+            x += self.device.base_wrapper_width - 5
         elif self.side == Ports.left_side:
             x += 5
-        y = 2*self.device.top + self.device._header_height
+        y = 2*self.device.top + self.device.header_height
         y += self.vertical_offset()
         return [x, y]
 
@@ -86,7 +86,8 @@ class PortComponent(ft.UserControl):
         """
         Computes vertical offset of the port component
         """
-        offset = self.device._device_height - self.device._header_height
+        offset = (self.device.base_wrapper_height -
+                  self.device.header_height)
         offset /= self.num_of_ports * 2
         offset = offset * (1 + 2*self.index)
         return offset

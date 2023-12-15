@@ -12,6 +12,7 @@ from quasi.gui.simulation.simulation_wrapper import SimulationWrapper
 
 class Board(ft.UserControl):
     __instance = None
+
     def __init__(self, page: ft.Page):
         super().__init__()
         self.sim_wrapper = SimulationWrapper()
@@ -52,13 +53,19 @@ class Board(ft.UserControl):
             ),
             self.content,
         ])
-        self.board_wrapper = ft.DragTarget(
-            group="device",
-            content=ft.Container(
-                expand=True,
-                bgcolor="#a19bac",#"#27262c",
-                content= self.board),
-            on_accept=self.drag_accept
+        self.board_wrapper = ft.Container(
+            top=50,
+            left=0,
+            right=0,
+            bottom=0,
+            content=ft.DragTarget(
+                group="device",
+                content=ft.Container(
+                    expand=True,
+                    bgcolor="#a19bac",#"#27262c",
+                    content= self.board),
+                on_accept=self.drag_accept
+            )
         )
         Board.__instance = self
 
@@ -94,6 +101,7 @@ class Board(ft.UserControl):
         """
         dev = self.page.get_control(e.src_id)
         dev_instance = dev.device_class()
+
         d = Device(
             page=self.page,
             board=self,
@@ -103,7 +111,7 @@ class Board(ft.UserControl):
         
         self.content.controls.append(d)
         self.content.update()
-        self.sim_wrapper.add_device(dev_instance, d.sim_gui_coordinator)
+        self.sim_wrapper.add_device(dev_instance)
         e.control.update()
 
     def build(self) -> ft.Container():

@@ -30,7 +30,7 @@ class PhotonDistribution(GenericDevice):
 
     # Gui Configuration
     gui_icon = icon_list.HISTOGRAM
-    gui_tags = ["investigate"]
+    gui_tags = ["investigate", "chart"]
     gui_name = "Photon Distribution"
 
     power_average = 0
@@ -45,7 +45,6 @@ class PhotonDistribution(GenericDevice):
         mm = ModeManager()
         m_id = self.ports["IN"].signal.mode_id
         mode = mm.get_mode(m_id)
-        print(mode)
         probabilities = np.real(np.diag(mode))
 
         histogram_data = {
@@ -58,6 +57,8 @@ class PhotonDistribution(GenericDevice):
                     title='Fock State Density Matrix Histogram')
 
         # Show the plot
-        fig.show()
+        #fig.show()
+        if hasattr(self, "coordinator"):
+            self.coordinator.set_chart(fig)
+            
 
-        

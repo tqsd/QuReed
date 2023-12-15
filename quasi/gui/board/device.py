@@ -5,107 +5,81 @@ device component
 import flet as ft
 
 from .ports import Ports
+from .chart import Chart
+from .base_device_component import BaseDeviceComponent
 
-
-class Device(ft.UserControl):
+class Device(BaseDeviceComponent):
     """
     Device class, handles the device gui visualiztaion and
     control
     """
-    # pylint: disable=too-many-instance-attributes
-    def __init__(
-            self,
-            page: ft.Page,
-            top: float,
-            left: float,
-            device_instance,
-            board):
-        super().__init__()
-        # Display parameters
-        self.page = page
-        self.top = top
-        self.left = left
-        self.board = board
-        self.ports_out = None
-        self.ports_in = None
-        self.sim_device_instance = device_instance
-        self._compute_ports()
-        self._header_height = 10
-        self._device_height = self._calculate_height()
-        self._device_width = self._calculate_width()
-        self._ports_width = 10
+    def __init__(self, *args, **kwargs):
 
         # Simulation Connection Components
+        self.device_instance = kwargs["device_instance"]
         self.sim_gui_coordinator = DeviceSimGuiCoordinator(self)
-        self.sim_device_instance.set_coordinator(
+        self.device_instance.set_coordinator(
             self.sim_gui_coordinator
         )
 
+        print(kwargs["top"], kwargs["left"])
+
         # Gui Components
-        self.image = ft.Image(
-            src=self.sim_device_instance.gui_icon,
-            width=self._device_width - 2 * self._ports_width,
-            height=self._device_height - self._header_height
-        )
+        width = 50
+        self.ports_out = None
+        self.ports_in = None
+        self.page = kwargs["page"]
 
-        self.processing = ft.Container(
-            top=2,
-            left=2,
-            height=5,
-            width=5,
-            visible=False,
-            content= ft.ProgressRing(
-                color="white",
-                stroke_width=2
-            )
-        )
-
-        self._header = ft.Container(
-            height=self._header_height,
-            width=self._device_width,
-            bgcolor="black",
-            content=ft.Stack(
-                controls = [
-                    self.processing,
-                    ft.GestureDetector(
-                        drag_interval=1,
-                        on_vertical_drag_update=self.handle_device_move,
-                        mouse_cursor=ft.MouseCursor.GRAB
-                    )]
-            )
-        )
-
+        self._compute_ports()
+        self._ports_width = 10
         self._body_controls = []
+        if len(self.ports_in.ports) > 0:
+            width += 10
+        if len(self.ports_out.ports) > 0:
+            width += 10
+
+        super().__init__(
+            height=50,
+            width=width,
+            *args,
+            **kwargs)
+
+        self.image = ft.Image(
+            src=self.device_instance.gui_icon,
+            width=self.content_width - 2 * self._ports_width,
+            height=self.content_height - self.header_height
+        )
+
         if len(self.ports_in.ports) > 0:
             self._body_controls.append(self.ports_in)
         self._body_controls.append(self.image)
         if len(self.ports_out.ports) > 0:
             self._body_controls.append(self.ports_out)
 
-        self._body = ft.Container(
-            height=self._device_height - self._header_height,
-            width=self._device_width,
-            bgcolor="#3f3e42",
-            content=ft.Row(
-                alignment=ft.MainAxisAlignment.SPACE_AROUND,
-                spacing=0,
-                controls=self._body_controls
+
+
+
+
+        self.set_contents(
+            ft.Container(
+                top=0,
+                left=0,
+                right=0,
+                bottom=0,
+                bgcolor="#3f3e42",
+                content=ft.Row(
+                    alignment=ft.MainAxisAlignment.SPACE_AROUND,
+                    spacing=0,
+                    controls=self._body_controls
+                    )
             )
         )
 
-        self.contents = ft.Container(
-            width=self._device_width,
-            height=self._device_height,
-            top=self.top,
-            left=self.left,
-            border_radius=2,
-            content=ft.Column(
-                spacing=0,
-                controls=[
-                    self._header,
-                    self._body]
-            )
-        )
+        self.has_chart = False
+        if "chart" in self.device_instance.gui_tags:
+            self.has_chart = True
+
+
 
     def _compute_ports(self) -> None:
         """
@@ -114,60 +88,25 @@ class Device(ft.UserControl):
         self.ports_in = Ports(
             device=self,
             page=self.page,
-            device_cls=self.sim_device_instance,
+            device_cls=self.device_instance,
             direction="input")
         self.ports_out = Ports(
             device=self,
             page=self.page,
-            device_cls=self.sim_device_instance,
+            device_cls=self.device_instance,
             direction="output")
 
-    def _calculate_height(self) -> float:
-        """
-        Implement Logic to calculate height based on
-        the number of ports
-        """
-        return 50
 
-    def _calculate_width(self) -> float:
-        """
-        Implement Logic to calculate height based on
-        the number of ports
-        """
-        width = 50
-        if len(self.ports_in.ports) > 0:
-            width += 10
-        if len(self.ports_out.ports) > 0:
-            width += 10
-        return width
-
-    def build(self) -> ft.Container():
-        """
-        Builds the actual device
-        """
-        return self.contents
-
-    def handle_device_move(self, e):
-        """
-        Handler for moving the device component
-        """
-        self.top += e.delta_y/2
-        self.left += e.delta_x/2
-        self.contents.top = self.top
-        self.contents.left = self.left
-        self.ports_in.move(e.delta_x, e.delta_y)
-        self.ports_out.move(e.delta_x, e.delta_y)
-        self.contents.update()
+    def display_chart(self,chart):
+        self.board.content.controls.append(
+            Chart(
+                chart=chart,
+                page=self.page,
+                top=self.top,
+                left=self.left,
+                board=self.board))
         self.board.content.update()
-        e.control.update()
-
-    def start_processing(self):
-        self.processing.visible = True
-        self.contents.update()
-
-    def stop_processing(self):
-        self.processing.visible = False
-        self.contents.update()
+        self.page.update()
 
 class DeviceSimGuiCoordinator():
     """
@@ -177,9 +116,18 @@ class DeviceSimGuiCoordinator():
 
     def __init__(self, gui_device: Device):
         self.device = gui_device
+        self.has_chart = False
+        self.chart = None
     
     def start_processing(self):
         self.device.start_processing()
 
     def processing_finished(self):
         self.device.stop_processing()
+        if self.device.has_chart and self.has_chart:
+            self.device.display_chart(self.chart)
+
+
+    def set_chart(self, chart):
+        self.has_chart = True
+        self.chart = chart
