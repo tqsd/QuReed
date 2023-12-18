@@ -57,7 +57,9 @@ class IdealSinglePhotonSource(GenericDevice):
         AD = adagger(mm.simulation.dimensions)
         A = a(mm.simulation.dimensions)
         mode = mm.get_mode(m_id)
-        mm.modes[m_id] =  np.matmul(AD, np.matmul(mode, A))
+
+        mode=np.matmul(AD, np.matmul(mode, A))
+        mm.modes[m_id]=np.matmul(AD, np.matmul(mode, A))
         self.ports["output"].signal.set_contents(
             content_type=QuantumContentType.FOCK,
             mode_id=m_id)

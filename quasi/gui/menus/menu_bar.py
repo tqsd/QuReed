@@ -24,8 +24,21 @@ class MenuBar(ft.UserControl):
         )
         self.menu_items = ft.Row(
             [
-                ft.Text("Exit", color="white"),
-                ft.Container(width=2),
+                ft.Container(
+                    on_click=self.on_minimize,
+                    content=ft.Icon(
+                        name=ft.icons.MINIMIZE,
+                        color="white"
+                    )
+                ),
+                ft.Container(
+                    on_click=self.on_exit,
+                    content=ft.Icon(
+                        name=ft.icons.CLOSE,
+                        color="white"
+                    )
+                ),
+                ft.Container(width=1),
             ]
         )
         self.container = ft.Container(
@@ -34,15 +47,41 @@ class MenuBar(ft.UserControl):
             right=0,
             height=self.height,
             bgcolor="#1f1c1e",
-            content=ft.Row(
-                [
-                    self.window_commands,
-                    self.menu_items
-                ],
-                width=self.page.window_width,
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+            content=ft.GestureDetector(
+                drag_interval=10,
+                content=ft.Row(
+                    [
+                        self.window_commands,
+                        self.menu_items
+                    ],
+                    width=self.page.window_width,
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                ),
+                on_vertical_drag_update=self.move_application_window,
+                on_double_tap=self.toggle_full_screen
             )
         )
+
+    def move_application_window(self, e) -> None:
+        print("——————————————————")
+        print(e.delta_x, e.delta_y)
+        print(e.local_x, e.local_y)
+        print(e.global_x, e.global_y)
+        self.page.window_left = e.global_x
+        self.page.window_top = e.global_y
+        self.page.update()
+
+    def toggle_full_screen(self, e) -> None:
+        self.page.window_full_screen = not self.page.window_full_screen
+        self.page.update()
+        
+
+    def on_minimize(self, e) -> None:
+        self.page.minimized=True
+        self.page.update()
+
+    def on_exit(self, e) -> None:
+        self.page.window_destroy()
 
     def on_click_simulate(self, e) -> None:
         self.sim_warpper.execute()

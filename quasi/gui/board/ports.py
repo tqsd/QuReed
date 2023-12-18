@@ -183,11 +183,18 @@ class Ports(ft.UserControl):
             self.side = Ports.right_side
         self.create_ports(self.side)
 
-    def build(self) -> ft.Column():
-        return ft.Column(
-            spacing=5,
-            alignment=ft.MainAxisAlignment.SPACE_AROUND,
-            controls=self.ports_controls
+    def build(self) -> ft.Container():
+        return ft.Container(
+            top=0,
+            bottom=0,
+            right=0 if self.side == Ports.right_side else None,
+            left=0 if self.side == Ports.left_side else None,
+            width=10,
+            content=ft.Column(
+                spacing=5,
+                alignment=ft.MainAxisAlignment.SPACE_AROUND,
+                controls=self.ports_controls
+            )
         )
 
     def create_ports(self, side):

@@ -54,7 +54,7 @@ class Board(ft.UserControl):
             self.content,
         ])
         self.board_wrapper = ft.Container(
-            top=50,
+            top=0,
             left=0,
             right=0,
             bottom=0,
@@ -105,7 +105,7 @@ class Board(ft.UserControl):
         d = Device(
             page=self.page,
             board=self,
-            top=(e.y-self.offset_y)/2,
+            top=(e.y-self.offset_y-75)/2,
             left=(e.x-self.offset_x)/2,
             device_instance=dev_instance)
         

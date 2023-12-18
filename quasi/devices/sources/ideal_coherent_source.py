@@ -61,12 +61,12 @@ class IdealCoherentSource(GenericDevice):
         density_matrix = np.zeros((
             mm.simulation.dimensions,
             mm.simulation.dimensions), dtype=np.complex128)
-        alpha = 1
+        alpha = 10
 
         for m in range(mm.simulation.dimensions):
             for n in range(mm.simulation.dimensions):
                 density_matrix[m, n] = ((alpha**m * np.conj(alpha)**n) /
-                np.sqrt(factorial(m) * factorial(n)))
+                                        np.sqrt(factorial(m) * factorial(n)))
 
         density_matrix /= np.pi
 

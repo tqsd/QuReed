@@ -50,14 +50,12 @@ class Device(BaseDeviceComponent):
             height=self.content_height - self.header_height
         )
 
+        self.image_left = 0
+        self.image_right = 0
         if len(self.ports_in.ports) > 0:
-            self._body_controls.append(self.ports_in)
-        self._body_controls.append(self.image)
+            self.image_left = 10
         if len(self.ports_out.ports) > 0:
-            self._body_controls.append(self.ports_out)
-
-
-
+            self.image_right = 10
 
 
         self.set_contents(
@@ -67,11 +65,19 @@ class Device(BaseDeviceComponent):
                 right=0,
                 bottom=0,
                 bgcolor="#3f3e42",
-                content=ft.Row(
-                    alignment=ft.MainAxisAlignment.SPACE_AROUND,
-                    spacing=0,
-                    controls=self._body_controls
-                    )
+                content=ft.Stack(
+                    controls=[self.ports_in,
+                              self.ports_out,
+                              ft.Container(
+                                  top=0,
+                                  left=self.image_left,
+                                  right=self.image_right,
+                                  bottom=0,
+                                  content=self.image
+                              )
+                              ],
+                    expand=True
+                )
             )
         )
 
