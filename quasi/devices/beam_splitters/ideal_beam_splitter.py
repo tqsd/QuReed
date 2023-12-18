@@ -33,6 +33,7 @@ class IdealBeamSplitter(GenericDevice):
     gui_icon = icon_list.BEAM_SPLITTER
     gui_tags = ["ideal"]
     gui_name = "Ideal Beam Splitter"
+    gui_documentation = "ideal_beam_splitter.md"
 
     power_average = 0
     power_peak = 0

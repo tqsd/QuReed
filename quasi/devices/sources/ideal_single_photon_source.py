@@ -42,6 +42,7 @@ class IdealSinglePhotonSource(GenericDevice):
     gui_icon = icon_list.SINGLE_PHOTON_SOURCE
     gui_tags = ["ideal"]
     gui_name = "Ideal Single Photon Source"
+    gui_documentation = "ideal_single_photon_source.md"
 
     power_peak = 0
     power_average = 0

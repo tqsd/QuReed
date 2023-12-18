@@ -6,10 +6,10 @@ devices
 
 import flet as ft
 
+from quasi.gui.board.options import DeviceOptions
 
 
 class BaseDeviceComponent(ft.UserControl):
-
     """
     Displays the chart
     """
@@ -70,6 +70,7 @@ class BaseDeviceComponent(ft.UserControl):
                    ft.GestureDetector(
                        drag_interval=1,
                        on_vertical_drag_update=self.handle_device_move,
+                       on_secondary_tap=self.handle_secondary,
                        mouse_cursor=ft.MouseCursor.GRAB
                    )
                ]
@@ -170,3 +171,12 @@ class BaseDeviceComponent(ft.UserControl):
     def stop_processing(self):
         self.base_processing.visible = False
         self.base_wrapper.update()
+
+    def handle_secondary(self, e):
+        """
+        Display options
+        """
+        do = DeviceOptions(self.top+10, self.left+10,
+                           self.device_instance)
+        self.board.create_menu(do)
+

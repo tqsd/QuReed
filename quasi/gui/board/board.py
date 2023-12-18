@@ -20,6 +20,7 @@ class Board(ft.UserControl):
         self.group = "device"
         self.offset_x = 0
         self.offset_y = 0
+        self.menus = []
         # Canvas draws connection paths
 
         self.canvas = cv.Canvas(
@@ -77,10 +78,20 @@ class Board(ft.UserControl):
         """
         return Board.__instance.canvas
 
+    @classmethod
+    def get_board(cls):
+        """
+        Returns the canvas, to draw
+        the connecting lines
+        """
+        return Board.__instance
+
     def move_board(self, e):
         """
         Handles the movement of the board
         """
+
+        self.clear_menus()
         self.offset_x += e.delta_x
         self.offset_y += e.delta_y
 
@@ -99,6 +110,7 @@ class Board(ft.UserControl):
         """
         Accepts drag device
         """
+        self.clear_menus()
         dev = self.page.get_control(e.src_id)
         dev_instance = dev.device_class()
 
@@ -120,3 +132,18 @@ class Board(ft.UserControl):
         required by flet framework
         """
         return self.board_wrapper
+
+
+    def create_menu(self, menu):
+        self.clear_menus()
+        self.menus.append(menu)
+        self.content.controls.append(menu.build())
+        self.content.update()
+
+    def clear_menus(self):
+        for m in self.menus:
+            if m.build() in self.content.controls:
+                self.content.controls.remove(m.build())
+                m.delete_self()
+        self.content.update()
+        self.menus = []

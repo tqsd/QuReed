@@ -240,6 +240,7 @@ class BoardConnector():
             self.first_click = None
             self.initialized = True  # Mark as initialized
             self.canvas = Board.get_canvas()
+            self.board = Board.get_board()
 
     def draw_connection(self, point1=(100, 100),
                         point2=(200, 200)):
@@ -279,6 +280,7 @@ class BoardConnector():
         """
         Handler for connection creation.
         """
+        self.board.clear_menus()
         if port.connection is not None:
             if self.first_click is not None:
                 self.first_click.deactivate()
