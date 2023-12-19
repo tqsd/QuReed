@@ -30,6 +30,7 @@ class BaseDeviceComponent(ft.UserControl):
         print(self.top, self.left)
         self.board = board
         self.label = label
+        self.has_chart = False
         self.device_instance = device_instance
         self.resizable = resizable
         self.resize_size = 10

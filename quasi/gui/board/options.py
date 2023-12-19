@@ -33,8 +33,6 @@ class DeviceOptions(ft.UserControl):
         from quasi.gui.board.board import Board
         b = Board.get_board()
         b.clear_menus()
-        
-    
 
     def build(self):
         return self.menu

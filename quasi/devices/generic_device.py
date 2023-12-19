@@ -64,8 +64,11 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         """
         self.name = name
         self.ports = deepcopy(self.__class__.ports)
+        if hasattr(self.__class__, "values"):
+            self.values = deepcopy(self.__class__.values)
         for port in self.ports.keys():
             self.ports[port].device = self
+
 
         # Regitering the device to the simulation
         simulation = Simulation.get_instance()

@@ -24,7 +24,7 @@ class SimulationBar(ft.UserControl):
             on_click=self.on_click_simulate
         )
 
-        self.dimensions = ft.Container(
+       self.dimensions = ft.Container(
             height=25,
             width=100,
             content=ft.Row(
@@ -35,7 +35,7 @@ class SimulationBar(ft.UserControl):
                     ft.TextField(
                         multiline=False,
                         width=40,
-                        filled=False,
+                        filled=Falsen,
                         disabled=False,
                         value=str(Simulation.dimensions),
                         content_padding=0,

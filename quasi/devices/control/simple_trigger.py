@@ -39,7 +39,6 @@ class SimpleTrigger(GenericDevice):
     @coordinate_gui
     @wait_input_compute
     def compute_outputs(self, *args, **kwargs):
-        print("TRIGGERING")
-        self.ports["T"].data = True
+        self.ports["T"].signal.set_bool(True)
         self.ports["T"].signal.set_computed()
 

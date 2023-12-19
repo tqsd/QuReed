@@ -22,8 +22,6 @@ class Device(BaseDeviceComponent):
             self.sim_gui_coordinator
         )
 
-        print(kwargs["top"], kwargs["left"])
-
         # Gui Components
         width = 50
         self.ports_out = None

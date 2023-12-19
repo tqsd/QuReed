@@ -1,9 +1,9 @@
 """
-Generic Quantum Signal implementation
+Generic Integer Signal implementation
 """
 from quasi.signals.generic_signal import GenericSignal
 
-class GenericBoolSignal(GenericSignal):
+class GenericIntSignal(GenericSignal):
     """
     All Quantum Signals should extend this class
     """
@@ -12,6 +12,5 @@ class GenericBoolSignal(GenericSignal):
         super().__init__()
         self.contents = None
 
-
-    def set_bool(self, b: bool):
-        self.contents = b
+    def set_int(self, x: int):
+        self.contents = int(x)

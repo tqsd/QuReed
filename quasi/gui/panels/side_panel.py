@@ -13,6 +13,7 @@ import quasi.devices.sources as quasi_sources
 import quasi.devices.beam_splitters as quasi_beam_splitters
 import quasi.devices.investigation_devices as quasi_investigation
 import quasi.devices.control as quasi_control
+import quasi.devices.variables as quasi_variables
 
 class DraggableDevice(ft.Draggable):
     """
@@ -86,6 +87,7 @@ class DeviceList(ft.UserControl):
         the device library.
         """
         devices_dict = {}
+        devices_dict["Variables"] = self._get_device_class(quasi_variables)
         devices_dict["Sources"] = self._get_device_class(quasi_sources)
         devices_dict["Beam Splitters"] = self._get_device_class(
             quasi_beam_splitters)

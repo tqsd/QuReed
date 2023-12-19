@@ -43,8 +43,11 @@ class IdealBeamSplitter(GenericDevice):
     def compute_outputs(self,  *args, **kwargs):
         mm = ModeManager()
 
+        # Get the modes or create empty modes
         m_id_a = self.ports["A"].signal.mode_id
         m_id_b = self.ports["B"].signal.mode_id
+
+        
 
         self.ports["C"].signal.set_contents(
             content_type=QuantumContentType.FOCK,

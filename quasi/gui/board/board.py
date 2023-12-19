@@ -7,6 +7,7 @@ import flet as ft
 import flet.canvas as cv
 
 from quasi.gui.board.device import Device
+from quasi.gui.board.variable import VariableComponent
 from quasi.gui.simulation.simulation_wrapper import SimulationWrapper
 
 
@@ -108,18 +109,27 @@ class Board(ft.UserControl):
 
     def drag_accept(self, e: ft.DragUpdateEvent):
         """
-        Accepts drag device
+        Accepts drag device, based on the
+        content of the class, it decides what kind
+        of component needs to be placed
         """
         self.clear_menus()
         dev = self.page.get_control(e.src_id)
         dev_instance = dev.device_class()
-
-        d = Device(
-            page=self.page,
-            board=self,
-            top=(e.y-self.offset_y-75)/2,
-            left=(e.x-self.offset_x)/2,
-            device_instance=dev_instance)
+        if "variable" in dev_instance.gui_tags:
+            d = VariableComponent(
+                page=self.page,
+                board=self,
+                top=(e.y-self.offset_y-75)/2,
+                left=(e.x-self.offset_x)/2,
+                device_instance=dev_instance)
+        else:
+            d = Device(
+                page=self.page,
+                board=self,
+                top=(e.y-self.offset_y-75)/2,
+                left=(e.x-self.offset_x)/2,
+                device_instance=dev_instance)
         
         self.content.controls.append(d)
         self.content.update()
