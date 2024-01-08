@@ -2,6 +2,7 @@ import flet as ft
 
 from quasi.gui.board.board import Board
 from quasi.gui.bar.simulation_bar import SimulationBar
+from quasi.gui.board.info_bar import InfoBar
 from quasi.gui.panels.documentation_panel import DocumentationTab
 
 
@@ -13,6 +14,8 @@ class MainPanel(ft.UserControl):
         super().__init__()
         MainPanel.__instance = self
         self.simulation_bar = SimulationBar()
+        self.info_bar = InfoBar()
+        self.info_bar.set_page(page)
         self.tabs = ft.Tabs(
             tab_alignment=ft.TabAlignment.START,
             indicator_color="white",
@@ -34,7 +37,8 @@ class MainPanel(ft.UserControl):
                                 content=ft.Stack(
                                     [
                                         Board(self.page),
-                                        self.simulation_bar
+                                        self.simulation_bar,
+                                        self.info_bar
                                     ]
                                 ))]
                     )

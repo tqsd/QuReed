@@ -58,7 +58,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
     Generic Device class used to implement every device
     """
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, uid=None):
         """
         Initialization method
         """
@@ -71,8 +71,10 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
 
 
         # Regitering the device to the simulation
+        print(f"NEW DEVICE {uid}")
         simulation = Simulation.get_instance()
-        ref = DeviceInformation(name,self)
+        ref = DeviceInformation(name=name, obj_ref=self, uid=uid)
+        self.ref = ref
         simulation.register_device(ref)
         self.coordinator = None
         
@@ -104,7 +106,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         ):
             raise PortSignalMismatchException()
 
-        signal.register_port(port)
+        signal.register_port(port, self)
         port.signal = signal
 
     @wait_input_compute

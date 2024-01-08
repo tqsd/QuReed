@@ -5,6 +5,7 @@ Implements the menu bar
 import flet as ft
 
 from quasi.gui.menus.file_menu import FileMenu
+from quasi.gui.menus.edit_menu import EditMenu
 from quasi.gui.simulation.simulation_wrapper import SimulationWrapper
 
 
@@ -19,28 +20,20 @@ class MenuBar(ft.UserControl):
         self.window_commands = ft.Row(
             [
                 ft.Container(width=2),
-                FileMenu(),
             ]
         )
-        self.menu_items = ft.Row(
-            [
-                ft.Container(
-                    on_click=self.on_minimize,
-                    content=ft.Icon(
-                        name=ft.icons.MINIMIZE,
-                        color="white"
-                    )
+        self.menu_items = ft.MenuBar(
+            expand=True,
+            style=ft.MenuStyle(
+                alignment=ft.alignment.top_left,
+                mouse_cursor={
+                    ft.MaterialState.HOVERED: ft.MouseCursor.WAIT,
+                    ft.MaterialState.DEFAULT: ft.MouseCursor.ZOOM_OUT},
                 ),
-                ft.Container(
-                    on_click=self.on_exit,
-                    content=ft.Icon(
-                        name=ft.icons.CLOSE,
-                        color="white"
-                    )
-                ),
-                ft.Container(width=1),
-            ]
-        )
+            controls=[
+                FileMenu(page),
+                EditMenu()
+            ])
         self.container = ft.Container(
             top=0,
             left=0,
@@ -51,7 +44,6 @@ class MenuBar(ft.UserControl):
                 drag_interval=10,
                 content=ft.Row(
                     [
-                        self.window_commands,
                         self.menu_items
                     ],
                     width=self.page.window_width,
@@ -61,6 +53,7 @@ class MenuBar(ft.UserControl):
                 on_double_tap=self.toggle_full_screen
             )
         )
+
 
     def move_application_window(self, e) -> None:
         print("——————————————————")

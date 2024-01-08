@@ -7,6 +7,7 @@ devices
 import flet as ft
 
 from quasi.gui.board.options import DeviceOptions
+from quasi.gui.board.info_bar import InfoBar
 
 
 class BaseDeviceComponent(ft.UserControl):
@@ -27,10 +28,10 @@ class BaseDeviceComponent(ft.UserControl):
         super().__init__()
         self.top = top
         self.left = left
-        print(self.top, self.left)
         self.board = board
         self.label = label
         self.has_chart = False
+        self._info_bar = InfoBar()
         self.device_instance = device_instance
         self.resizable = resizable
         self.resize_size = 10
@@ -72,7 +73,9 @@ class BaseDeviceComponent(ft.UserControl):
                        drag_interval=1,
                        on_vertical_drag_update=self.handle_device_move,
                        on_secondary_tap=self.handle_secondary,
-                       mouse_cursor=ft.MouseCursor.GRAB
+                       mouse_cursor=ft.MouseCursor.GRAB,
+                       on_enter=self.on_hover_enter,
+                       on_exit=self.on_hover_exit
                    )
                ]
             )
@@ -164,6 +167,13 @@ class BaseDeviceComponent(ft.UserControl):
         self.content_width = self._compute_content_height()
         self.base_wrapper.update()
 
+    def on_hover_enter(self, e):
+        self._info_bar.notify(self.device_instance.__class__.__name__)
+
+    def on_hover_exit(self, e):
+        self._info_bar.notify()
+    
+
 
     def start_processing(self):
         self.base_processing.visible = True
@@ -180,4 +190,20 @@ class BaseDeviceComponent(ft.UserControl):
         do = DeviceOptions(self.top+10, self.left+10,
                            self.device_instance)
         self.board.create_menu(do)
+
+    def get_port(self, label:str):
+        """
+        Returns instance of the port
+        """
+        p = False
+        if hasattr(self, "ports_in"):
+            p = self.ports_in.get_port(label)
+        if p is False:
+            if hasattr(self, "ports_out"):
+                p = self.ports_out.get_port(label)
+        if p is not False:
+            return p[0]
+        return p
+            
+        
 

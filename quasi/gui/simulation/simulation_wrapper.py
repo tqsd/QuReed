@@ -39,12 +39,24 @@ class SimulationWrapper:
     def add_device(self, device):
         self.devices.append(device)
 
+    def get_device(self, uid):
+        print(uid)
+        d = [x for x in self.devices if x.ref.uuid == uid]
+        for x in self.devices:
+            print(x.ref)
+        if len(d)==1:
+            return d[0]
+        return None
+
     def create_connection(self, sig,
                           dev1, port_label_1,
                           dev2, port_label_2):
-        print("BACKEND CONNECTION")
-        print(dev1)
         dev1.register_signal(signal=sig, port_label=port_label_1)
         dev2.register_signal(signal=sig, port_label=port_label_2)
         self.signals.append(sig)
-        print("CREATING CONNECTION")
+
+
+    def clear(self):
+        self.simulation.clear_all()
+        self.devices = []
+        self.signals = []

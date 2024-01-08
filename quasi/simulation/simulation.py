@@ -20,10 +20,13 @@ class DeviceInformation:
     obj_ref : object
 
 
-    def __init__(self, name:str, obj_ref:object):
+    def __init__(self, name:str, obj_ref:object, uid=None):
         self.name = name
         self.obj_ref = obj_ref 
-        self.uuid = str(uuid.uuid4())
+        if uid is not None:
+            self.uuid = uid
+        else:
+            self.uuid = str(uuid.uuid4())
 
     @property
     def device_type(self):
@@ -138,3 +141,9 @@ class Simulation:
         for d in devices:
             print(f"├─ {str(d.name).ljust(n)} : {str(d.device_type).ljust(t)} : {str(d.uuid).ljust(u)} │")
         print("╰─"+"─"*total_bot+"─╯")
+
+
+    def clear_all(self):
+        for d in self.devices:
+            del d
+        self.devices = []

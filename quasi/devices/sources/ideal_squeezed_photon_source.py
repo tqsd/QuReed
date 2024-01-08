@@ -1,7 +1,9 @@
+
 """
-Ideal Single Photon Source implementation
+Ideal Coherent Source Implementation
 """
 import numpy as np
+from math import factorial
 
 from quasi.devices import (GenericDevice,
                            wait_input_compute,
@@ -9,33 +11,40 @@ from quasi.devices import (GenericDevice,
                            ensure_output_compute)
 from quasi.devices.port import Port
 from quasi.signals import (GenericSignal,
+                           GenericFloatSignal,
                            QuantumContentType,
                            GenericBoolSignal,
-                           GenericIntSignal,
                            GenericQuantumSignal)
 
 from quasi.gui.icons import icon_list
-from quasi.simulation import ModeManager
+from quasi.simulation import ModeManager, Simulation
 
-from quasi._math.fock.ops import adagger, a
+from quasi._math.fock.ops import adagger, a, coherent_state
 
 
-class IdealNPhotonSource(GenericDevice):
+
+class IdealSqueezedPhotonSource(GenericDevice):
     """
-    Implements Ideal Single Photon Source
+    COHERENT
     """
     ports = {
-        "trigger": Port(
-            label="trigger",
+        "control": Port(
+            label="control",
             direction="input",
             signal=None,
             signal_type=GenericBoolSignal,
             device=None),
-        "photon_num": Port(
-            label="photon_num",
+        "squeezing": Port(
+            label="squeezing",
             direction="input",
             signal=None,
-            signal_type=GenericIntSignal,
+            signal_type=GenericFloatSignal,
+            device=None),
+        "offset": Port(
+            label="offset",
+            direction="input",
+            signal=None,
+            signal_type=GenericFloatSignal,
             device=None),
         "output": Port(
             label="output",
@@ -46,10 +55,10 @@ class IdealNPhotonSource(GenericDevice):
     }
 
     # Gui Configuration
-    gui_icon = icon_list.N_PHOTON_SOURCE
+    gui_icon = icon_list.SQUEEZED_PHOTON_SOURCE
     gui_tags = ["ideal"]
-    gui_name = "Ideal N Photon Source"
-    gui_documentation = "ideal_n_photon_source.md"
+    gui_name = "Ideal Squeezed Photon Source"
+    gui_documentation = "ideal_coherent_photon_source.md"
 
     power_peak = 0
     power_average = 0
@@ -60,17 +69,25 @@ class IdealNPhotonSource(GenericDevice):
     @coordinate_gui
     @wait_input_compute
     def compute_outputs(self, *args, **kwargs):
-
         mm = ModeManager()
         m_id = mm.create_new_mode()
         AD = adagger(mm.simulation.dimensions)
         A = a(mm.simulation.dimensions)
-        mode = mm.get_mode(m_id)
+        density_matrix = np.zeros((
+            mm.simulation.dimensions,
+            mm.simulation.dimensions), dtype=np.complex128)
+        alpha = 10
 
-        photon_num = self.ports["photon_num"].signal.contents
-        for i in range(photon_num):
-            mode=np.matmul(AD, np.matmul(mode, A))
-        mm.modes[m_id]=mode
+        for m in range(mm.simulation.dimensions):
+            for n in range(mm.simulation.dimensions):
+                density_matrix[m, n] = ((alpha**m * np.conj(alpha)**n) /
+                                        np.sqrt(factorial(m) * factorial(n)))
+
+        density_matrix /= np.pi
+
+        mm.modes[m_id] = density_matrix
+        print(mm.modes[m_id])
+
         self.ports["output"].signal.set_contents(
             content_type=QuantumContentType.FOCK,
             mode_id=m_id)

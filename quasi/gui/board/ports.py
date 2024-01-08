@@ -9,7 +9,21 @@ import flet.canvas as cv
 
 from quasi.devices.port import Port
 from quasi.gui.board.connections import Connection
+from quasi.gui.board.info_bar import InfoBar
 from quasi.gui.simulation import SimulationWrapper
+
+def get_class_from_string(class_path):
+    """
+    Helper for loading board from a saved file
+    """
+    parts = class_path.split('.')
+    module_path = '.'.join(parts[:-1])
+    class_name = parts[-1]
+
+    module = __import__(module_path, fromlist=[class_name])
+    cls = getattr(module, class_name)
+    return cls
+
 
 class PortComponent(ft.UserControl):
     """
@@ -24,7 +38,8 @@ class PortComponent(ft.UserControl):
                  label,
                  device_comp,
                  device_cls,
-                 side: str):
+                 side: str,
+                 port_instance=None):
         super().__init__()
         self.num_of_ports = num_of_ports
         self.index = index
@@ -33,7 +48,9 @@ class PortComponent(ft.UserControl):
         self.device = device_comp
         self.device_cls = device_cls
         self.side = side
+        self.port_instance = port_instance
         self.connection = None
+        self._info_bar = InfoBar()
         if side == Ports.left_side:
             self.right_radius = 5
             self.left_radius = 0
@@ -60,10 +77,14 @@ class PortComponent(ft.UserControl):
         return self.port_comp
 
     def connection_hover_enter(self, e):
+        self._info_bar.notify(
+            f"{self.label} : {self.port_instance.signal_type.__name__}"
+        )
         if self.connection is not None:
             self.connection.hover()
 
     def connection_hover_exit(self, e):
+        self._info_bar.notify()
         if self.connection is not None:
             self.connection.redraw()
 
@@ -210,13 +231,20 @@ class Ports(ft.UserControl):
                     page=self.page,
                     side=side,
                     device_comp=self.device,
-                    device_cls=self.device_cls
+                    device_cls=self.device_cls,
+                    port_instance=port
                 )
             )
 
     def move(self, delta_x, delta_y):
         for p in self.ports_controls:
             p.move(delta_x, delta_y)
+
+    def get_port(self, label):
+        if label in [p.label for p in self.ports]:
+            return [p for p in self.ports_controls if p.label == label]
+        else:
+            return False
 
 
 class BoardConnector():
@@ -231,12 +259,12 @@ class BoardConnector():
             cls.instance = super(BoardConnector, cls).__new__(cls)
         return cls.instance
 
-    def __init__(self, page: ft.Page):
+    def __init__(self, *args, **kwargs):
         # pylint: disable=import-outside-toplevel
         from quasi.gui.board.board import Board
         if not hasattr(self, 'initialized'):
             self.first_location = None
-            self.page = page
+            self.page = Board.get_board().page
             self.first_click = None
             self.initialized = True  # Mark as initialized
             self.canvas = Board.get_canvas()
@@ -328,3 +356,32 @@ class BoardConnector():
             self.first_click["port"].assign_connection(conn)
             port.assign_connection(conn)
             self.first_click = None
+
+    def load_connection(self, connection):
+        from quasi.gui.board.board import Board
+        sim_wrp = SimulationWrapper()
+        signal_class = get_class_from_string(connection["signal"])
+        dev1 = sim_wrp.get_device(connection["conn"][0]["device_uuid"])
+        pl1 = connection["conn"][0]["port"]
+        dev2 = sim_wrp.get_device(connection["conn"][1]["device_uuid"])
+        pl2 = connection["conn"][1]["port"]
+
+        sim_wrp.create_connection(
+            sig=signal_class(),
+            dev1=dev1,
+            port_label_1=pl1,
+            dev2=dev2,
+            port_label_2=pl2
+        )
+        b = Board.get_board()
+        port1 = b.get_device(sim_device=dev1).get_port(pl1)
+        print(port1)
+        port2 = b.get_device(sim_device=dev2).get_port(pl2)
+        print(port2)
+
+        conn = Connection(port_a=port1, port_b=port2)
+        port1.connect()
+        port1.assign_connection(conn)
+        port2.connect()
+        port2.assign_connection(conn)
+        conn.draw()

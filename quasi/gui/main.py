@@ -10,11 +10,8 @@ import flet as ft
 from quasi.gui.panels.main_panel import MainPanel
 from quasi.gui.panels.side_panel import SidePanel
 from quasi.gui.menus.menu_bar import MenuBar
-from quasi.gui.bar.simulation_bar import SimulationBar
 
-#logging.basicConfig(level=logging.DEBUG)
-
-
+#  logging.basicConfig(level=logging.DEBUG)
 
 
 def main(page: ft.Page):

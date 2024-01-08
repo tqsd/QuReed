@@ -10,6 +10,18 @@ from quasi.gui.board.device import Device
 from quasi.gui.board.variable import VariableComponent
 from quasi.gui.simulation.simulation_wrapper import SimulationWrapper
 
+def get_class_from_string(class_path):
+    """
+    Helper for loading board from a saved file
+    """
+    parts = class_path.split('.')
+    module_path = '.'.join(parts[:-1])
+    class_name = parts[-1]
+
+    module = __import__(module_path, fromlist=[class_name])
+    cls = getattr(module, class_name)
+    return cls
+
 
 class Board(ft.UserControl):
     __instance = None
@@ -51,7 +63,9 @@ class Board(ft.UserControl):
             self.canvas_container,
             ft.GestureDetector(
                 drag_interval=1,
-                on_vertical_drag_update=self.move_board
+                on_vertical_drag_update=self.move_board,
+                on_tap=self.on_click,
+                on_scroll=self.on_scroll
             ),
             self.content,
         ])
@@ -136,6 +150,29 @@ class Board(ft.UserControl):
         self.sim_wrapper.add_device(dev_instance)
         e.control.update()
 
+    def load_device(self, dev_class, position, uid):
+        dev_class = get_class_from_string(dev_class)
+        dev_instance = dev_class(uid=uid)
+        if "variable" in dev_instance.gui_tags:
+            d = VariableComponent(
+                page=self.page,
+                board=self,
+                top=(position[1])/2,
+                left=(position[0])/2,
+                device_instance=dev_instance)
+        else:
+            d = Device(
+                page=self.page,
+                board=self,
+                top=(position[1])/2,
+                left=(position[0])/2,
+                device_instance=dev_instance)
+        
+        self.content.controls.append(d)
+        self.content.update()
+        self.sim_wrapper.add_device(dev_instance)
+
+
     def build(self) -> ft.Container():
         """
         Implements the functionality
@@ -150,6 +187,12 @@ class Board(ft.UserControl):
         self.content.controls.append(menu.build())
         self.content.update()
 
+    def on_click(self, e):
+        self.clear_menus()
+
+    def on_scroll(self, e):
+        print("scrolling the board (board.py)")
+
     def clear_menus(self):
         for m in self.menus:
             if m.build() in self.content.controls:
@@ -157,3 +200,23 @@ class Board(ft.UserControl):
                 m.delete_self()
         self.content.update()
         self.menus = []
+
+    def clear_board(self):
+        self.content.controls=[]
+        self.content.update()
+        self.sim_wrapper.clear()
+        self.canvas.shapes = []
+        self.canvas.update()
+        self.canvas_container.update()
+
+    def get_device(self, uuid=None, sim_device=None):
+        """
+        Returns reference to the GUI device, based on
+        UUID or simulation device instance
+        """
+        if sim_device is not None:
+            return [x for x in self.content.controls if x.device_instance == sim_device][0]
+        elif uuid is not None:
+            return [x for x in self.content.controls if x.device_instance.ref.uuid == uuid][0]
+        else:
+            raise Exception("Either uuid or sim_device Must be given")

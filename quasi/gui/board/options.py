@@ -11,18 +11,28 @@ class DeviceOptions(ft.UserControl):
             top=top*2,
             left=left*2,
             width=self.width,
-            height=50,
-            bgcolor="black",
+            border_radius=5,
+            height=90,
+            bgcolor=ft.colors.BROWN_400,
             content=ft.Column(
+                spacing=0,
                 controls=[
-                    ft.Text("Delete", color="white"),
+                    ft.Text("Rename", color="white"),
                     ft.Container(
                         height=25,
                         width=self.width,
                         content=ft.Text("Documentation", color="white"),
                         on_click=self.open_documentation
-                    )
+                    ),
+                    ft.Text("Delete", color="white"),
                 ]
+            ),
+            shadow=ft.BoxShadow(
+                spread_radius=2,
+                blur_radius=10,
+                color=ft.colors.BLACK26,
+                offset=ft.Offset(4, 4),
+                blur_style=ft.ShadowBlurStyle.NORMAL,
             )
         )
 

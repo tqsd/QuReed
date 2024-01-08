@@ -14,6 +14,7 @@ import quasi.devices.beam_splitters as quasi_beam_splitters
 import quasi.devices.investigation_devices as quasi_investigation
 import quasi.devices.control as quasi_control
 import quasi.devices.variables as quasi_variables
+import quasi.devices.extra as quasi_extra
 
 class DraggableDevice(ft.Draggable):
     """
@@ -95,6 +96,8 @@ class DeviceList(ft.UserControl):
             quasi_control)
         devices_dict["Investigation"] = self._get_device_class(
             quasi_investigation)
+        devices_dict["Extra"] = self._get_device_class(
+            quasi_extra)
         return devices_dict
 
     def build_device_list_view(self) -> ft.ListView():
