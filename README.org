@@ -18,6 +18,19 @@ Each device design stems from the Abstract Base Class ~GenericDevice(ABC)~,
 implemented in [[file:./quasi/devices/generic_device.py][quasi/devices/generic_device.py]].
 
 * Usage
+Currently QuaSi is in development process, so you should use it as a developer.
+Please read the notes on Conributing.
+** GUI
++ in the *gui* branch
+The gui is implemented in [[quasi/gui]] directory. To run the gui
+execute the ~main.py~ file by:
+#+begin_src bash :results output
+flet main.py
+#+end_src
+
+Flet is a flutter wrapper library.
+
+
 
 * Contributing
 
@@ -39,4 +52,3 @@ In order to develop the framework:
    #+begin_src bash
    pip install -e .
    #+end_src
-
