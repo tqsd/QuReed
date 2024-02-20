@@ -12,4 +12,6 @@ class GenericBoolSignal(GenericSignal):
         super().__init__()
         self.contents = None
 
-    
+
+    def set_bool(self, b: bool):
+        self.contents = b

@@ -2,8 +2,13 @@
 Generic Signal implementation,
 used for defining inputs and outputs
 """
+
+
 from abc import ABC
 from threading import Event
+from typing import Type
+
+
 
 
 class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
@@ -16,6 +21,7 @@ class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
         Initialization method
         """
         self.computed = Event()
+        self.ports = []
 
     def set_computed(self):
         """
@@ -29,7 +35,9 @@ class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
         """
         self.computed.wait(timeout)
 
-    def register_port(self, port):
+    def register_port(self, port: Type["Port"], device):
         """
-        Registers the port to the signal
+        Registers the port to the signal,
+        TODO: disconnecting
         """
+        self.ports.append(port)

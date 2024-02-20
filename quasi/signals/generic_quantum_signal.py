@@ -11,6 +11,7 @@ class QuantumContentType(Enum):
     FOCK = auto()
     QOPS = auto()
 
+
 class GenericQuantumSignal(GenericSignal):
     """
     All Quantum Signals should extend this class
@@ -20,6 +21,12 @@ class GenericQuantumSignal(GenericSignal):
         super().__init__()
         self.contents = None
         self.content_type = QuantumContentType.NONE
+        self.mode_id = None
 
-    def set_contents(self, content_type:QuantumContentType, content):
+    def set_contents(self,
+                     content_type: QuantumContentType,
+                     mode_id=None,
+                     content=None):
         self.content_type = content_type
+        self.mode_id = mode_id
+        self.contents = content

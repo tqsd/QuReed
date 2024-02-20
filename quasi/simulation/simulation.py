@@ -20,10 +20,13 @@ class DeviceInformation:
     obj_ref : object
 
 
-    def __init__(self, name:str, obj_ref:object):
+    def __init__(self, name:str, obj_ref:object, uid=None):
         self.name = name
         self.obj_ref = obj_ref 
-        self.uuid = str(uuid.uuid4())
+        if uid is not None:
+            self.uuid = uid
+        else:
+            self.uuid = str(uuid.uuid4())
 
     @property
     def device_type(self):
@@ -33,17 +36,18 @@ class DeviceInformation:
 class SimulationType:
     FOCK = auto()
     MIXED = auto()
-    
+
 
 class Simulation:
     """Singleton object"""
+
     __instance = None
 
     """
     Simulation parameters
       + can be changed using setters and getters
     """
-    dimensions = 30
+    dimensions = 10
 
     @staticmethod
     def get_instance():
@@ -53,7 +57,6 @@ class Simulation:
         if Simulation.__instance is None:
             Simulation()
         return Simulation.__instance
-
 
     def __init__(self):
         """
@@ -67,25 +70,23 @@ class Simulation:
         else:
             raise Exception("Simulation is a singleton class")
 
-    def register_device(self, device_information:DeviceInformation):
+    def register_device(self, device_information: DeviceInformation):
         """
         Component registration in the simulation singleton object
         Should be called by initiation method of any device class.
         """
         self.devices.append(device_information)
 
-    def set_simulation_type(self, simulation_type:SimulationType):
+    def set_simulation_type(self, simulation_type: SimulationType):
         self.simulation_type = simulation_type
 
-    def get_dimensiosn(self):
-        return self.simulation_type
 
     @classmethod
     def set_dimensions(cls, dimensions):
         cls.dimensions = dimensions
 
     @classmethod
-    def get_dimensiosn(cls, dimensions):
+    def get_dimensions(cls):
         return cls.dimensions
 
     def run(self):
@@ -96,7 +97,7 @@ class Simulation:
             sig.set_computed()
         processes = []
         for d in self.devices:
-            p = Thread(target=d.obj_ref.compute_outputs, args=())
+            p = Thread(target=d.obj_ref.compute_outputs, args=(d.obj_ref,))
             processes.append(p)
         for p in processes:
             p.start()
@@ -132,12 +133,17 @@ class Simulation:
         d = 10
         t = 25
         u = 36
-        total_top =0
         total_bot = 11 + n + t + u - 4
         title = " "+title+" "
-        print("╭─"+ title.center(total_bot, "─") +"─╮")
+        print("╭─" + title.center(total_bot, "─") + "─╮")
         print(f"│- {'NAME'.center(n, ' ')} - {'TYPE'.center(t, ' ')} - {'UUID'.center(u, ' ')} │")
         print("├─"+"─"*total_bot+"─┤")
         for d in devices:
             print(f"├─ {str(d.name).ljust(n)} : {str(d.device_type).ljust(t)} : {str(d.uuid).ljust(u)} │")
         print("╰─"+"─"*total_bot+"─╯")
+
+
+    def clear_all(self):
+        for d in self.devices:
+            del d
+        self.devices = []
