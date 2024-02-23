@@ -17,7 +17,7 @@ from quasi.gui.icons import icon_list
 from quasi.simulation import Simulation, SimulationType, ModeManager
 
 from quasi.experiment import Experiment
-from quasi._math.fock.ops import adagger
+from quasi._math.fock.ops import adagger, matrix_power
 
 
 
@@ -75,15 +75,19 @@ class IdealNPhotonSource(GenericDevice):
         """
         Fock Simulation
         """
+        print(self.ports["photon_num"].signal.contents)
+        photon_num=4
         # Get the Experiment object reference
         exp = Experiment.get_instance()
         # Get the mode manager
         mm = ModeManager()
         mode = mm.create_new_mode()
 
+
         # Generate the creation operator
-        ad = adagger(exp.cutoff)
-        exp.add_operation(ad, [mm.get_mode_index(mode)])
+        operator = matrix_power(adagger(exp.cutoff), photon_num)
+
+        exp.add_operation(operator, [mm.get_mode_index(mode)])
         self.ports["output"].signal.set_contents(
             timestamp=0,
             mode_id=mode)

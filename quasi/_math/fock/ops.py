@@ -548,3 +548,27 @@ def mix(state, n):
     out_str = [indices[: 2 * n]]
     einstr = "".join(left_str + [","] + right_str + ["->"] + out_str)
     return np.einsum(einstr, state, state.conj())
+
+
+@njit
+def matrix_power(matrix, n):
+    """
+    Multiplies a square matrix by itself n times using Numba, ensuring both matrices have the same data type.
+
+    Parameters:
+    matrix (np.ndarray): A square NumPy array representing the matrix, can be float64 or complex128.
+    n (int): The number of times the matrix is to be multiplied by itself.
+
+    Returns:
+    np.ndarray: The resulting matrix after n multiplications, in complex128 if input is complex or float64 otherwise.
+    """
+    # Ensure both matrices are of the same complex data type if matrix contains complex numbers
+    if np.iscomplexobj(matrix):
+        matrix = matrix.astype(np.complex128)
+        result = np.eye(matrix.shape[0], dtype=np.complex128)  # Initialize result as a complex identity matrix
+    else:
+        result = np.eye(matrix.shape[0], dtype=matrix.dtype)  # Use the same dtype as the input matrix
+
+    for _ in range(n):
+        result = np.dot(result, matrix)
+    return result
