@@ -9,15 +9,16 @@ from quasi.devices import (GenericDevice,
                            ensure_output_compute)
 from quasi.devices.port import Port
 from quasi.signals import (GenericSignal,
-                           QuantumContentType,
                            GenericBoolSignal,
                            GenericIntSignal,
                            GenericQuantumSignal)
 
 from quasi.gui.icons import icon_list
-from quasi.simulation import ModeManager
+from quasi.simulation import Simulation, SimulationType, ModeManager
 
-from quasi._math.fock.ops import adagger, a
+from quasi.experiment import Experiment
+from quasi._math.fock.ops import adagger
+
 
 
 class IdealNPhotonSource(GenericDevice):
@@ -53,25 +54,37 @@ class IdealNPhotonSource(GenericDevice):
 
     power_peak = 0
     power_average = 0
-
     reference = None
+
+    def set_photon_num(self, photon_num:int):
+        photon_num_sig = GenericIntSignal()
+        photon_num_sig.set_int(photon_num)
+        self.register_signal(signal=photon_num_sig, port_label="photon_num")
+        photon_num_sig.set_computed()
+    
 
     @ensure_output_compute
     @coordinate_gui
     @wait_input_compute
     def compute_outputs(self, *args, **kwargs):
+        simulation = Simulation.get_instance()
+        if simulation.simulation_type is SimulationType.FOCK:
+            self.simulate_fock()
 
+    def simulate_fock(self):
+        """
+        Fock Simulation
+        """
+        # Get the Experiment object reference
+        exp = Experiment.get_instance()
+        # Get the mode manager
         mm = ModeManager()
-        m_id = mm.create_new_mode()
-        AD = adagger(mm.simulation.dimensions)
-        A = a(mm.simulation.dimensions)
-        mode = mm.get_mode(m_id)
+        mode = mm.create_new_mode()
 
-        photon_num = self.ports["photon_num"].signal.contents
-        for i in range(photon_num):
-            mode=np.matmul(AD, np.matmul(mode, A))
-        mm.modes[m_id]=mode
+        # Generate the creation operator
+        ad = adagger(exp.cutoff)
+        exp.add_operation(ad, [mm.get_mode_index(mode)])
         self.ports["output"].signal.set_contents(
-            content_type=QuantumContentType.FOCK,
-            mode_id=m_id)
+            timestamp=0,
+            mode_id=mode)
         self.ports["output"].signal.set_computed()

@@ -7,7 +7,6 @@ from quasi.devices import (GenericDevice,
                            ensure_output_compute)
 from quasi.devices.port import Port
 from quasi.signals import (GenericSignal,
-                           QuantumContentType,
                            GenericQuantumSignal)
 
 from quasi.gui.icons import icon_list

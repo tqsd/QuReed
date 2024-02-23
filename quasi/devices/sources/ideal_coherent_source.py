@@ -10,7 +10,6 @@ from quasi.devices import (GenericDevice,
                            ensure_output_compute)
 from quasi.devices.port import Port
 from quasi.signals import (GenericSignal,
-                           QuantumContentType,
                            GenericBoolSignal,
                            GenericQuantumSignal)
 
@@ -75,6 +74,6 @@ class IdealCoherentSource(GenericDevice):
         print(mm.modes[m_id])
 
         self.ports["output"].signal.set_contents(
-            content_type=QuantumContentType.FOCK,
+            timestamp=0,
             mode_id=m_id)
         self.ports["output"].signal.set_computed()

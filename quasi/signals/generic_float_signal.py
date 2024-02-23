@@ -12,5 +12,8 @@ class GenericFloatSignal(GenericSignal):
         super().__init__()
         self.contents = None
 
-    def set_int(self, x: float):
+    def set_float(self, x: float):
+        """
+        Sets the content to the specified float
+        """
         self.contents = float(x)

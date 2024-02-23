@@ -15,6 +15,7 @@ import quasi.devices.investigation_devices as quasi_investigation
 import quasi.devices.control as quasi_control
 import quasi.devices.variables as quasi_variables
 import quasi.devices.extra as quasi_extra
+import quasi.devices.fiber as quasi_fiber
 
 class DraggableDevice(ft.Draggable):
     """
@@ -96,6 +97,8 @@ class DeviceList(ft.UserControl):
             quasi_control)
         devices_dict["Investigation"] = self._get_device_class(
             quasi_investigation)
+        devices_dict["Fiber"] = self._get_device_class(
+            quasi_fiber)
         devices_dict["Extra"] = self._get_device_class(
             quasi_extra)
         return devices_dict

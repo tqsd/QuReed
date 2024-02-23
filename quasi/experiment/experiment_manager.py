@@ -6,19 +6,36 @@ import numpy as np
 
 class Experiment:
     """Singleton object"""
+    __instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls.__instance:
+            cls.__instance = super(Experiment, cls).__new__(cls)
+        return cls.__instance
 
     def __init__(self, num_modes, hbar=2, cutoff=10):
-        """
-        Initialization method
-        """
+        # Prevent reinitialization if the instance already exists
+        if hasattr(self, 'initialized'):
+            return
+
         self.data = None
         self.init_modes = 1
         self.cutoff = cutoff
         self.num_modes = num_modes
         self.hbar = hbar
-        self.state_preparations: list = []
-        self.operations: list = []
-        self.channels: list = []
+        self.state_preparations = []
+        self.operations = []
+        self.channels = []
+        self.initialized = True  # Mark the instance as initialized
+
+    @staticmethod
+    def get_instance():
+        """
+        Returns the singleton Experiment object. Raises an exception if the instance hasn't been created yet.
+        """
+        if not Experiment.__instance:
+            raise Exception("Experiment instance not created yet")
+        return Experiment.__instance
 
     def add_operation(self, operator, modes):
         self.operations.append((operator, modes))
@@ -126,3 +143,10 @@ class Experiment:
                     num_modes=self.num_modes,
                     cutoff_dim=self.cutoff,
                 )
+
+
+class ExperimentInitializedException(Exception):
+    """
+    Exception for the case, when Experiment is attempted to be
+    initialized more than once.
+    """
