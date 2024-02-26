@@ -5,7 +5,7 @@ import cmath
 
 from quasi.backend.backend import FockBackend
 from quasi.experiment import Experiment
-from quasi._math.fock import a, adagger, squeezing, displacement
+from quasi._math.fock import a, adagger, squeezing, displacement, beamsplitter
 
 
 class FockBackendFirst(FockBackend):
@@ -17,14 +17,13 @@ class FockBackendFirst(FockBackend):
         self.experiment = Experiment()
         self.number_of_modes = 0
 
-
     def initialize(self):
         """
         Initialization method is run befor the simulation
         """
+        self.experiment.prepare_experiment()
         #self.experiment.state_init(0, list(range(self.number_of_modes)))
-        self.experiment.state_init(0,[0])
-
+        #self.experiment.state_init(0,[0])
 
     def set_number_of_modes(self, number_of_modes):
         """
@@ -43,13 +42,13 @@ class FockBackendFirst(FockBackend):
         """
         Return the creation operator
         """
-        return a(self.experiment.cutoff)
+        return adagger(self.experiment.cutoff)
 
     def destroy(self, mode):
         """
         Return the annihilatio operator
         """
-        return adagger(self.experiment.cutoff)
+        return a(self.experiment.cutoff)
 
     def squeeze(self, z: complex, mode):
         """
@@ -77,7 +76,8 @@ class FockBackendFirst(FockBackend):
     def apply_operator(self, operator, modes):
         self.experiment.add_operation(operator, [*modes])
 
+    def initialize_number_state(self, n: int, mode: int):
+        self.experiment.state_init(n, [mode])
 
-    
-
-
+    def beam_splitter(self, theta=0, phi=0):
+        return beamsplitter(theta, phi, self.experiment.cutoff).transpose((0,2,1,3))

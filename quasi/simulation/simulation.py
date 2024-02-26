@@ -46,13 +46,12 @@ class DeviceInformation:
         would require
         """
         modes = 0
-        quantum_outputs = [port for port in self.obj_ref.ports.items() if
-                           (port[1].direction == "output" and
-                            port[1].signal_type is GenericQuantumSignal)]
-        quantum_inputs = [port for port in self.obj_ref.ports.items() if
-                          (port[1].direction == "input" and
-                           port[1].signal_type is GenericQuantumSignal)]
-
+        quantum_outputs = [port for port in self.obj_ref.ports.values() if
+                           (port.direction == "output" and
+                            port.signal_type is GenericQuantumSignal)]
+        quantum_inputs = [port for port in self.obj_ref.ports.values() if
+                          (port.direction == "input" and
+                           port.signal_type is GenericQuantumSignal)]
         # We create the modes for the outputs,
         # that can't be mapped to inputs
         if len(quantum_outputs) > len(quantum_inputs):
@@ -129,7 +128,6 @@ class Simulation:
         # Determine number of modes
         modes = sum([d.new_modes for d in self.devices])
         if isinstance(self.backend,FockBackend):
-            print(modes)
             self.backend.set_number_of_modes(modes)
             self.backend.set_dimensions(self.dimensions)
             self.backend.initialize()
