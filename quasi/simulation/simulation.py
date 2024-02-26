@@ -5,12 +5,14 @@ Simulation Module
 from enum import Enum, auto
 import uuid
 from threading import Thread
+from typing import Type, TYPE_CHECKING
 
 from dataclasses import dataclass
 from quasi.signals.generic_bool_signal import GenericBoolSignal
 from quasi.signals.generic_quantum_signal import GenericQuantumSignal
 from quasi.experiment.experiment_manager import Experiment
-from typing import Type, TYPE_CHECKING
+from quasi.backend.backend import FockBackend, Backend
+from quasi.backend.fock_first_backend import FockBackendFirst
 
 if TYPE_CHECKING:
     from quasi.devices import GenericDevice
@@ -95,6 +97,7 @@ class Simulation:
         """
         if Simulation.__instance is None:
             Simulation.__instance = self
+            self.backend = FockBackendFirst
             self.devices = []
             self.initial_trigger_devices = []
             self.simulation_type = SimulationType.FOCK
@@ -125,10 +128,11 @@ class Simulation:
         """
         # Determine number of modes
         modes = sum([d.new_modes for d in self.devices])
-
-        # REVIEW THIS
-        if self.simulation_type == SimulationType.FOCK:
-            Experiment(num_modes=modes, cutoff=Simulation.get_dimensions())
+        if isinstance(self.backend,FockBackend):
+            print(modes)
+            self.backend.set_number_of_modes(modes)
+            self.backend.set_dimensions(self.dimensions)
+            self.backend.initialize()
 
         for d in self.initial_trigger_devices:
             d = d.obj_ref
@@ -187,3 +191,9 @@ class Simulation:
         for d in self.devices:
             del d
         self.devices = []
+
+    def set_backend(self,  backend: Backend):
+        self.backend = backend
+
+    def get_backend(self) -> Backend:
+        return self.backend

@@ -13,11 +13,10 @@ class Experiment:
             cls.__instance = super(Experiment, cls).__new__(cls)
         return cls.__instance
 
-    def __init__(self, num_modes, hbar=2, cutoff=10):
+    def __init__(self, num_modes=2, hbar=2, cutoff=10):
         # Prevent reinitialization if the instance already exists
         if hasattr(self, 'initialized'):
             return
-
         self.data = None
         self.init_modes = 1
         self.cutoff = cutoff
@@ -26,7 +25,32 @@ class Experiment:
         self.state_preparations = []
         self.operations = []
         self.channels = []
+        self.state = None
         self.initialized = True  # Mark the instance as initialized
+
+    def reset(self):
+        """
+        Updated, and drops all information
+        """
+        self.data = None
+        self.init_modes = 1
+        self.cutoff = 10
+        self.num_modes = 0
+        self.hbar = 2
+        self.state_preparations = []
+        self.operations = []
+        self.channels = []
+        self.state = None
+
+    def update_mode_number(self, num_modes):
+        self.num_modes = num_modes
+
+
+    def update_dimensions(self, dimensions):
+        """
+        Updated, and drops all information
+        """
+        self.cutoff = dimensions
 
     @staticmethod
     def get_instance():
