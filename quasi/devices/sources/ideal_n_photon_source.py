@@ -82,15 +82,9 @@ class IdealNPhotonSource(GenericDevice):
         # How many photons should be created
         photon_num = self.ports["photon_num"].signal.contents
         
-        # Generate the creation operator
-        adagger = backend.create(mm.get_mode_index(mode))
-        operator = np.linalg.matrix_power(adagger, photon_num)
-        # To account for normalization
-        normalization_factor = np.math.factorial(photon_num)
-        operator /= np.sqrt(normalization_factor)
+        # Initialize photon number state in the mode
+        backend.initialize_number_state(photon_num, [mm.get_mode_index(mode)])
 
-        backend.apply_operator(operator, [mm.get_mode_index(mode)])
-        #backend.initialize_number_state(photon_num, mm.get_mode_index(mode))
         self.ports["output"].signal.set_contents(
             timestamp=0,
             mode_id=mode)

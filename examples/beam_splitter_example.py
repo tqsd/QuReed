@@ -3,7 +3,7 @@ Ideal Beam Splitter experiment example
 """
 
 from quasi.simulation import Simulation, SimulationType
-from quasi.devices.sources import IdealNPhotonSource
+from quasi.devices.sources import IdealNPhotonSource, IdealCoherentSource
 from quasi.devices.control import SimpleTrigger
 from quasi.devices.beam_splitters import IdealBeamSplitter
 from quasi.signals import GenericBoolSignal, GenericQuantumSignal
@@ -18,13 +18,14 @@ sim.set_dimensions(5)
 
 sim.set_simulation_type(SimulationType.FOCK)
 
-
-s1 = IdealNPhotonSource()
-s1.set_photon_num(1)
+s1 = IdealCoherentSource()
+s1.set_displacement(2,0)
+#s1 = IdealNPhotonSource()
+#s1.set_photon_num(1)
 
 
 s2 = IdealNPhotonSource()
-s2.set_photon_num(1)
+s2.set_photon_num(0)
 
 st1 = SimpleTrigger()
 sig_trigger_1 = GenericBoolSignal()

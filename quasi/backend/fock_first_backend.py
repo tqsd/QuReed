@@ -57,13 +57,13 @@ class FockBackendFirst(FockBackend):
         
         return squeezing(abs(z), cmath.phase(z), self.experiment.cutoff)
 
-    def displace(self, alpha: complex, mode):
+    def displace(self, alpha: float, phi: float, mode):
         """
         Returns the displace operator
         """
         return displacement(
-            abs(alpha),
-            cmath.phase(alpha),
+            alpha,
+            phi,
             self.experiment.cutoff
         )
 
