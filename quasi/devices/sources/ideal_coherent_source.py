@@ -100,7 +100,6 @@ class IdealCoherentSource(GenericDevice):
         phi = self.ports["phi"].signal.contents
         
         # Initialize photon number state in the mode
-        # backend.initialize_number_state(photon_num, [mm.get_mode_index(mode)])
         operator = backend.displace(alpha, phi, mm.get_mode_index(mode))
         backend.apply_operator(operator, [mm.get_mode_index(mode)])
 

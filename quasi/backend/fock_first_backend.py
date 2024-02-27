@@ -5,7 +5,9 @@ import cmath
 
 from quasi.backend.backend import FockBackend
 from quasi.experiment import Experiment
-from quasi._math.fock import a, adagger, squeezing, displacement, beamsplitter
+from quasi._math.fock import (a, adagger,
+                              squeezing, displacement,
+                              beamsplitter, phase)
 
 
 class FockBackendFirst(FockBackend):
@@ -22,8 +24,6 @@ class FockBackendFirst(FockBackend):
         Initialization method is run befor the simulation
         """
         self.experiment.prepare_experiment()
-        #self.experiment.state_init(0, list(range(self.number_of_modes)))
-        #self.experiment.state_init(0,[0])
 
     def set_number_of_modes(self, number_of_modes):
         """
@@ -37,7 +37,7 @@ class FockBackendFirst(FockBackend):
         Set the number of modes
         """
         self.experiment.update_dimensions(dimensions)
-        
+
     def create(self, mode):
         """
         Return the creation operator
@@ -54,7 +54,6 @@ class FockBackendFirst(FockBackend):
         """
         Return the squeezing operator
         """
-        
         return squeezing(abs(z), cmath.phase(z), self.experiment.cutoff)
 
     def displace(self, alpha: float, phi: float, mode):
@@ -67,8 +66,8 @@ class FockBackendFirst(FockBackend):
             self.experiment.cutoff
         )
 
-    def phase_shift(self, phi: complex, mode):
-        pass
+    def phase_shift(self, theta: float, mode):
+        return phase(theta, self.experiment.cutoff)
 
     def number(self, mode):
         pass
@@ -77,7 +76,15 @@ class FockBackendFirst(FockBackend):
         self.experiment.add_operation(operator, [*modes])
 
     def initialize_number_state(self, n: int, mode: int):
+        """
+        Initialize the number state
+        """
         self.experiment.state_init(n, [mode])
 
     def beam_splitter(self, theta=0, phi=0):
-        return beamsplitter(theta, phi, self.experiment.cutoff).transpose((0,2,1,3))
+        """
+        Returns the beamsplitter operator
+        """
+        return beamsplitter(
+            theta, phi, self.experiment.cutoff).transpose(
+                (0, 2, 1, 3))

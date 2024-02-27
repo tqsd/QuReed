@@ -50,4 +50,8 @@ bs.register_signal(signal=qs2, port_label="B")
 sim.run()
 
 exp = Experiment.get_instance()
+
 print(exp.state.all_fock_probs())
+state = exp.state
+print(state.mean_photon(mode=[0]))
+print(state.mean_photon(mode=[1]))

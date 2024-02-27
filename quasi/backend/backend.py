@@ -24,7 +24,7 @@ class FockBackend(Backend):
     """
 
     @abstractmethod
-    def set_number_of_modes(self, mode):
+    def set_number_of_modes(self, number_of_modes):
         """
         Tells the backend number of modes that should be simulated
         """
@@ -48,13 +48,13 @@ class FockBackend(Backend):
         """
 
     @abstractmethod
-    def displace(self, alpha: complex, mode):
+    def displace(self, alpha: float, phi: float, mode):
         """
         Should return displacement operator
         """
 
     @abstractmethod
-    def phase_shift(self, phi: complex, mode):
+    def phase_shift(self, theta: float, mode):
         """
         Should return phase shift operator
         """

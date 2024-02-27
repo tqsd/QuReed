@@ -53,7 +53,10 @@ class IdealNPhotonSource(GenericDevice):
     power_average = 0
     reference = None
 
-    def set_photon_num(self, photon_num:int):
+    def set_photon_num(self, photon_num: int):
+        """
+        Set the number of photons the source should emit in a pulse
+        """
         photon_num_sig = GenericIntSignal()
         photon_num_sig.set_int(photon_num)
         self.register_signal(signal=photon_num_sig, port_label="photon_num")
@@ -66,6 +69,7 @@ class IdealNPhotonSource(GenericDevice):
     def compute_outputs(self, *args, **kwargs):
         simulation = Simulation.get_instance()
         if simulation.simulation_type is SimulationType.FOCK:
+            print("SOURCE")
             self.simulate_fock()
 
     def simulate_fock(self):
