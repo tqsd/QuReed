@@ -24,13 +24,13 @@ BSc = IdealBeamSplitter("BSc")
 BSd = IdealBeamSplitter("BSd")
 
 PSa = IdealPhaseShifter("PSa")
-PSa.set_phi(0)
+PSa.set_phi(pi/4)
 
 PSb = IdealPhaseShifter("PSb")
 PSb.set_phi(pi/4)
 
 S = IdealNPhotonSource()
-S.set_photon_num(0)
+S.set_photon_num(1)
 trigger = SimpleTrigger()
 
 # Create Signals
