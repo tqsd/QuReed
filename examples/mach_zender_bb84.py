@@ -124,22 +124,3 @@ print(f"Probability of measuring photon in det 1: {m2}")
 det1 = mm.get_mode_index(dsig1.mode_id)
 det2 = mm.get_mode_index(dsig2.mode_id)
 disc = mm.get_mode_index(signals["qsig6"].mode_id)
-
-p1 = [0,0,0]
-p1[det1] = 1
-p1[det2] = 0
-p1[disc] = 0
-
-p2 = [0,0,0]
-p2[det1] = 0
-p2[det2] = 0
-p2[disc] = 1
-
-
-print(det1, det2)
-print(f"Probability |1,0,0>, |det1, det2, disc>")
-print(state.all_fock_probs()[*p1])
-print(f"Probability |0,0,1>, |det1, det2, disc>")
-print(state.all_fock_probs()[*p2])
-print(state.all_fock_probs())
-print(state.dm().shape)

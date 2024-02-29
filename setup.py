@@ -10,5 +10,6 @@ setup(
     description="Simulating quantum experiments with realistic device models",
     license="Apache 2.0",
     packages=find_packages(where="."),
-    install_requires=["numpy", "numba", "scipy", "flet"],
+    install_requires=["numpy", "numba", "scipy", "flet",
+                      "matplotlib", "plotly", "qutip", "seaborn"],
 )
