@@ -15,7 +15,7 @@ from math import pi
 
 sim = Simulation()
 sim.set_backend(FockBackendFirst())
-sim.set_dimensions(5)
+sim.set_dimensions(3)
 
 # Create all of the devices
 BSa = IdealBeamSplitter("BSa")
@@ -27,7 +27,7 @@ PSa = IdealPhaseShifter("PSa")
 PSa.set_phi(pi/4)
 
 PSb = IdealPhaseShifter("PSb")
-PSb.set_phi(pi/4)
+PSb.set_phi(pi/2)
 
 S = IdealNPhotonSource()
 S.set_photon_num(1)
@@ -52,7 +52,7 @@ S.register_signal(signal=signals["trigger"], port_label="trigger")
 
 # connect source and beam splitter a
 S.register_signal(signal=signals["qsig1"], port_label="output")
-BSa.register_signal(signal=signals["qsig1"], port_label="A")
+BSa.register_signal(signal=signals["qsig1"], port_label="B")
 
 # connect beam splitter a and phase shifter
 BSa.register_signal(signal=signals["qsig2"], port_label="C")
@@ -100,5 +100,6 @@ exp = Experiment.get_instance()
 print(exp.state.all_fock_probs())
 state = exp.state
 mm = ModeManager()
+
 print(state.mean_photon(mode=[mm.get_mode_index(dsig1.mode_id)]))
 print(state.mean_photon(mode=[mm.get_mode_index(dsig2.mode_id)]))

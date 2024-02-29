@@ -67,7 +67,7 @@ class IdealBeamSplitter(GenericDevice):
         m_id_b = get_or_create_mode_id(self.ports["B"])
 
         # Apply beam splitter operation in a more concise manner
-        op = backend.beam_splitter(theta=pi/4, phi=0)
+        op = backend.beam_splitter(theta=pi/4, phi=pi/2)
         backend.apply_operator(op, [mm.get_mode_index(m_id_a),
                                     mm.get_mode_index(m_id_b)])
 
