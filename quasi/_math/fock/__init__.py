@@ -6,7 +6,7 @@ from .ops import (
     coherent_state,
     adagger,
     a,
-    mean_photon_number,
+    mean_photon,
     fock_probability,
     squeezing,
     calculate_fidelity,
@@ -16,4 +16,5 @@ from .ops import (
     apply_channel,
     apply_gate_einsum,
     tensor,
+    fock_operator,
 )

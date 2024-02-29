@@ -1,7 +1,7 @@
 from .fock.ops import (
     displacement,
     phase,
-    mean_photon_number,
+    mean_photon,
     squeezing,
     adagger,
     a,
@@ -20,4 +20,5 @@ from .fock.ops import (
     cubicPhase,
     lossChannel,
     tensor,
+    fock_operator,
 )

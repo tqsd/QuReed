@@ -2,7 +2,7 @@ import string
 from itertools import chain, product
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
 from scipy.linalg import expm as matrixExp
 from scipy.special import factorial
 from quasi._math.states import FockState
@@ -107,6 +107,13 @@ def adagger(cutoff):
     """
     return np.conjugate(a(cutoff)).T
 
+
+@njit
+def fock_operator(n, cut):
+    op = adagger(cut)
+    for _ in prange(n):
+        op = op @ op
+    return op
 
 @njit
 def beamsplitter(theta, phi, cutoff, dtype=np.complex128):
@@ -438,7 +445,7 @@ def homodyne(state, phi, mode, hbar):
 def calculate_trace(state):
     eqn_indices = [[indices[idx]] * 2 for idx in range(state._num_modes)]
     eqn = "".join(chain.from_iterable(eqn_indices))
-    return np.einsum(eqn, state).real
+    return np.einsum(eqn, state.dm()).real
 
 
 def partial_trace(state, n, modes):
@@ -518,7 +525,7 @@ def apply_channel(state: FockState, kraus_ops, modes):
 
 def norm(state: FockState):
     """returns the norm of the state"""
-    return calculate_trace(state.dm())
+    return calculate_trace(state)
 
 
 def tensor(u, v, n, pos=None):

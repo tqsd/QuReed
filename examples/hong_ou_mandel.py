@@ -3,7 +3,7 @@ Example: Hong-Ou-Mandel Experiment
 """
 
 from quasi.simulation import Simulation
-from quasi.experiement import Experiement
+from quasi.experiment import Experiment
 from quasi.components.gates import Squeezing, Beamsplitter
 from math import pi
 
@@ -14,7 +14,7 @@ squeezing_gate = Squeezing(r=2, phi=0)
 bs_gate = Beamsplitter(theta=0.5, phi=pi / 2)
 
 
-exp_1 = Experiement()
+exp_1 = Experiment()
 
 exp_1.state_init("type of state")
 exp_1.add_operation(squeezing_gate, modes=0)

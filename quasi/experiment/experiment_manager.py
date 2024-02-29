@@ -4,7 +4,7 @@ from quasi._math.fock import ops
 import numpy as np
 
 
-class Experiement:
+class Experiment:
     """Singleton object"""
 
     def __init__(self, num_modes, hbar=2, cutoff=10):
@@ -31,7 +31,7 @@ class Experiement:
             cutoff_dim=self.cutoff,
             hbar=self.hbar,
         )
-        return self.state
+        print(f"state {self.state}")
 
     def prepare_multimode(self, data, modes):
         r"""
@@ -70,10 +70,11 @@ class Experiement:
     def alloc(self, n=1):
         """allocate a number of modes at the end of the state."""
         # base_shape = [self._trunc for i in range(n)]
+        print(n)
 
         vac = ops.vacuumStateMixed(n, self.cutoff)
 
-        self.data = ops.tensor(self.state.dm(), vac, self.num_modes)
+        self.data = ops.tensor(self.state.dm(), vac, n)
         self.state = FockState(
             state_data=self.data,
             num_modes=self.num_modes,
@@ -93,33 +94,45 @@ class Experiement:
             cutoff_dim=self.cutoff,
             hbar=self.hbar,
         )
-#        self.prepare_multimode(np.outer(vector, vector.conjugate()), modes)
 
-        self.alloc()
+    #        self.prepare_multimode(np.outer(vector, vector.conjugate()), modes)
 
     def execute(self):
+        self.prepare_experiment()
+        print(len(self.state_preparations))
         if len(self.state_preparations) > 0:
             for photon_number, modes in self.state_preparations:
-                self._state_init(photon_number, modes)
-        else:
-            
-            self.prepare_experiment()
+                operator = ops.fock_operator(photon_number, self.cutoff)
 
+                new_st = ops.apply_gate_BLAS(
+                    operator, self.state.dm(), modes, self.num_modes, self.cutoff
+                )
+
+                new_st = new_st / ops.calculate_trace(self.state)
+
+                self.state = FockState(
+                    state_data=new_st,
+                    num_modes=self.num_modes,
+                    cutoff_dim=self.cutoff,
+                )
+
+        if len(self.operations) > 0:
+
+            for operator, modes in self.operations:
+                new_st = ops.apply_gate_BLAS(
+                    operator, self.state.dm(), modes, self.num_modes, self.cutoff
+                )
+                new_st = new_st / ops.calculate_trace(self.state)
+
+                self.state = FockState(
+                    state_data=new_st,
+                    num_modes=self.num_modes,
+                    cutoff_dim=self.cutoff,
+                )
         if len(self.channels) > 0:
             for channel, modes in self.channels:
                 self.data = ops.apply_channel(
                     self.state, kraus_ops=channel, modes=modes
-                )
-                self.state = FockState(
-                    state_data=self.data,
-                    num_modes=self.num_modes,
-                    cutoff_dim=self.cutoff,
-                )
-        if len(self.operations) > 0:
-
-            for operator, modes in self.operations:
-                self.data = ops.apply_gate_BLAS(
-                    operator, self.state.dm(), modes, self.num_modes, self.cutoff
                 )
                 self.state = FockState(
                     state_data=self.data,
