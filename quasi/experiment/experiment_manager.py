@@ -139,28 +139,40 @@ class Experiment:
         self.alloc()
 
     def execute(self):
+        self.prepare_experiment()
         if len(self.state_preparations) > 0:
             for photon_number, modes in self.state_preparations:
-                self._state_init(photon_number, modes)
-        else:
-            
-            self.prepare_experiment()
+                operator = ops.fock_operator(photon_number, self.cutoff)
 
+                new_st = ops.apply_gate_BLAS(
+                    operator, self.state.dm(), modes, self.num_modes, self.cutoff
+                )
+
+                new_st = new_st / ops.calculate_trace(self.state)
+
+                self.state = FockState(
+                    state_data=new_st,
+                    num_modes=self.num_modes,
+                    cutoff_dim=self.cutoff,
+                )
+
+        if len(self.operations) > 0:
+
+            for operator, modes in self.operations:
+                new_st = ops.apply_gate_BLAS(
+                    operator, self.state.dm(), modes, self.num_modes, self.cutoff
+                )
+                new_st = new_st / ops.calculate_trace(self.state)
+
+                self.state = FockState(
+                    state_data=new_st,
+                    num_modes=self.num_modes,
+                    cutoff_dim=self.cutoff,
+                )
         if len(self.channels) > 0:
             for channel, modes in self.channels:
                 self.data = ops.apply_channel(
                     self.state, kraus_ops=channel, modes=modes
-                )
-                self.state = FockState(
-                    state_data=self.data,
-                    num_modes=self.num_modes,
-                    cutoff_dim=self.cutoff,
-                )
-        if len(self.operations) > 0:
-
-            for operator, modes in self.operations:
-                self.data = ops.apply_gate_BLAS(
-                    operator, self.state.dm(), modes, self.num_modes, self.cutoff
                 )
                 self.state = FockState(
                     state_data=self.data,

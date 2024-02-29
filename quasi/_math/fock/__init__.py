@@ -1,4 +1,5 @@
 from .ops import (
+    fock_operator,
     displacement,
     beamsplitter,
     phase,

@@ -23,12 +23,13 @@ class FockBackendFirst(FockBackend):
         """
         Initialization method is run befor the simulation
         """
-        self.experiment.prepare_experiment()
+        #self.experiment.prepare_experiment()
 
     def set_number_of_modes(self, number_of_modes):
         """
         Set the number of modes
         """
+        print(f"Number of modes {number_of_modes}")
         self.number_of_modes = number_of_modes
         self.experiment.update_mode_number(num_modes=number_of_modes)
 
@@ -36,6 +37,7 @@ class FockBackendFirst(FockBackend):
         """
         Set the number of modes
         """
+        print(f"Dimensions {dimensions}")
         self.experiment.update_dimensions(dimensions)
 
     def create(self, mode):
@@ -73,18 +75,23 @@ class FockBackendFirst(FockBackend):
         pass
 
     def apply_operator(self, operator, modes):
-        self.experiment.add_operation(operator, [*modes])
+        print(f"apply_operator: {modes}")
+        print([*modes])
+        self.experiment.add_operation(operator, modes)
 
     def initialize_number_state(self, n: int, mode: int):
         """
         Initialize the number state
         """
-        self.experiment.state_init(n, [mode])
+        self.experiment.state_init(n, mode)
 
     def beam_splitter(self, theta=0, phi=0):
         """
         Returns the beamsplitter operator
         """
         return beamsplitter(
-            theta, phi, self.experiment.cutoff).transpose(
-                (0, 2, 1, 3))
+            theta,
+            phi,
+            self.experiment.cutoff).transpose(
+                (0, 2, 1, 3)
+            )

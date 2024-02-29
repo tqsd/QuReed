@@ -16,6 +16,9 @@ from quasi.signals import (GenericSignal,
 from quasi.gui.icons import icon_list
 from quasi.simulation import Simulation, SimulationType, ModeManager
 from quasi.experiment import Experiment
+from quasi.extra.logging import Loggers, get_custom_logger
+
+logger = get_custom_logger(Loggers.Devices)
 
 
 class IdealNPhotonSource(GenericDevice):
@@ -69,7 +72,6 @@ class IdealNPhotonSource(GenericDevice):
     def compute_outputs(self, *args, **kwargs):
         simulation = Simulation.get_instance()
         if simulation.simulation_type is SimulationType.FOCK:
-            print("SOURCE")
             self.simulate_fock()
 
     def simulate_fock(self):
@@ -89,6 +91,10 @@ class IdealNPhotonSource(GenericDevice):
         # Initialize photon number state in the mode
         backend.initialize_number_state(photon_num, [mm.get_mode_index(mode)])
 
+        logger.info(
+            "Source - %s - assisning mode %s to signal on port %s",
+            self.name, mm.get_mode_index(mode),
+            self.ports["output"].label)
         self.ports["output"].signal.set_contents(
             timestamp=0,
             mode_id=mode)

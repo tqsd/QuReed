@@ -51,7 +51,6 @@ class IdealBeamSplitter(GenericDevice):
         """
         Fock Simulation
         """
-        logger.info("Beam Splitter - %s - executing", self.name)
         simulation = Simulation.get_instance()
         backend = simulation.get_backend()
         mm = ModeManager()
@@ -63,8 +62,10 @@ class IdealBeamSplitter(GenericDevice):
                 return mm.create_new_mode()
             return port.signal.mode_id
 
-        m_id_a = get_or_create_mode_id(self.ports["A"])
-        m_id_b = get_or_create_mode_id(self.ports["B"])
+        m_id_a = get_or_create_mode_id(self.ports["B"])
+        m_id_b = get_or_create_mode_id(self.ports["A"])
+        print(mm.get_mode_index(m_id_a))
+        print(mm.get_mode_index(m_id_b))
 
         # Apply beam splitter operation in a more concise manner
         op = backend.beam_splitter(theta=pi/4, phi=pi/2)
