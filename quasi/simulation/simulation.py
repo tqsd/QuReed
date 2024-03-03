@@ -127,7 +127,12 @@ class Simulation:
         """
         # Determine number of modes
         modes = sum([d.new_modes for d in self.devices])
+        print(f"Number of modes {modes}")
+        print(self.backend)
+        print(isinstance(self.backend,FockBackend))
+        print("\n\n")
         if isinstance(self.backend,FockBackend):
+            print("Correct backend?")
             self.backend.set_number_of_modes(modes)
             self.backend.set_dimensions(self.dimensions)
             self.backend.initialize()

@@ -3,6 +3,8 @@ This is the connection between the GUI and
 the simulation engine
 """
 from quasi.simulation import Simulation, DeviceInformation
+from quasi.backend.fock_first_backend import FockBackendFirst
+from quasi.experiment import Experiment
 
 
 class SimulationWrapper:
@@ -31,10 +33,14 @@ class SimulationWrapper:
         """
         Execution Trigger
         """
-        print("START THE SIMULATION")
         self.simulation.list_devices()
-        print(self.signals)
+        # We hardcode the backend for now
+        self.simulation.set_backend(FockBackendFirst())
         self.simulation.run()
+        # We print the experiment outcome
+        exp = Experiment.get_instance()
+        state = exp.state
+        print(state.all_fock_probs())
 
     def add_device(self, device):
         self.devices.append(device)
@@ -44,7 +50,7 @@ class SimulationWrapper:
         d = [x for x in self.devices if x.ref.uuid == uid]
         for x in self.devices:
             print(x.ref)
-        if len(d)==1:
+        if len(d) == 1:
             return d[0]
         return None
 
