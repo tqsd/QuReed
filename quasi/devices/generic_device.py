@@ -8,6 +8,9 @@ from copy import deepcopy
 
 from quasi.simulation import Simulation, DeviceInformation
 from quasi.extra import Loggers, get_custom_logger
+from quasi.signals.generic_signal import GenericSignal
+from quasi.devices.port import Port
+from quasi.simulation import ModeManager
 
 def log_action(method):
     def wrapper(self, time, *args, **kwargs):
@@ -43,6 +46,7 @@ def ensure_output_compute(method):
         return method(self, *args, **kwargs)
     return wrapper
 
+
 def coordinate_gui(method):
     """
     Wrapper funciton, informs the gui about the
@@ -56,8 +60,6 @@ def coordinate_gui(method):
             self.coordinator.processing_finished()
 
     return wrapper
-
-
 
 
 class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
@@ -76,15 +78,22 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         for port in self.ports.keys():
             self.ports[port].device = self
 
+<<<<<<< HEAD
 
         # Regitering the device to the simulation
+=======
+        # Registering the device to the simulation
+>>>>>>> origin/middleware
         simulation = Simulation.get_instance()
         ref = DeviceInformation(name=name, obj_ref=self, uid=uid)
         self.ref = ref
         simulation.register_device(ref)
         self.coordinator = None
+<<<<<<< HEAD
         self.simulation = Simulation.get_instance()
         
+=======
+>>>>>>> origin/middleware
 
     def register_signal(
         self, signal: GenericSignal, port_label: str, override: bool = False
@@ -100,7 +109,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
                 f"Port with label {port_label} does not exist."
             ) from exc
 
-        if not port.signal is None:
+        if port.signal is not None:
             if not override:
                 raise PortConnectedException(
                     "Signal was already registered for the port\n"
@@ -124,7 +133,6 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         Computes all outputs given the inputs.
         Output is computed when all of the input signal (COMPUTED is set)
         """
-
 
     @property
     @abstractmethod
@@ -159,6 +167,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         this is required to have feedback in the gui
         """
         self.coordinator = coordinator
+<<<<<<< HEAD
 
     @log_action
     def des(self, time, *args, **kwargs):
@@ -176,6 +185,8 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
                 if connected_port != port:
                     return connected_port.device
         
+=======
+>>>>>>> origin/middleware
 
 class DESActionNotDefined(Exception):
     """

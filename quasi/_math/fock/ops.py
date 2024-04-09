@@ -2,7 +2,7 @@ import string
 from itertools import chain, product
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
 from scipy.linalg import expm as matrixExp
 from scipy.special import factorial
 from quasi._math.states import FockState
@@ -99,6 +99,15 @@ def a(cutoff):
 
     return np.diag(data, 1)
 
+@njit
+def fock_operator(n, cut):
+    op = adagger(cut)
+    if n == 1:
+        return op
+    else:
+        for _ in prange(n-1):
+            op = op @ op
+        return op
 
 @njit
 def adagger(cutoff):
@@ -354,6 +363,7 @@ def apply_gate_BLAS(mat, state, modes, n, trunc):
         transpose_list + [2 * i for i in modes] + [2 * i + 1 for i in modes]
     )
     view = np.transpose(state, transpose_list)
+    
 
     # Apply matrix to each substate
     ret = np.zeros([trunc for i in range(n * 2)], dtype=def_type)
@@ -438,7 +448,7 @@ def homodyne(state, phi, mode, hbar):
 def calculate_trace(state):
     eqn_indices = [[indices[idx]] * 2 for idx in range(state._num_modes)]
     eqn = "".join(chain.from_iterable(eqn_indices))
-    return np.einsum(eqn, state).real
+    return np.einsum(eqn, state.dm()).real
 
 
 def partial_trace(state, n, modes):
@@ -548,3 +558,27 @@ def mix(state, n):
     out_str = [indices[: 2 * n]]
     einstr = "".join(left_str + [","] + right_str + ["->"] + out_str)
     return np.einsum(einstr, state, state.conj())
+
+
+@njit
+def matrix_power(matrix, n):
+    """
+    Multiplies a square matrix by itself n times using Numba, ensuring both matrices have the same data type.
+
+    Parameters:
+    matrix (np.ndarray): A square NumPy array representing the matrix, can be float64 or complex128.
+    n (int): The number of times the matrix is to be multiplied by itself.
+
+    Returns:
+    np.ndarray: The resulting matrix after n multiplications, in complex128 if input is complex or float64 otherwise.
+    """
+    # Ensure both matrices are of the same complex data type if matrix contains complex numbers
+    if np.iscomplexobj(matrix):
+        matrix = matrix.astype(np.complex128)
+        result = np.eye(matrix.shape[0], dtype=np.complex128)  # Initialize result as a complex identity matrix
+    else:
+        result = np.eye(matrix.shape[0], dtype=matrix.dtype)  # Use the same dtype as the input matrix
+
+    for _ in range(n):
+        result = np.dot(result, matrix)
+    return result

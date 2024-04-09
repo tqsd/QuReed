@@ -33,12 +33,11 @@ class ModeManager():
         Creates a new mode in vacuum state and returns its id.
         """
         new_mode_id = uuid.uuid4()
-        mode = vacuum_state(
-            2,
-            Simulation.dimensions
-        )
-        self.modes[new_mode_id] = mode
+        self.modes[new_mode_id] = len(self.modes.keys())
         return new_mode_id
+
+    def get_mode_index(self, key: str):
+        return self.modes[key]
 
     def clear_modes(self) -> None:
         self.modes = {}

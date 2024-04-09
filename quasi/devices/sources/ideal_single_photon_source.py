@@ -9,7 +9,6 @@ from quasi.devices import (GenericDevice,
                            ensure_output_compute)
 from quasi.devices.port import Port
 from quasi.signals import (GenericSignal,
-                           QuantumContentType,
                            GenericBoolSignal,
                            GenericQuantumSignal)
 
@@ -62,7 +61,7 @@ class IdealSinglePhotonSource(GenericDevice):
         mode=np.matmul(AD, np.matmul(mode, A))
         mm.modes[m_id]=np.matmul(AD, np.matmul(mode, A))
         self.ports["output"].signal.set_contents(
-            content_type=QuantumContentType.FOCK,
+            timestamp=0,
             mode_id=m_id)
         self.ports["output"].signal.set_computed()
 

@@ -6,11 +6,6 @@ from enum import Enum, auto
 from quasi.signals.generic_signal import GenericSignal
 
 
-class QuantumContentType(Enum):
-    NONE = -1
-    FOCK = auto()
-    QOPS = auto()
-
 
 class GenericQuantumSignal(GenericSignal):
     """
@@ -20,13 +15,13 @@ class GenericQuantumSignal(GenericSignal):
     def __init__(self):
         super().__init__()
         self.contents = None
-        self.content_type = QuantumContentType.NONE
         self.mode_id = None
+        self.timestamp = None
 
     def set_contents(self,
-                     content_type: QuantumContentType,
+                     timestamp,
                      mode_id=None,
                      content=None):
-        self.content_type = content_type
+        self.timestamp = timestamp
         self.mode_id = mode_id
         self.contents = content

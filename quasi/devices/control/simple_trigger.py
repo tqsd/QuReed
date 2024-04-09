@@ -21,7 +21,7 @@ class SimpleTrigger(GenericDevice):
     Trigger turns on at the start of simulation.
     """
     ports = {
-        "T": Port(label="T",
+        "trigger": Port(label="trigger",
                   direction="output",
                   signal=None,
                   signal_type=GenericBoolSignal,
@@ -47,8 +47,8 @@ class SimpleTrigger(GenericDevice):
     @coordinate_gui
     @wait_input_compute
     def compute_outputs(self, *args, **kwargs):
-        self.ports["T"].signal.set_bool(True)
-        self.ports["T"].signal.set_computed()
+        self.ports["trigger"].signal.set_bool(True)
+        self.ports["trigger"].signal.set_computed()
 
     def des_action(self, time=None):
         next_device  = self.get_next_device("T")

@@ -10,12 +10,12 @@ from quasi.devices import (GenericDevice,
                            ensure_output_compute)
 from quasi.devices.port import Port
 from quasi.signals import (GenericSignal,
-                           QuantumContentType,
+                           GenericFloatSignal,
                            GenericBoolSignal,
                            GenericQuantumSignal)
 
 from quasi.gui.icons import icon_list
-from quasi.simulation import ModeManager, Simulation
+from quasi.simulation import Simulation, SimulationType, ModeManager
 
 from quasi._math.fock.ops import adagger, a, coherent_state
 
@@ -31,6 +31,18 @@ class IdealCoherentSource(GenericDevice):
             direction="input",
             signal=None,
             signal_type=GenericBoolSignal,
+            device=None),
+        "alpha": Port(
+            label="alpha",
+            direction="input",
+            signal=None,
+            signal_type=GenericFloatSignal,
+            device=None),
+        "phi": Port(
+            label="phi",
+            direction="input",
+            signal=None,
+            signal_type=GenericFloatSignal,
             device=None),
         "output": Port(
             label="output",
@@ -51,30 +63,47 @@ class IdealCoherentSource(GenericDevice):
 
     reference = None
 
+    def set_displacement(self, alpha: float, phi: float):
+        """
+        Sets the signals so that the source correctly displaces the vacuum
+        """
+        alpha_sig = GenericFloatSignal()
+        alpha_sig.set_float(alpha)
+        phi_sig = GenericFloatSignal()
+        phi_sig.set_float(phi)
+        self.register_signal(signal=alpha_sig, port_label="alpha")
+        self.register_signal(signal=phi_sig, port_label="phi")
+        phi_sig.set_computed()
+        alpha_sig.set_computed()
+
     @ensure_output_compute
     @coordinate_gui
     @wait_input_compute
     def compute_outputs(self, *args, **kwargs):
+        simulation = Simulation.get_instance()
+        if simulation.simulation_type is SimulationType.FOCK:
+            self.simulate_fock()
+
+    def simulate_fock(self):
+        """
+        Fock Simulation
+        """
+        simulation = Simulation.get_instance()
+        backend = simulation.get_backend()
+
+        # Get the mode manager
         mm = ModeManager()
-        m_id = mm.create_new_mode()
-        AD = adagger(mm.simulation.dimensions)
-        A = a(mm.simulation.dimensions)
-        density_matrix = np.zeros((
-            mm.simulation.dimensions,
-            mm.simulation.dimensions), dtype=np.complex128)
-        alpha = 10
-
-        for m in range(mm.simulation.dimensions):
-            for n in range(mm.simulation.dimensions):
-                density_matrix[m, n] = ((alpha**m * np.conj(alpha)**n) /
-                                        np.sqrt(factorial(m) * factorial(n)))
-
-        density_matrix /= np.pi
-
-        mm.modes[m_id] = density_matrix
-        print(mm.modes[m_id])
+        # Generate new mode
+        mode = mm.create_new_mode()
+        # Displacement parameters
+        alpha = self.ports["alpha"].signal.contents
+        phi = self.ports["phi"].signal.contents
+        
+        # Initialize photon number state in the mode
+        operator = backend.displace(alpha, phi, mm.get_mode_index(mode))
+        backend.apply_operator(operator, [mm.get_mode_index(mode)])
 
         self.ports["output"].signal.set_contents(
-            content_type=QuantumContentType.FOCK,
-            mode_id=m_id)
+            timestamp=0,
+            mode_id=mode)
         self.ports["output"].signal.set_computed()

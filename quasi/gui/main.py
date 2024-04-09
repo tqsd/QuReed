@@ -14,6 +14,7 @@ from quasi.gui.menus.menu_bar import MenuBar
 #  logging.basicConfig(level=logging.DEBUG)
 
 
+
 def main(page: ft.Page):
     """Initialize the QuaSi GUI Program."""
     page.padding = 0

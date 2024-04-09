@@ -41,8 +41,8 @@ class FloatVariable(GenericDevice):
     @coordinate_gui
     @wait_input_compute
     def compute_outputs(self, *args, **kwargs):
-        self.ports["int"].signal.set_int(self.values["value"])
-        self.ports["int"].signal.set_computed()
+        self.ports["float"].signal.set_float(self.values["value"])
+        self.ports["float"].signal.set_computed()
 
 
     def set_value(self, value:str):

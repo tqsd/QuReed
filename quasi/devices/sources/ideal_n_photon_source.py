@@ -10,22 +10,21 @@ from quasi.devices import (GenericDevice,
                            ensure_output_compute)
 from quasi.devices.port import Port
 from quasi.signals import (GenericSignal,
-                           QuantumContentType,
                            GenericBoolSignal,
                            GenericIntSignal,
                            GenericQuantumSignal)
 
 from quasi.gui.icons import icon_list
-from quasi.simulation import ModeManager
-from quasi.extra import Loggers, get_custom_logger
-
-from quasi._math.fock.ops import adagger, a
+from quasi.simulation import Simulation, SimulationType, ModeManager
+from quasi.experiment import Experiment
+from quasi.extra.logging import Loggers, get_custom_logger
 from quasi.backend.envelope_backend import EnvelopeBackend
-
 from photon_weave.state.envelope import Envelope
 from photon_weave.operation.fock_operation import(
     FockOperation, FockOperationType
 )
+
+logger = get_custom_logger(Loggers.Devices)
 
 
 class IdealNPhotonSource(GenericDevice):
@@ -61,27 +60,50 @@ class IdealNPhotonSource(GenericDevice):
 
     power_peak = 0
     power_average = 0
-
     reference = None
+
+    def set_photon_num(self, photon_num: int):
+        """
+        Set the number of photons the source should emit in a pulse
+        """
+        photon_num_sig = GenericIntSignal()
+        photon_num_sig.set_int(photon_num)
+        self.register_signal(signal=photon_num_sig, port_label="photon_num")
+        photon_num_sig.set_computed()
+    
 
     @ensure_output_compute
     @coordinate_gui
     @wait_input_compute
     def compute_outputs(self, *args, **kwargs):
+        simulation = Simulation.get_instance()
+        if simulation.simulation_type is SimulationType.FOCK:
+            self.simulate_fock()
 
+    def simulate_fock(self):
+        """
+        Fock Simulation
+        """
+        simulation = Simulation.get_instance()
+        backend = simulation.get_backend()
+
+        # Get the mode manager
         mm = ModeManager()
-        m_id = mm.create_new_mode()
-        AD = adagger(mm.simulation.dimensions)
-        A = a(mm.simulation.dimensions)
-        mode = mm.get_mode(m_id)
-
+        # Generate new mode
+        mode = mm.create_new_mode()
+        # How many photons should be created
         photon_num = self.ports["photon_num"].signal.contents
-        for i in range(photon_num):
-            mode=np.matmul(AD, np.matmul(mode, A))
-        mm.modes[m_id]=mode
+        
+        # Initialize photon number state in the mode
+        backend.initialize_number_state(photon_num, [mm.get_mode_index(mode)])
+
+        logger.info(
+            "Source - %s - assisning mode %s to signal on port %s",
+            self.name, mm.get_mode_index(mode),
+            self.ports["output"].label)
         self.ports["output"].signal.set_contents(
-            content_type=QuantumContentType.FOCK,
-            mode_id=m_id)
+            timestamp=0,
+            mode_id=mode)
         self.ports["output"].signal.set_computed()
 
     def set_photon_num(self, photon_num: int):

@@ -12,7 +12,6 @@ from quasi.devices import (GenericDevice,
 from quasi.devices.port import Port
 from quasi.signals import (GenericSignal,
                            GenericFloatSignal,
-                           QuantumContentType,
                            GenericBoolSignal,
                            GenericQuantumSignal)
 

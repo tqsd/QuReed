@@ -15,5 +15,10 @@ setup(
         "numba",
         "scipy",
         "photon_weave@git+ssh://git@github.com/tqsd/photon_weave.git@master",
-        "flet"],
+        "flet",
+        "matplotlib",
+        "qutip",
+        "seaborn",
+        "plotly"
+    ],
 )
