@@ -10,5 +10,10 @@ setup(
     description="Simulating quantum experiments with realistic device models",
     license="Apache 2.0",
     packages=find_packages(where="."),
-    install_requires=["numpy", "numba", "scipy", "flet"],
+    install_requires=[
+        "numpy",
+        "numba",
+        "scipy",
+        "photon_weave@git+ssh://git@github.com/tqsd/photon_weave.git@master",
+        "flet"],
 )

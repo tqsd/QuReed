@@ -5,9 +5,12 @@ Simulation Module
 from enum import Enum, auto
 import uuid
 from threading import Thread
+import heapq
+import mpmath
 
 from dataclasses import dataclass
 from quasi.signals.generic_bool_signal import GenericBoolSignal
+from quasi.extra import Loggers, get_custom_logger
 
 @dataclass
 class DeviceInformation:
@@ -37,6 +40,21 @@ class SimulationType:
     FOCK = auto()
     MIXED = auto()
 
+class SimulationEvent:
+    """
+    Simulation Event
+
+    actions are scheduled using simulation events
+    """
+    def __init__(self, event_time, device, action, *args, **kwargs):
+        self.event_time = event_time
+        self.device = device
+        self.action = action
+        self.args = args
+        self.kwargs = kwargs
+
+    def __lt__(self, other):
+        return self.event_time < other.event_time
 
 class Simulation:
     """Singleton object"""
@@ -67,6 +85,10 @@ class Simulation:
             self.devices = []
             self.initial_trigger_devices = []
             self.simulation_type = SimulationType.FOCK
+            self.event_queue = []
+            mpmath.mp.prec = 256
+            self.current_time = mpmath.mpf('0')
+            self.end_time = mpmath.mpf('0')
         else:
             raise Exception("Simulation is a singleton class")
 
@@ -80,7 +102,6 @@ class Simulation:
     def set_simulation_type(self, simulation_type: SimulationType):
         self.simulation_type = simulation_type
 
-
     @classmethod
     def set_dimensions(cls, dimensions):
         cls.dimensions = dimensions
@@ -89,22 +110,22 @@ class Simulation:
     def get_dimensions(cls):
         return cls.dimensions
 
-    def run(self):
-        for d in self.initial_trigger_devices:
-            d = d.obj_ref
-            sig = d.ports["TRIGGER"].signal
-            sig.set_contents = True
-            sig.set_computed()
-        processes = []
-        for d in self.devices:
-            p = Thread(target=d.obj_ref.compute_outputs, args=(d.obj_ref,))
-            processes.append(p)
-        for p in processes:
-            p.start()
-        for p in processes:
-            p.join()
+    def run_des(self, simulation_time):
+        logger = get_custom_logger(Loggers.Simulation)
+        logger.info("Starting Simulation")
+        self.end_time += simulation_time
+        while self.event_queue and self.current_time <= self.end_time:
+            event = heapq.heappop(self.event_queue)
+            logger.info("Processing Event for %s of type %s at %s" % (
+                event.device.name,
+                event.device.__class__.__name__,
+                event.event_time))
+            event.action(self.current_time)
+            self.current_time = event.event_time
 
-
+    def schedule_event(self, time, func, *args, **kwargs):
+        event = SimulationEvent(time, func.__self__, func, *args, **kwargs)
+        heapq.heappush(self.event_queue, event)
 
     def register_triggers(self, *devices):
         """
@@ -141,7 +162,6 @@ class Simulation:
         for d in devices:
             print(f"├─ {str(d.name).ljust(n)} : {str(d.device_type).ljust(t)} : {str(d.uuid).ljust(u)} │")
         print("╰─"+"─"*total_bot+"─╯")
-
 
     def clear_all(self):
         for d in self.devices:

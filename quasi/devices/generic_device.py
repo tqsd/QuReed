@@ -7,7 +7,14 @@ from typing import Dict, Type
 from copy import deepcopy
 
 from quasi.simulation import Simulation, DeviceInformation
+from quasi.extra import Loggers, get_custom_logger
 
+def log_action(method):
+    def wrapper(self, time, *args, **kwargs):
+        l = get_custom_logger(Loggers.Devices)
+        l.info("%s is computing at %s" % (self.name, time))
+        return method(self, time, *args, **kwargs)
+    return wrapper
 
 def wait_input_compute(method):
     """
@@ -71,12 +78,12 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
 
 
         # Regitering the device to the simulation
-        print(f"NEW DEVICE {uid}")
         simulation = Simulation.get_instance()
         ref = DeviceInformation(name=name, obj_ref=self, uid=uid)
         self.ref = ref
         simulation.register_device(ref)
         self.coordinator = None
+        self.simulation = Simulation.get_instance()
         
 
     def register_signal(
@@ -152,7 +159,29 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         this is required to have feedback in the gui
         """
         self.coordinator = coordinator
+
+    @log_action
+    def des(self, time, *args, **kwargs):
+        if hasattr(self, 'envelope_backend'):
+            self.envelope_backend(*args, **kwargs)
+        elif hasattr(self, 'des_action'):
+            self.des_action(*args, **kwargs)
+        else:
+            raise DESActionNotDefined()
+
+    def get_next_device(self, port: str):
+        port = self.ports[port]
+        if port.signal:
+            for connected_port in port.signal.ports:
+                if connected_port != port:
+                    return connected_port.device
         
+
+class DESActionNotDefined(Exception):
+    """
+    Raised when device should be called with des simulation,
+    but des methods are not defined
+    """
 
 
 class NoPortException(Exception):
