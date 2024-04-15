@@ -19,6 +19,16 @@ setup(
         "matplotlib",
         "qutip",
         "seaborn",
-        "plotly"
+        "plotly",
+        "jinja2"
     ],
+    package_data={
+        "quasi": ["templates/*.jinja"],
+    },
+    include_package_data=True,
+    entry_points={
+        'console_scripts':[
+            'quasi-template=quasi.cli:main',
+        ],
+    },
 )
