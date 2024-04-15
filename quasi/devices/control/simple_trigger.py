@@ -4,6 +4,8 @@ Simple Trigger
 from quasi.devices import (GenericDevice,
                            wait_input_compute,
                            coordinate_gui,
+                           log_action,
+                           schedule_next_event,
                            ensure_output_compute)
 from quasi.devices.port import Port
 from quasi.signals import (GenericSignal,
@@ -37,11 +39,11 @@ class SimpleTrigger(GenericDevice):
     power_peak = 0
     reference = None
 
-    def __init__(self, time=0, name=None, uid=None):
+    def __init__(self, name=None, time=0, uid=None):
         super().__init__(name=name, uid=uid)
         self.time = time
         self.simulation = Simulation.get_instance()
-        self.simulation.schedule_event(time, self.des)
+        self.simulation.schedule_event(time, self)
 
     @ensure_output_compute
     @coordinate_gui
@@ -50,12 +52,11 @@ class SimpleTrigger(GenericDevice):
         self.ports["trigger"].signal.set_bool(True)
         self.ports["trigger"].signal.set_computed()
 
-    def des_action(self, time=None):
-        next_device  = self.get_next_device("T")
+    @log_action
+    @schedule_next_event
+    def des_action(self, time=None, *args, **kwargs):
+        next_device, port = self.get_next_device_and_port("trigger")
         signal = GenericBoolSignal()
         signal.set_bool(True)
-        self.simulation.schedule_event(
-            self.time,
-            next_device.des,
-            signal=signal
-        )
+        result = [("trigger", signal, self.time)]
+        return result

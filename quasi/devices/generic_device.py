@@ -14,8 +14,14 @@ from quasi.simulation import ModeManager
 
 def log_action(method):
     def wrapper(self, time, *args, **kwargs):
+        # Convert mpf to float for formatting
         l = get_custom_logger(Loggers.Devices)
-        l.info("%s is computing at %s" % (self.name, time))
+        time_as_float = float(time)
+        # Correctly format the string before passing to l.info
+        formatted_message = "{} is computing at {:.2e}s".format(self.name, time_as_float)
+
+        # Now, pass the formatted_message to the log
+        l.info(formatted_message)
         return method(self, time, *args, **kwargs)
     return wrapper
 
@@ -55,11 +61,42 @@ def coordinate_gui(method):
     def wrapper(self, *args, **kwargs):
         if self.coordinator is not None:
             self.coordinator.start_processing()
-        method(self, *args, **kwargs)
+        x = method(self, *args, **kwargs)
         if self.coordinator is not None:
             self.coordinator.processing_finished()
+        return x
 
     return wrapper
+
+def schedule_next_event(method):
+    """
+    Schedules the next device event, if it exists
+    """
+    def wrapper(self, time, *args, **kwargs):
+        results = method(self, time, *args, **kwargs)
+        if results is None:
+            return
+        for output_port, signal, time in results:
+            next_device, port = self.get_next_device_and_port(output_port)
+            if not next_device is None:
+                time_as_float = float(time)
+                l = get_custom_logger(Loggers.Devices)
+                formatted_message = "{} is scheduling new event {} ({}) {:.2e}s".format(
+                    self.name,
+                    next_device.name,
+                    next_device.__class__.__name__,
+                    time_as_float)
+                l.info(formatted_message)
+                signals = {
+                    port:signal
+                }
+                self.simulation.schedule_event(
+                    time,
+                    next_device,
+                    signals=signals
+                )
+    return wrapper
+
 
 
 class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
@@ -78,22 +115,12 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         for port in self.ports.keys():
             self.ports[port].device = self
 
-<<<<<<< HEAD
-
-        # Regitering the device to the simulation
-=======
-        # Registering the device to the simulation
->>>>>>> origin/middleware
         simulation = Simulation.get_instance()
         ref = DeviceInformation(name=name, obj_ref=self, uid=uid)
         self.ref = ref
         simulation.register_device(ref)
         self.coordinator = None
-<<<<<<< HEAD
         self.simulation = Simulation.get_instance()
-        
-=======
->>>>>>> origin/middleware
 
     def register_signal(
         self, signal: GenericSignal, port_label: str, override: bool = False
@@ -167,26 +194,23 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         this is required to have feedback in the gui
         """
         self.coordinator = coordinator
-<<<<<<< HEAD
 
     @log_action
     def des(self, time, *args, **kwargs):
         if hasattr(self, 'envelope_backend'):
             self.envelope_backend(*args, **kwargs)
         elif hasattr(self, 'des_action'):
-            self.des_action(*args, **kwargs)
+            self.des_action(time, *args, **kwargs)
         else:
             raise DESActionNotDefined()
 
-    def get_next_device(self, port: str):
+    def get_next_device_and_port(self, port: str):
         port = self.ports[port]
         if port.signal:
             for connected_port in port.signal.ports:
                 if connected_port != port:
-                    return connected_port.device
-        
-=======
->>>>>>> origin/middleware
+                    return connected_port.device, connected_port.label
+        return None, None
 
 class DESActionNotDefined(Exception):
     """

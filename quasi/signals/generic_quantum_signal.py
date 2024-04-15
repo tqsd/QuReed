@@ -19,7 +19,7 @@ class GenericQuantumSignal(GenericSignal):
         self.timestamp = None
 
     def set_contents(self,
-                     timestamp,
+                     timestamp=None,
                      mode_id=None,
                      content=None):
         self.timestamp = timestamp

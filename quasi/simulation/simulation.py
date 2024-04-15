@@ -77,10 +77,9 @@ class SimulationEvent:
 
     actions are scheduled using simulation events
     """
-    def __init__(self, event_time, device, action, *args, **kwargs):
+    def __init__(self, event_time, device, *args, **kwargs):
         self.event_time = event_time
         self.device = device
-        self.action = action
         self.args = args
         self.kwargs = kwargs
 
@@ -142,36 +141,29 @@ class Simulation:
     def get_dimensions(cls):
         return cls.dimensions
 
-<<<<<<< HEAD
     def run_des(self, simulation_time):
         logger = get_custom_logger(Loggers.Simulation)
         logger.info("Starting Simulation")
         self.end_time += simulation_time
         while self.event_queue and self.current_time <= self.end_time:
             event = heapq.heappop(self.event_queue)
-            logger.info("Processing Event for %s of type %s at %s" % (
-                event.device.name,
-                event.device.__class__.__name__,
-                event.event_time))
-            event.action(self.current_time)
+
+            time_as_float = float(event.event_time)
+            logger.info(f"Processing Event for {event.device.name} of type {event.device.__class__.__name__} at {time_as_float:.2e}s")
+            event.device.des(event.event_time, *event.args, **event.kwargs)
             self.current_time = event.event_time
 
-    def schedule_event(self, time, func, *args, **kwargs):
-        event = SimulationEvent(time, func.__self__, func, *args, **kwargs)
+    def schedule_event(self, time, device, *args, **kwargs):
+        event = SimulationEvent(time, device, *args, **kwargs)
         heapq.heappush(self.event_queue, event)
-=======
+
     def run(self):
         """
         Executes the experiment
         """
         # Determine number of modes
         modes = sum([d.new_modes for d in self.devices])
-        print(f"Number of modes {modes}")
-        print(self.backend)
-        print(isinstance(self.backend,FockBackend))
-        print("\n\n")
         if isinstance(self.backend,FockBackend):
-            print("Correct backend?")
             self.backend.set_number_of_modes(modes)
             self.backend.set_dimensions(self.dimensions)
             self.backend.initialize()
@@ -193,7 +185,6 @@ class Simulation:
         if self.simulation_type == SimulationType.FOCK:
             exp = Experiment.get_instance()
             exp.execute()
->>>>>>> origin/middleware
 
     def register_triggers(self, *devices):
         """

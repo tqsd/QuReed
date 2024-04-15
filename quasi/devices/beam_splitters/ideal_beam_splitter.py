@@ -3,6 +3,8 @@ Ideal Beam Splitter implementation
 """
 
 from quasi.devices import (GenericDevice,
+                           schedule_next_event,
+                           log_action,
                            wait_input_compute,
                            ensure_output_compute)
 from quasi.devices.port import Port
@@ -13,6 +15,7 @@ from math import pi
 from quasi.gui.icons import icon_list
 from quasi.simulation import Simulation, SimulationType, ModeManager
 from quasi.extra.logging import Loggers, get_custom_logger
+from photon_weave.state.envelope import Envelope
 
 logger = get_custom_logger(Loggers.Devices)
 
@@ -41,6 +44,10 @@ class IdealBeamSplitter(GenericDevice):
     power_peak = 0
     reference = None
 
+    def __init__(self, name=None, uid=None):
+        super().__init__(name=name, uid=uid)
+
+
     @wait_input_compute
     def compute_outputs(self,  *args, **kwargs):
         simulation = Simulation.get_instance()
@@ -64,8 +71,6 @@ class IdealBeamSplitter(GenericDevice):
 
         m_id_a = get_or_create_mode_id(self.ports["B"])
         m_id_b = get_or_create_mode_id(self.ports["A"])
-        print(mm.get_mode_index(m_id_a))
-        print(mm.get_mode_index(m_id_b))
 
         # Apply beam splitter operation in a more concise manner
         op = backend.beam_splitter(theta=pi/4, phi=pi/2)
@@ -81,3 +86,15 @@ class IdealBeamSplitter(GenericDevice):
                 port.signal.set_contents(timestamp=0, mode_id=mode_id)
                 port.signal.set_computed()
 
+
+    @log_action
+    @schedule_next_event
+    def des_action(self, time=None, *args, **kwargs):
+        print("BEAMSPLITTER")
+        
+
+
+    def compute_overlap(self, env1:Envelope, env2:Envelope):
+        """
+        Computes overlap for two photons
+        """

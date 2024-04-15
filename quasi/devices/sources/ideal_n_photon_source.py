@@ -6,6 +6,7 @@ import numpy as np
 from quasi.devices import (GenericDevice,
                            wait_input_compute,
                            coordinate_gui,
+                           schedule_next_event,
                            log_action,
                            ensure_output_compute)
 from quasi.devices.port import Port
@@ -115,19 +116,24 @@ class IdealNPhotonSource(GenericDevice):
         self.register_signal(signal=photon_num_sig, port_label="photon_num")
         photon_num_sig.set_computed()
 
+    @schedule_next_event
     @log_action
-    def des(self, time):
-        n = self.ports["photon_num"].signal.contents
+    def des(self, time, *args, **kwargs):
+        if self.ports["photon_num"].signal is not None:
+            n = self.ports["photon_num"].signal.contents
+            if n is None:
+                raise Exception("Photon number signal not set")
+        elif 'photon_num' in kwargs:
+            n = kwargs["photon_num"]
+        else:
+            raise Exception("Photon num was not set")
+        # Creating new envelopt
         env = Envelope()
-        env.label = n
+        # Applying operation
         op = FockOperation(FockOperationType.Creation, apply_count=n)
         env.apply_operation(op)
-        next_device = self.get_next_device("output")
+        # Creating output
         signal = GenericQuantumSignal()
-        signal.set_contents(env)
-        if next_device:
-            self.simulation.schedule_event(
-                time,
-                next_device,
-                signal
-            )
+        signal.set_contents(content=env)
+        result = [("output", signal, time)]
+        return result

@@ -32,11 +32,7 @@ class FockBackend(Backend):
     @abstractmethod
     def create(self, mode):
         """
-<<<<<<< HEAD
         Should return creation operator
-=======
-        Should return createion operator
->>>>>>> origin/middleware
         """
 
     @abstractmethod
@@ -74,7 +70,3 @@ class FockBackend(Backend):
         """
         Should Apply the operator to the correct mode
         """
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/middleware
