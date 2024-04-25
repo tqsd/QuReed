@@ -13,6 +13,7 @@ from quasi.devices import (GenericDevice,
 from quasi.devices.port import Port
 from quasi.simulation import ModeManager
 from quasi.signals import *
+from quasi.gui.icons import icon_list
 
 
 class {{ name }}(GenericDevice):
@@ -35,9 +36,9 @@ class {{ name }}(GenericDevice):
         {% endfor %}
     }
     
-    gui_icon = None
+    gui_icon = icon_list.{{ gui_icon }}
     gui_tags = None
-    gui_documentation= None
+    gui_documentation = None
     
     power_peak = 0
     power_average = 0

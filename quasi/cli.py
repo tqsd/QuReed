@@ -3,6 +3,7 @@ import os
 from jinja2 import Environment, FileSystemLoader
 import sys
 from quasi.signals import * 
+import quasi.gui.icons.icon_list
 import inspect
 import re
 
@@ -26,6 +27,15 @@ def list_signals():
         if inspect.isclass(obj):  # Optionally, filter by some criteria
             signals.append(name)
     return signals
+
+def list_icons():
+    icons = [None]
+    module = sys.modules['quasi.gui.icons.icon_list']
+    for name, obj in inspect.getmembers(module):
+        print(name, obj)
+        if isinstance(obj, str) and name.isupper():
+            icons.append(name)
+    return icons
 
 def get_user_choice(options):
     for index, option in enumerate(options, start=1):
@@ -65,12 +75,17 @@ def main():
         s_type = get_user_choice(signal_types)
         output_ports[label] = s_type
 
+    icons = list_icons()
+    icon = get_user_choice(icons)
+
     env = get_template_env()
     template = env.get_template('device_template.jinja')
     output = template.render(
         name=args.name,
         input_ports=input_ports,
-        output_ports=output_ports)
+        output_ports=output_ports,
+        gui_icon=icon
+    )
     print(output)
     if input("Save?(y/n): ").strip().lower() != 'y':
             print("Operation cancelled.")
