@@ -29,9 +29,9 @@ class IdealPhaseShifter(GenericDevice):
                        signal_type=GenericQuantumSignal, device=None)
     }
 
-    gui_icon = icon_list.LASER
+    gui_icon = icon_list.PHASE_SHIFT
     gui_tags = ["ideal"]
-    gui_name = "Ideal Coherent Photon Source"
+    gui_name = "Ideal Phase Shifter"
     gui_documentation = "ideal_phase_shifter.md"
 
     power_peak = 0
