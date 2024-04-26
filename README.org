@@ -17,6 +17,102 @@ implemented in [[file:./quasi/signals/generic_signal.py][quasi/signals/generic_s
 Each device design stems from the Abstract Base Class ~GenericDevice(ABC)~,
 implemented in [[file:./quasi/devices/generic_device.py][quasi/devices/generic_device.py]].
 
+
+
+
+* Installing
+QuaSi is currently in Alpha stage, it can be installed using github. Here we
+give the tutorial on how to install the quasi program from github.
+** Windows
+*** Miniconda
+On the webpage [[https://conda.io/projects/conda/en/latest/user-guide/install/windows.html][Miniconda]] find the appropriate installer and install the
+package. After completion, you can open the Anaconda Prompt and create a new
+virtual environment pertaining to quasi:
+
+#+begin_src bash :results output
+  conda create --name quasi python=3.12
+#+end_src
+
+Upon the completed process you can in the same prompt activate the environment
+#+begin_src bash :results output
+  conda activate quasi
+#+end_src
+If you want to deactivate the virtual environment, type:
+#+begin_src bash :results output
+  conda deactivate
+#+end_src
+*** Generating ssh-keys
+Run powershell as an administrator.
+Then activate the ssh-agent:
+#+begin_src bash :results output
+# Check if the ssh-agent service is running
+Get-Service ssh-agent
+
+# If the service is stopped, you can set it to start automatically
+Set-Service -Name ssh-agent -StartupType Automatic
+
+# Start the service if it's not already running
+Start-Service ssh-agent
+#+end_src
+
+Now you can start by generating the key:
+#+begin_src bash :results output
+ssh-keygen -t ed25519 -C "your_email@example.com"
+#+end_src
+
+If your machine doesn't support ed25519 you can use ~-t rsa -b 4096~ instead. 
+
+*** Git for Windows
+You will need to install git for windows from [[https://git-scm.com/download/win][Git]]. After installing you need to
+start the git terminal and configure name and email:
+
+#+begin_src bash :results output
+  git config global.name "<Your Name>"
+  git config global.email "<Your Email>"
+#+end_src
+
+Now you can add the ssh key:
+
+#+begin_src bash :results output
+ssh-add ~\.ssh\id_ed25519
+#+end_src
+Or other location if you did not choose the default location.
+
+You should now add the public key to your github account. You can copy the
+public key (to your clipboard) by:
+
+#+begin_src bash :results output
+clip < ~/.ssh/id_ed25519.pub
+#+end_src
+
+Now go to the Github settings and add the key to your account.
+
+
+
+
+*** Cloning
+
+With the previous steps completed, you can now clone the repository using Git
+for windows.
+
+Make sure you checkout the correct branch.
+
+
+*** Installing
+Open miniconda and activate the environment. ~cd~ into the cloned directory, it
+should contain ~setup.py~ and install the package:
+#+begin_src bash :results output
+  pip install -e .
+#+end_src
+
+
+*** Running the GUI
+Now you should be able to run the gui
+
+#+begin_src bash :results output
+  # quasi/gui/
+  flet main.py
+#+end_src
 * Usage
 Currently QuaSi is in development process, so you should use it as a developer.
 Please read the notes on Conributing.
@@ -52,3 +148,5 @@ In order to develop the framework:
    #+begin_src bash
    pip install -e .
    #+end_src
+
+   
