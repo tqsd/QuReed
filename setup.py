@@ -30,6 +30,7 @@ setup(
     entry_points={
         'console_scripts':[
             'quasi-template=quasi.cli:main',
+            'quasi-gui=quasi.gui.main:start'
         ],
     },
 )

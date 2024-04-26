@@ -88,8 +88,6 @@ clip < ~/.ssh/id_ed25519.pub
 Now go to the Github settings and add the key to your account.
 
 
-
-
 *** Cloning
 
 With the previous steps completed, you can now clone the repository using Git
@@ -108,11 +106,15 @@ should contain ~setup.py~ and install the package:
 
 *** Running the GUI
 Now you should be able to run the gui
-
+#+begin_src bash :results output
+  quasi-gui
+#+end_src
+or manually by
 #+begin_src bash :results output
   # quasi/gui/
   flet main.py
 #+end_src
+
 * Usage
 Currently QuaSi is in development process, so you should use it as a developer.
 Please read the notes on Conributing.
