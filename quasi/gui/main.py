@@ -6,6 +6,7 @@ This file contains the initialization code for the QuaSi Quantum Simulator.
 import logging
 
 import flet as ft
+import os
 
 from quasi.gui.panels.main_panel import MainPanel
 from quasi.gui.panels.side_panel import SidePanel
@@ -40,7 +41,10 @@ def main(page: ft.Page):
     page.add(container)
 
 def start():
-    ft.app(target=main, assets_dir="assets")
+    gui_path = os.path.abspath(__file__)
+    gui_dir = os.path.dirname(gui_path)
+    assets = os.path.join(gui_dir, "assets")
+    ft.app(target=main, assets_dir=assets)
 
 if __name__ == "__main__":
     start()
