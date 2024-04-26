@@ -1,7 +1,7 @@
 """quasi installation configuration"""
 from setuptools import find_packages, setup
-
-
+import os
+current_dir = os.path.abspath(os.path.dirname(__file__))
 setup(
     name="quasi",
     version="0.0.2",
@@ -14,7 +14,8 @@ setup(
         "numpy",
         "numba",
         "scipy",
-        "photon_weave@git+ssh://git@github.com/tqsd/photon_weave.git@master",
+        #"photon_weave@git+ssh://git@github.com/tqsd/photon_weave.git@master",
+        "photon_weave @ file://{}/photon-weave".format(current_dir),
         "flet",
         "matplotlib",
         "qutip",
