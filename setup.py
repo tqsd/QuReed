@@ -20,7 +20,8 @@ setup(
         "qutip",
         "seaborn",
         "plotly",
-        "jinja2"
+        "jinja2",
+        "mpmath"
     ],
     package_data={
         "quasi": ["templates/*.jinja"],
