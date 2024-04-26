@@ -112,7 +112,7 @@ Now you should be able to run the gui
 or manually by
 #+begin_src bash :results output
   # quasi/gui/
-  flet main.py
+  python main.py
 #+end_src
 
 * Usage
