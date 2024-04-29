@@ -4,6 +4,7 @@ from quasi.gui.board.board import Board
 from quasi.gui.bar.simulation_bar import SimulationBar
 from quasi.gui.board.info_bar import InfoBar
 from quasi.gui.panels.documentation_panel import DocumentationTab
+from quasi.gui.report import Report
 
 
 class MainPanel(ft.UserControl):
@@ -17,6 +18,7 @@ class MainPanel(ft.UserControl):
         self.info_bar = InfoBar()
         self.info_bar.set_page(page)
         self.tabs = ft.Tabs(
+            on_change=self.on_change,
             tab_alignment=ft.TabAlignment.START,
             indicator_color="white",
             divider_color="black",
@@ -45,6 +47,7 @@ class MainPanel(ft.UserControl):
                 ),
                 ft.Tab(
                     text="Report",
+                    content=Report()
                 ),
             ]
         )
@@ -74,6 +77,20 @@ class MainPanel(ft.UserControl):
         
     def build(self) -> ft.Container:
         return self.container
+
+    def on_change(self, e):
+        print("change")
+        print(f"name: {e.name}")
+        print(f"target: {e.target}")
+        print(f"data: {e.data}")
+        print(self)
+        r = Report()
+        print(f"{e.data}==1, {e.data == 1}, {type(e.data)}")
+        if int(e.data) == 1:
+            r.on_visible_changed(visible=True)
+        else:
+            r.on_visible_changed(visible=False)
+            
 
 
     def new_documentation_tab(self, documentation_tab):

@@ -5,12 +5,14 @@ the simulation engine
 from quasi.simulation import Simulation, DeviceInformation
 from quasi.backend.fock_first_backend import FockBackendFirst
 from quasi.experiment import Experiment
-
+from quasi.extra import Loggers, get_custom_logger
+from quasi.gui.report import GuiLogHandler 
 
 class SimulationWrapper:
     """
     SimulationWrapper is a Singleton which
-    handles the flow of simulation and exposes
+    handles the flow of simulation and exposes        # We hardcode the backend for now
+
     its control to the gui
     """
     __instance = None
@@ -27,16 +29,23 @@ class SimulationWrapper:
             self.initialized = True
             self.devices = []
             self.signals = []
+            self.simulation_time = 1
         self.simulation = Simulation.get_instance()
 
     def execute(self):
         """
         Execution Trigger
         """
+        # Configure the loggers
+        loggerA = get_custom_logger(Loggers.Devices)
+        loggerB = get_custom_logger(Loggers.Simulation)
+        log_handler = GuiLogHandler()
+        loggerA.addHandler(log_handler)
+        loggerB.addHandler(log_handler)
+        
         self.simulation.list_devices()
-        # We hardcode the backend for now
         self.simulation.set_backend(FockBackendFirst())
-        self.simulation.run()
+        self.simulation.run_des(self.simulation_time)
         # We print the experiment outcome
         exp = Experiment.get_instance()
         state = exp.state
@@ -59,11 +68,6 @@ class SimulationWrapper:
         dev1.register_signal(signal=sig, port_label=port_label_1)
         dev2.register_signal(signal=sig, port_label=port_label_2)
         self.signals.append(sig)
-
-    def remove_connection(self, sig):
-        print("Removing Connection")
-        pass
-
 
     def clear(self):
         self.simulation.clear_all()

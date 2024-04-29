@@ -81,8 +81,9 @@ def schedule_next_event(method):
             if not next_device is None:
                 time_as_float = float(time)
                 l = get_custom_logger(Loggers.Devices)
-                formatted_message = "{} is scheduling new event {} ({}) {:.2e}s".format(
+                formatted_message = "{} ({}) is scheduling new event {} ({}) {:.2e}s".format(
                     self.name,
+                    self.__class__.__name__,
                     next_device.name,
                     next_device.__class__.__name__,
                     time_as_float)

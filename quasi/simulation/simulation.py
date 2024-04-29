@@ -86,6 +86,18 @@ class SimulationEvent:
     def __lt__(self, other):
         return self.event_time < other.event_time
 
+    def merge_event(self, new_event):
+        if 'signals' in new_event.kwargs:
+            if 'signals' in self.kwargs:
+                # Merge the signals dictionaries
+                for port, signal in new_event.kwargs['signals'].items():
+                    self.kwargs['signals'][port] = signal
+            else:
+                # No signals in existing event, just add all from new_event
+                self.kwargs['signals'] = new_event.kwargs['signals']
+        # Optionally merge args if needed
+        self.args += new_event.args
+
 class Simulation:
     """Singleton object"""
 
@@ -117,6 +129,7 @@ class Simulation:
             self.initial_trigger_devices = []
             self.simulation_type = SimulationType.FOCK
             self.event_queue = []
+            self.event_map = {}
             mpmath.mp.prec = 256
             self.current_time = mpmath.mpf('0')
             self.end_time = mpmath.mpf('0')
@@ -155,7 +168,13 @@ class Simulation:
 
     def schedule_event(self, time, device, *args, **kwargs):
         event = SimulationEvent(time, device, *args, **kwargs)
-        heapq.heappush(self.event_queue, event)
+        key = (time, device)
+        if key in self.event_map:
+            existing_event = self.event_map[key]
+            existing_event.merge_event(event)
+        else:
+            heapq.heappush(self.event_queue, event)
+            self.event_map[key] = event
 
     def run(self):
         """

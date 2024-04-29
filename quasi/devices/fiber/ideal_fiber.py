@@ -91,14 +91,9 @@ class IdealFiber(GenericFiber):
         # Speed of light in fiber
         v = C/n
         t = length/v
-        device, port = self.get_next_device_and_port("output")
         env = kwargs["signals"]["input"].contents
-
         signal = GenericQuantumSignal()
         signal.set_contents(content=env)
-        signals = {
-            port: signal
-        }
         result = [("output", signal, time+t)]
         return result
 
