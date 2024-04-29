@@ -122,7 +122,6 @@ class Board(ft.UserControl):
 
         self.offset_x = min(self.offset_x, 0)
         self.offset_y = min(self.offset_y, 0)
-        print(f"{self.offset_x},{self.offset_y}")
         self.content.update()
         self.canvas_container.update()
 
@@ -177,6 +176,16 @@ class Board(ft.UserControl):
         self.content.update()
         self.sim_wrapper.add_device(dev_instance)
 
+    def remove_device(self, device):
+        self.content.controls.remove(device)
+        if hasattr(device, "ports_in"):
+            device.ports_in.disconnect_all()
+        if hasattr(device, "ports_out"):
+            device.ports_out.disconnect_all()
+        self.sim_wrapper.remove_device(device.device_instance)
+        self.content.update()
+        # Remove connections
+            
 
     def build(self) -> ft.Container():
         """

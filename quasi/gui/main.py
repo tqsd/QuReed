@@ -18,6 +18,8 @@ from quasi.gui.menus.menu_bar import MenuBar
 
 def main(page: ft.Page):
     """Initialize the QuaSi GUI Program."""
+
+    print("Starting gui")
     page.padding = 0
     page.window_height = 800
     page.window_width = 900
@@ -26,6 +28,7 @@ def main(page: ft.Page):
     menu_bar = MenuBar(page)
     side_panel = SidePanel(offset_top=menu_bar.height)
     main_panel = MainPanel(page)
+
 
     container = ft.Container(
         expand=True,

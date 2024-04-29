@@ -40,16 +40,15 @@ class SimulationWrapper:
         # We print the experiment outcome
         exp = Experiment.get_instance()
         state = exp.state
-        print(state.all_fock_probs())
 
     def add_device(self, device):
         self.devices.append(device)
 
+    def remove_device(self, device):
+        self.devices.remove(device)
+
     def get_device(self, uid):
-        print(uid)
         d = [x for x in self.devices if x.ref.uuid == uid]
-        for x in self.devices:
-            print(x.ref)
         if len(d) == 1:
             return d[0]
         return None
@@ -60,6 +59,10 @@ class SimulationWrapper:
         dev1.register_signal(signal=sig, port_label=port_label_1)
         dev2.register_signal(signal=sig, port_label=port_label_2)
         self.signals.append(sig)
+
+    def remove_connection(self, sig):
+        print("Removing Connection")
+        pass
 
 
     def clear(self):

@@ -188,7 +188,7 @@ class BaseDeviceComponent(ft.UserControl):
         Display options
         """
         do = DeviceOptions(self.top+10, self.left+10,
-                           self.device_instance)
+                           self.device_instance, self)
         self.board.create_menu(do)
 
     def get_port(self, label:str):

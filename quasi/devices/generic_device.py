@@ -152,6 +152,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         signal.register_port(port, self)
         port.signal = signal
 
+
     @wait_input_compute
     @coordinate_gui
     @abstractmethod
