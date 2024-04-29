@@ -110,6 +110,7 @@ class Board(ft.UserControl):
         self.offset_x += e.delta_x
         self.offset_y += e.delta_y
 
+
         self.canvas_container.top = min(
             self.canvas_container.top + e.delta_y,
             0)
@@ -118,6 +119,10 @@ class Board(ft.UserControl):
             0)
         self.content.top = min(self.content.top + e.delta_y, 0)
         self.content.left = min(self.content.left + e.delta_x, 0)
+
+        self.offset_x = min(self.offset_x, 0)
+        self.offset_y = min(self.offset_y, 0)
+        print(f"{self.offset_x},{self.offset_y}")
         self.content.update()
         self.canvas_container.update()
 
