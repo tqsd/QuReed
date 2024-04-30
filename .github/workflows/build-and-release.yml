@@ -41,6 +41,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install .  # Ensure this command is correct for installing your package
+          pip install pyinstaller
           pip install flet  # Make sure to install Flet, not PyInstaller if you are using flet to pack
 
       - name: Build with Flet pack
