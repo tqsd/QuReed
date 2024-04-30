@@ -1,9 +1,6 @@
 name: Build and Release
 
-on:
-  push:
-    tags:
-      - 'v*'
+on: [push]
 
 jobs:
   build:
@@ -47,6 +44,7 @@ jobs:
       - name: Build with Flet pack
         run: |
           echo "y" | flet pack quasi/gui/main.py --add-data "quasi/gui/assets:quasi/gui/assets"
+          ls -l
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
