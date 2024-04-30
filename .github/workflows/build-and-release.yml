@@ -14,7 +14,12 @@ jobs:
         uses: actions/checkout@v2
         with:
           token: ${{ secrets.GH_TOKEN }}  # Using GH_TOKEN to checkout private submodules if any
-
+      - name: Test Clone Repository
+        run: |
+          ssh -T git@github.com
+          git clone git@github.com:tqsd/photon_weave.git
+        env:
+          GIT_SSH_COMMAND: "ssh -v"
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
