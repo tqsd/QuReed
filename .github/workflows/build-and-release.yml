@@ -44,7 +44,8 @@ jobs:
           pip install flet  # Make sure to install Flet, not PyInstaller if you are using flet to pack
 
       - name: Build with Flet pack
-        run: flet pack quasi/gui/main.py --add-data "quasi/gui/assets:quasi/gui/assets"
+        run: |
+          echo "y" | flet pack quasi/gui/main.py --add-data "quasi/gui/assets:quasi/gui/assets"
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
