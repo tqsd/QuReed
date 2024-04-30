@@ -50,7 +50,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: packaged-app
-          path: output/  # Adjust this path based on where flet pack outputs your application
+          path: dist/  # Adjust this path based on where flet pack outputs your application
 
   release:
     needs: build
