@@ -14,6 +14,12 @@ jobs:
         uses: actions/checkout@v2
         with:
           token: ${{ secrets.GH_TOKEN }}  # Using GH_TOKEN to checkout private submodules if any
+
+      - name: Setup SSH Key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_DEPLOY_KEY }}  # Use the name of your secret here
+
       - name: Test Clone Repository
         run: |
           ssh -T git@github.com
