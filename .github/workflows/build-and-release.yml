@@ -22,10 +22,17 @@ jobs:
 
       - name: Test Clone Repository
         run: |
-          ssh -T git@github.com
+          ssh -T git@github.com || true # Ignore error
           git clone git@github.com:tqsd/photon_weave.git
         env:
           GIT_SSH_COMMAND: "ssh -v"
+
+      - name: Test SSH Connection
+        run: |
+          set +e  # Do not exit immediately on non-zero return code
+          ssh -T git@github.com
+          set -e  # Turn back on the exit immediately on non-zero return code
+        shell: bash
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
