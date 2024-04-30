@@ -6,19 +6,60 @@ import numpy as np
 
 class Experiment:
     """Singleton object"""
+    __instance = None
 
-    def __init__(self, num_modes, hbar=2, cutoff=10):
-        """
-        Initialization method
-        """
+    def __new__(cls, *args, **kwargs):
+        if not cls.__instance:
+            cls.__instance = super(Experiment, cls).__new__(cls)
+        return cls.__instance
+
+    def __init__(self, num_modes=2, hbar=2, cutoff=10):
+        # Prevent reinitialization if the instance already exists
+        if hasattr(self, 'initialized'):
+            return
         self.data = None
         self.init_modes = 1
         self.cutoff = cutoff
         self.num_modes = num_modes
         self.hbar = hbar
-        self.state_preparations: list = []
-        self.operations: list = []
-        self.channels: list = []
+        self.state_preparations = []
+        self.operations = []
+        self.channels = []
+        self.state = None
+        self.initialized = True  # Mark the instance as initialized
+
+    def reset(self):
+        """
+        Updated, and drops all information
+        """
+        self.data = None
+        self.init_modes = 1
+        self.cutoff = 10
+        self.num_modes = 0
+        self.hbar = 2
+        self.state_preparations = []
+        self.operations = []
+        self.channels = []
+        self.state = None
+
+    def update_mode_number(self, num_modes):
+        self.num_modes = num_modes
+
+
+    def update_dimensions(self, dimensions):
+        """
+        Updated, and drops all information
+        """
+        self.cutoff = dimensions
+
+    @staticmethod
+    def get_instance():
+        """
+        Returns the singleton Experiment object. Raises an exception if the instance hasn't been created yet.
+        """
+        if not Experiment.__instance:
+            raise Exception("Experiment instance not created yet")
+        return Experiment.__instance
 
     def add_operation(self, operator, modes):
         self.operations.append((operator, modes))
@@ -98,13 +139,36 @@ class Experiment:
         self.alloc()
 
     def execute(self):
+        self.prepare_experiment()
         if len(self.state_preparations) > 0:
             for photon_number, modes in self.state_preparations:
-                self._state_init(photon_number, modes)
-        else:
-            
-            self.prepare_experiment()
+                operator = ops.fock_operator(photon_number, self.cutoff)
 
+                new_st = ops.apply_gate_BLAS(
+                    operator, self.state.dm(), modes, self.num_modes, self.cutoff
+                )
+
+                new_st = new_st / ops.calculate_trace(self.state)
+
+                self.state = FockState(
+                    state_data=new_st,
+                    num_modes=self.num_modes,
+                    cutoff_dim=self.cutoff,
+                )
+
+        if len(self.operations) > 0:
+
+            for operator, modes in self.operations:
+                new_st = ops.apply_gate_BLAS(
+                    operator, self.state.dm(), modes, self.num_modes, self.cutoff
+                )
+                new_st = new_st / ops.calculate_trace(self.state)
+
+                self.state = FockState(
+                    state_data=new_st,
+                    num_modes=self.num_modes,
+                    cutoff_dim=self.cutoff,
+                )
         if len(self.channels) > 0:
             for channel, modes in self.channels:
                 self.data = ops.apply_channel(
@@ -115,14 +179,10 @@ class Experiment:
                     num_modes=self.num_modes,
                     cutoff_dim=self.cutoff,
                 )
-        if len(self.operations) > 0:
 
-            for operator, modes in self.operations:
-                self.data = ops.apply_gate_BLAS(
-                    operator, self.state.dm(), modes, self.num_modes, self.cutoff
-                )
-                self.state = FockState(
-                    state_data=self.data,
-                    num_modes=self.num_modes,
-                    cutoff_dim=self.cutoff,
-                )
+
+class ExperimentInitializedException(Exception):
+    """
+    Exception for the case, when Experiment is attempted to be
+    initialized more than once.
+    """

@@ -29,6 +29,20 @@ class Port:
                 "label, direction and signal_type must be specified"
             )
 
+    def disconnect(self):
+        if self.signal is None:
+            return
+        signal = self.signal
+        self.signal = None
+        ports = signal.ports
+        other_ports = [p for p in ports if p is not self]
+        for p in other_ports:
+            if isinstance(p.signal, list):
+                p.signal.remove(signal)
+            else:
+                p.signal = None
+                
+
 
 class PortMissingAttributesException(Exception):
     """

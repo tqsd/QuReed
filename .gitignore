@@ -1,3 +1,6 @@
+.local_dir.el
+.*.el
+
 .DS_Store
 .idea
 *.log

@@ -3,9 +3,10 @@ import flet as ft
 from quasi.gui.panels.documentation_panel import DocumentationTab
 
 class DeviceOptions(ft.UserControl):
-    def __init__(self, top, left, device_instance):
+    def __init__(self, top, left, device_instance, control_instance):
         super().__init__()
         self.device_instance = device_instance
+        self.control_instance = control_instance
         self.width = 125
         self.menu = ft.Container(
             top=top*2,
@@ -24,7 +25,12 @@ class DeviceOptions(ft.UserControl):
                         content=ft.Text("Documentation", color="white"),
                         on_click=self.open_documentation
                     ),
-                    ft.Text("Delete", color="white"),
+                    ft.Container(
+                        height=25,
+                        width=self.width,
+                        content=ft.Text("Delete", color="white"),
+                        on_click=self._remove_self
+                    ),
                 ]
             ),
             shadow=ft.BoxShadow(
@@ -39,9 +45,10 @@ class DeviceOptions(ft.UserControl):
     def delete_self(self):
         del self
 
-    def _remove_self(self):
+    def _remove_self(self, *args, **kwargs):
         from quasi.gui.board.board import Board
         b = Board.get_board()
+        b.remove_device(self.control_instance)
         b.clear_menus()
 
     def build(self):

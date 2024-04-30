@@ -150,11 +150,15 @@ class PortComponent(ft.UserControl):
         bc = BoardConnector(self.page)
         bc.handle_connect(self, self.device_cls, self.label)
 
-
     def handle_on_right_click(self, e):
+        """
+        Remove connection
+        """
         _ = e
         bc = BoardConnector(self.page)
         bc.handle_disconnect(self)
+        print(self.port_instance)
+        self.port_instance.disconnect()
 
     def assign_connection(self, connection):
         self.connection = connection
@@ -246,6 +250,10 @@ class Ports(ft.UserControl):
         else:
             return False
 
+    def disconnect_all(self):
+        for pc in self.ports_controls:
+            pc.handle_on_right_click(e=None)
+
 
 class BoardConnector():
     """
@@ -304,6 +312,7 @@ class BoardConnector():
         if port.connection is not None:
             port.connection.remove()
 
+
     def handle_connect(self, port: Port, device_cls, label):
         """
         Handler for connection creation.
@@ -329,8 +338,6 @@ class BoardConnector():
             # Checking if the signals match
             sig_1_cls = self.first_click["device_cls"].ports[self.first_click["label"]].signal_type
             sig_2_cls = device_cls.ports[label].signal_type
-            print(sig_1_cls)
-            print(sig_2_cls)
             parent_sig_cls = None
             if issubclass(sig_1_cls, sig_2_cls):
                 parent_sig_cls = sig_2_cls
@@ -375,9 +382,7 @@ class BoardConnector():
         )
         b = Board.get_board()
         port1 = b.get_device(sim_device=dev1).get_port(pl1)
-        print(port1)
         port2 = b.get_device(sim_device=dev2).get_port(pl2)
-        print(port2)
 
         conn = Connection(port_a=port1, port_b=port2)
         port1.connect()
