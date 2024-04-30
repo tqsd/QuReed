@@ -7,6 +7,7 @@ import logging
 
 import flet as ft
 import os
+import sys
 
 from quasi.gui.panels.main_panel import MainPanel
 from quasi.gui.panels.side_panel import SidePanel
@@ -40,14 +41,19 @@ def main(page: ft.Page):
               ]
         )
     )
-
     page.add(container)
 
 def start():
-    gui_path = os.path.abspath(__file__)
-    gui_dir = os.path.dirname(gui_path)
-    assets = os.path.join(gui_dir, "assets")
-    ft.app(target=main, assets_dir=assets)
+    if getattr(sys, 'frozen', False):
+        # Running in a bundle
+        base_path = sys._MEIPASS
+    else:
+        # Running in a normal Python environment
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+    assets_path = os.path.join(base_path, 'quasi', 'gui', 'assets')
+    print("Assets directory:", assets_path)
+    ft.app(target=main, assets_dir=assets_path)
 
 if __name__ == "__main__":
     start()

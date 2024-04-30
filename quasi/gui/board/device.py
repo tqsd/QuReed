@@ -3,6 +3,8 @@ This file implements gui functionality for the
 device component
 """
 import flet as ft
+import sys
+import os
 
 from .ports import Ports
 from .chart import Chart
@@ -41,9 +43,22 @@ class Device(BaseDeviceComponent):
             width=width,
             *args,
             **kwargs)
+        # Compute the full path for the image
+        if getattr(sys, 'frozen', False):
+            # If the application is frozen (packaged by PyInstaller)
+            base_path = sys._MEIPASS
+            base_path = os.path.join(base_path, 'quasi', 'gui', 'assets')
+        else:
+            # If running in a normal Python environment
+            base_path = os.path.dirname(os.path.abspath(__file__))
+            # Correct path to reach the assets directory
+            base_path = os.path.join(base_path, '..', 'assets')  # Go up one level and into assets
+
+        full_image_path = os.path.join(base_path, self.device_instance.gui_icon)
+        print("Attempting to load image from:", full_image_path)
 
         self.image = ft.Image(
-            src=self.device_instance.gui_icon,
+            src=full_image_path,
             width=self.content_width - 2 * self._ports_width,
             height=self.content_height - self.header_height
         )
