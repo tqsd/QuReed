@@ -16,21 +16,21 @@ from quasi.signals import *
 from quasi.gui.icons import icon_list
 
 
-class DummyDevice(GenericDevice):
+class Encoder(GenericDevice):
     ports = {
+        
+        "messages": Port(
+            label="messages",
+            direction="input",
+            signal=None,
+            signal_type=GenericSignal,
+            device=None),
         
         "input": Port(
             label="input",
             direction="input",
             signal=None,
             signal_type=GenericQuantumSignal,
-            device=None),
-        
-        "control": Port(
-            label="control",
-            direction="input",
-            signal=None,
-            signal_type=GenericBoolSignal,
             device=None),
         
         
@@ -43,9 +43,9 @@ class DummyDevice(GenericDevice):
         
     }
     
-    gui_name = "Dummy Device"
-    gui_icon = icon_list.PHASE_SHIFT
-    gui_tags = None
+    gui_icon = icon_list.ENCODER
+    gui_name = "Encoder"
+    gui_tags = []
     gui_documentation = None
     
     power_peak = 0

@@ -11,6 +11,8 @@ import json
 from quasi.gui.board.board import Board
 from quasi.gui.simulation.simulation_wrapper import SimulationWrapper
 from quasi.gui.board.ports import BoardConnector
+from quasi.gui.board.device import Device
+from quasi.gui.board.variable import VariableComponent
 
 class Project():
     __instance = None
@@ -53,15 +55,27 @@ class Project():
         }
 
         for d in board.content.controls:
-            dt = f"{type(d.device_instance).__module__}.{type(d.device_instance).__name__}"
-            device = {
-                #"device": type(d.device_instance),
-                "device": dt,
-                "location": (d.left*2, d.top*2),
-                "name": d.device_instance.ref.name,
-                "uuid": d.device_instance.ref.uuid,
-            }
-            json_description["devices"].append(device)
+            if isinstance(d, Device):
+                dt = f"{type(d.device_instance).__module__}.{type(d.device_instance).__name__}"
+                device = {
+                    #"device": type(d.device_instance),
+                    "device": dt,
+                    "location": (d.left*2, d.top*2),
+                    "name": d.device_instance.ref.name,
+                    "uuid": d.device_instance.ref.uuid,
+                }
+                json_description["devices"].append(device)
+            elif isinstance(d, VariableComponent):
+                dt = f"{type(d.device_instance).__module__}.{type(d.device_instance).__name__}"
+                device = {
+                    #"device": type(d.device_instance),
+                    "device": dt,
+                    "location": (d.left*2, d.top*2),
+                    "name": d.device_instance.ref.name,
+                    "uuid": d.device_instance.ref.uuid,
+                    "values": d.device_instance.values
+                }
+                json_description["devices"].append(device)
         
         sim_wrapper = SimulationWrapper()
         for s in sim_wrapper.signals:
@@ -93,7 +107,7 @@ class Project():
         self.meta = data["meta"]
         
         for d in data["devices"]:
-            board.load_device(d["device"], d["location"], d["uuid"])
+            board.load_device(d["device"], d["location"], d["uuid"], d.get("values"))
 
         for s in data["connections"]:
             bc.load_connection(s)

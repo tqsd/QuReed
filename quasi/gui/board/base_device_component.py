@@ -24,6 +24,8 @@ class BaseDeviceComponent(ft.UserControl):
                  resizable=False,
                  height=100,
                  width=100,
+                 *args,
+                 **kwargs
                  ):
         super().__init__()
         self.top = top

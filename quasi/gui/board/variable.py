@@ -11,6 +11,8 @@ class VariableComponent(BaseDeviceComponent):
     def __init__(self, *args, **kwargs):
         # Simulation Connection Components
         self.device_instance = kwargs["device_instance"]
+        if "values" in kwargs:
+            self.device_instance.values = kwargs["values"]
         self.sim_gui_coordinator = DeviceSimGuiCoordinator(self)
         self.device_instance.set_coordinator(
             self.sim_gui_coordinator
@@ -37,16 +39,21 @@ class VariableComponent(BaseDeviceComponent):
             **kwargs)
         self.device_class = self.device_instance.__class__
         if "float" in self.device_class.gui_tags:
-            print("FLOAT")
             self.input_filter = ft.InputFilter(
                 allow=True,
                 regex_string=r"[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?",
                 replacement_string="")
-        elif "integer" in self.device_class.gui_tags:
-            print("INT")
-            self.input_filter = ft.NumbersOnlyInputFilter()
-        print(self.input_filter)
 
+        elif "integer" in self.device_class.gui_tags:
+            self.input_filter = ft.NumbersOnlyInputFilter()
+
+        print(kwargs)
+        value = kwargs.get("values")
+        print(value)
+        if value:
+            print(value)
+            value = kwargs.get("value")
+        print(value)
         self.field = ft.TextField(
             height=25,
             width=width-10,
@@ -58,6 +65,7 @@ class VariableComponent(BaseDeviceComponent):
             input_filter=self.input_filter,
             filled=False,
             disabled=False,
+            value = value
         )
         self.field_container = ft.Container(
             content=self.field,

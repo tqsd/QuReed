@@ -16,36 +16,43 @@ from quasi.signals import *
 from quasi.gui.icons import icon_list
 
 
-class DummyDevice(GenericDevice):
+class OpticalMemoryDecoder(GenericDevice):
     ports = {
         
-        "input": Port(
-            label="input",
+        "pulse": Port(
+            label="pulse",
             direction="input",
             signal=None,
             signal_type=GenericQuantumSignal,
             device=None),
         
-        "control": Port(
-            label="control",
+        "messages": Port(
+            label="messages",
             direction="input",
+            signal=None,
+            signal_type=GenericSignal,
+            device=None),
+        
+        
+        "is_full": Port(
+            label="is_full",
+            direction="output",  # Changed from "input" to "output" for clarity
             signal=None,
             signal_type=GenericBoolSignal,
             device=None),
         
-        
-        "output": Port(
-            label="output",
+        "message": Port(
+            label="message",
             direction="output",  # Changed from "input" to "output" for clarity
             signal=None,
-            signal_type=GenericQuantumSignal,
+            signal_type=GenericSignal,
             device=None),
         
     }
     
-    gui_name = "Dummy Device"
-    gui_icon = icon_list.PHASE_SHIFT
-    gui_tags = None
+    gui_icon = icon_list.OPTICAL_MEMORY_DECODER
+    gui_name = "OpticalMemoryDecoder"
+    gui_tags = []
     gui_documentation = None
     
     power_peak = 0

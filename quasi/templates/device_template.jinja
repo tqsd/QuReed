@@ -37,7 +37,8 @@ class {{ name }}(GenericDevice):
     }
     
     gui_icon = icon_list.{{ gui_icon }}
-    gui_tags = None
+    gui_name = "{{ name }}"
+    gui_tags = []
     gui_documentation = None
     
     power_peak = 0

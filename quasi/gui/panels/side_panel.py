@@ -3,6 +3,7 @@ Side Panel.
 
 Includes the device library
 """
+
 from typing import List, Dict, Any
 from types import ModuleType
 
@@ -19,23 +20,24 @@ import quasi.devices.fiber as quasi_fiber
 import quasi.devices.phase_shifters as quasi_phase_shifters
 import quasi.devices.detectors as quasi_detectors
 
+
 class DraggableDevice(ft.Draggable):
     """
     Wrapped to carry information to the Board on drag
     """
 
-    def __init__(self, d_cls, group: str, content: ft.Control,
-                 content_feedback):
+    def __init__(self, d_cls, group: str, content: ft.Control, content_feedback):
         self.device_class = d_cls["class"]
-        super().__init__(group=group,
-                         content=content,
-                         content_feedback=content_feedback)
+        super().__init__(
+            group=group, content=content, content_feedback=content_feedback
+        )
 
 
 class DeviceItem(ft.UserControl):
     """
     Device Item in the device library.
     """
+
     def __init__(self, device: GenericDevice):
         super().__init__()
         self.device = device
@@ -50,7 +52,7 @@ class DeviceItem(ft.UserControl):
                 height=50,
                 bgcolor="black",
                 opacity=0.2,
-            )
+            ),
         )
 
 
@@ -58,6 +60,7 @@ class DeviceList(ft.UserControl):
     """
     Device List
     """
+
     def __init__(self, width, height):
         super().__init__()
         self.height = height
@@ -65,24 +68,26 @@ class DeviceList(ft.UserControl):
 
     def build(self) -> ft.Container:
         return ft.Container(
-            width=self.width,
-            height=self.height,
-            content=self.build_device_list_view()
+            width=self.width, height=self.height, content=self.build_device_list_view()
         )
 
-    def _get_device_class(self, module: ModuleType)->List[Dict[str, Any]]:
-        list_of_devices = [d for d in dir(module) if "_" not in d]
+    def _get_device_class(self, module: ModuleType) -> List[Dict[str, Any]]:
+        list_of_devices = [d for d in dir(module) if d[0].isupper() and "_" not in d]
+        print("\n\n\n")
+        print(list_of_devices)
         return_list = []
         for d in list_of_devices:
             device_class = getattr(module, d)
-            return_list.append({
-                "name": device_class.gui_name,
-                "icon": device_class.gui_icon,
-                "tags": device_class.gui_tags,
-                "class": device_class
-            })
+            print(dir(device_class))
+            return_list.append(
+                {
+                    "name": device_class.gui_name,
+                    "icon": device_class.gui_icon,
+                    "tags": device_class.gui_tags,
+                    "class": device_class,
+                }
+            )
         return return_list
-
 
     def _get_all_devices(self):
         """
@@ -93,20 +98,13 @@ class DeviceList(ft.UserControl):
         devices_dict = {}
         devices_dict["Variables"] = self._get_device_class(quasi_variables)
         devices_dict["Sources"] = self._get_device_class(quasi_sources)
-        devices_dict["Beam Splitters"] = self._get_device_class(
-            quasi_beam_splitters)
-        devices_dict["Control"] = self._get_device_class(
-            quasi_control)
-        devices_dict["Phase Shift"] = self._get_device_class(
-            quasi_phase_shifters)
-        devices_dict["Fiber"] = self._get_device_class(
-            quasi_fiber)
-        devices_dict["Detectors"] = self._get_device_class(
-            quasi_detectors)
-        devices_dict["Investigation"] = self._get_device_class(
-            quasi_investigation)
-        devices_dict["Extra"] = self._get_device_class(
-            quasi_extra)
+        devices_dict["Beam Splitters"] = self._get_device_class(quasi_beam_splitters)
+        devices_dict["Control"] = self._get_device_class(quasi_control)
+        devices_dict["Phase Shift"] = self._get_device_class(quasi_phase_shifters)
+        devices_dict["Fiber"] = self._get_device_class(quasi_fiber)
+        devices_dict["Detectors"] = self._get_device_class(quasi_detectors)
+        devices_dict["Investigation"] = self._get_device_class(quasi_investigation)
+        devices_dict["Extra"] = self._get_device_class(quasi_extra)
         return devices_dict
 
     def build_device_list_view(self) -> ft.ListView():
@@ -130,13 +128,14 @@ class SidePanel(ft.UserControl):
     """
     Container for the side pannel
     """
+
     def __init__(self, offset_top: float) -> None:
         super().__init__()
         self.offset_top = offset_top
         self.default_width = 300
 
     def build(self) -> ft.Container:
-        dlist = DeviceList(self.default_width-5, 800)
+        dlist = DeviceList(self.default_width - 5, 800)
         return ft.Container(
             top=self.offset_top,
             bottom=0,
@@ -144,12 +143,7 @@ class SidePanel(ft.UserControl):
             width=self.default_width,
             bgcolor="#41322E",
             content=ft.Column(
-                [
-                    ft.Text("Component Library",
-                         color="white",
-                         height=25),
-                    dlist
-                ],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+                [ft.Text("Component Library", color="white", height=25), dlist],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
         )
-

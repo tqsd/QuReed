@@ -22,6 +22,7 @@ class Port:
     signal: Optional["GenericSignal"]
     signal_type: Type["GenericSignal"]
     device: "GenericDevice"
+    allow_multiple: bool = False
 
     def __post_init__(self):
         if None in [self.label, self.direction, self.signal_type]:

@@ -154,7 +154,7 @@ class Board(ft.UserControl):
         self.sim_wrapper.add_device(dev_instance)
         e.control.update()
 
-    def load_device(self, dev_class, position, uid):
+    def load_device(self, dev_class, position, uid, values):
         dev_class = get_class_from_string(dev_class)
         dev_instance = dev_class(uid=uid)
         if "variable" in dev_instance.gui_tags:
@@ -163,7 +163,9 @@ class Board(ft.UserControl):
                 board=self,
                 top=(position[1])/2,
                 left=(position[0])/2,
-                device_instance=dev_instance)
+                device_instance=dev_instance,
+                values = values
+            )
         else:
             d = Device(
                 page=self.page,
