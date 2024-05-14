@@ -159,6 +159,7 @@ class Board(ft.UserControl):
         dev_class = get_class_from_string(dev_class)
         dev_instance = dev_class(uid=uid)
         if "variable" in dev_instance.gui_tags:
+            print(values)
             d = VariableComponent(
                 page=self.page,
                 board=self,

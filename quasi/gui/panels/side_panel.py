@@ -141,7 +141,7 @@ class SidePanel(ft.UserControl):
             bottom=0,
             right=0,
             width=self.default_width,
-            bgcolor="#41322E",
+            bgcolor="#2b223b",
             content=ft.Column(
                 [ft.Text("Component Library", color="white", height=25), dlist],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,

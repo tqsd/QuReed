@@ -46,14 +46,9 @@ class VariableComponent(BaseDeviceComponent):
 
         elif "integer" in self.device_class.gui_tags:
             self.input_filter = ft.NumbersOnlyInputFilter()
-
-        print(kwargs)
         value = kwargs.get("values")
-        print(value)
         if value:
-            print(value)
-            value = kwargs.get("value")
-        print(value)
+            value = value.get("value")
         self.field = ft.TextField(
             height=25,
             width=width-10,
@@ -108,5 +103,4 @@ class VariableComponent(BaseDeviceComponent):
             direction="output")
 
     def change_var(self, e) -> None:
-        print(e.control.value)
         self.device_instance.set_value(e.control.value)

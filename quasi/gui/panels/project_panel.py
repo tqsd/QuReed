@@ -11,10 +11,12 @@ class ProjectPanel(ft.Container):
         self.left = 0
         self.bottom = 0
         self.width = 200
-        self.bgcolor = ft.colors.ORANGE_300
+        #self.bgcolor = ft.colors.ORANGE_300
+        self.bgcolor = "#0b031a"
+        self.color = "white"
         self.file_list = ft.Column(
             expand=1,
-            spacing=5,
+            spacing=0,
             auto_scroll=True
         )
         self.file_list.contents = ft.Text("test")
@@ -59,7 +61,6 @@ class ProjectPanel(ft.Container):
         self.update_file_tree()
 
     def update_file_tree(self):
-        print("updating file tree")
         pm = ProjectManager()
         self.files = pm.get_file_tree()
 
@@ -67,7 +68,6 @@ class ProjectPanel(ft.Container):
             elements = []
             for f in files:
                 if isinstance(f, str):
-                    print(f"file: {f}")
                     elements.append(File(text=f))
                 elif isinstance(f, dict):
                     for dir_name, contents in f.items():
@@ -84,29 +84,51 @@ class Directory(ft.Column):
     def __init__(self, name, elements):
         super().__init__()
         self.is_visible = False
+        self.spacing = 0
         self.elements = ft.Container(
             padding=0,
-            margin=ft.margin.only(left=20),
+            margin=ft.margin.only(left=10),
             content=ft.Column(
                 visible=False,
-                controls=elements
-        ))
+                controls=elements,
+                spacing=0
+            ))
+        self.button = ft.TextButton(
+            content=ft.Row([
+                ft.Icon(name=ft.icons.KEYBOARD_ARROW_RIGHT),
+                ft.Text(
+                    name,
+                    size=15,
+                    color="#9d9ca0",
+                    weight=ft.FontWeight.BOLD)],
+                           spacing=2,
+                           ),
+            on_click=self.toggle_visibility
+        )
         self.controls = [
-            ft.TextButton(
-                name,
-                on_click=self.toggle_visibility),
+            self.button,
             self.elements]
 
 
     def toggle_visibility(self, e):
         self.elements.content.visible = not self.elements.content.visible
+        if self.elements.content.visible:
+            self.button.content.controls[0].name=ft.icons.KEYBOARD_ARROW_DOWN
+        else:
+            self.button.content.controls[0].name=ft.icons.KEYBOARD_ARROW_RIGHT
+
         self.update()
         e.control.page.update() 
 
 class File(ft.TextButton):
     def  __init__(self, text):
         super().__init__()
-        self.text = text 
+        self.text = text
+        self.content=ft.Text(
+            text,
+            size=15,
+            weight=ft.FontWeight.BOLD,
+            color="#9d9ca0")
         self.on_click = self.handle_on_click
 
     def handle_on_click(self, e):

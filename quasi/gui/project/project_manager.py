@@ -46,12 +46,10 @@ class ProjectManager:
         # Use packages from arguments or fallback to config.toml packages
         packages = packages if packages else self.packages
         if not packages:
-            print("No packages to install.")
             return
 
         # Ensure virtual environment path is set
         if not hasattr(self, "venv"):
-            print("Virtual environment path not set.")
             return
 
         # Construct the path to the Python executable in the virtual environment
@@ -85,7 +83,25 @@ class ProjectManager:
             return tree
         if self.path is None:
             return []
-        return list_files(self.path)
+        lst = list_files(self.path)
+        def sort_files_folders(items):
+            def sort_key(item):
+                if isinstance(item, str):
+                    return (0, item)  # File
+                elif isinstance(item, dict):
+                    return (1, next(iter(item)))  # Folder
+                return (2, None)  # Fallback case, should not occur
+
+            # Sort items at the current level
+            items.sort(key=sort_key)
+
+            # Recursively sort directories
+            for item in items:
+                if isinstance(item, dict):
+                    for key in item:
+                        sort_files_folders(item[key])
+        sort_files_folders(lst)
+        return lst
 
     def open_project(self, project_path):
         from quasi.gui.panels.project_panel import ProjectPanel
@@ -100,14 +116,12 @@ class ProjectManager:
     def open_scheme(self, scheme):
         board = Board.get_board()
         # save existing scheme to memory
-        print(self.current_scheme)
         if self.current_scheme is not None:
             self.modified_schemes[self.current_scheme] = self._capture_board_dict()
 
         data = self._get_scheme_dict(scheme)
         board.clear_board()
         bc = BoardConnector()
-        print(data)
         if data.get("devices") is not None:
             for d in data["devices"]:
                 board.load_device(d["device"], d["location"], d["uuid"], d.get("values"))
@@ -117,13 +131,18 @@ class ProjectManager:
 
         self.current_scheme = scheme
         
-    def save_scheme(self):
-        pass
 
     def save(self):
         """
-        Saves all
+        Saves all schemes
         """
+        self.modified_schemes[self.current_scheme] = self._capture_board_dict()
+
+        for scheme, data in self.modified_schemes.items():
+            with open(f"{self.path}/{scheme}", "w") as json_file:
+                json.dump(
+                    data, json_file, indent=4
+                )
 
     def _capture_board_dict(self):
         board = Board.get_board()
