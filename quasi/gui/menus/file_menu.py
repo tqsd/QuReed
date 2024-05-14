@@ -5,6 +5,8 @@ Implements the file menu
 import flet as ft
 import os
 import venv
+from pathlib import Path
+import toml
 
 from quasi.gui.functionalities.project_management import Project
 from quasi.gui.board.board import Board
@@ -24,9 +26,13 @@ class FileMenu(ft.UserControl):
         self.save_file_dialog = ft.FilePicker(on_result=self.handle_save_as)
         self.open_file_dialog = ft.FilePicker(on_result=self.handle_open)
         self.new_project_dialog = ft.FilePicker(on_result=self.handle_new_project)
-        self.page.overlay.extend(
-            [self.save_file_dialog, self.open_file_dialog, self.new_project_dialog]
-        )
+        self.open_project_dialog = ft.FilePicker(on_result=self.handle_open_project)
+        self.page.overlay.extend([
+            self.save_file_dialog,
+            self.open_file_dialog,
+            self.new_project_dialog,
+            self.open_project_dialog
+        ])
 
         self.menu = ft.SubmenuButton(
             content=ft.Text("File"),
@@ -35,6 +41,11 @@ class FileMenu(ft.UserControl):
                     content=ft.Text("New Project"),
                     leading=ft.Icon(ft.icons.FILE_PRESENT_ROUNDED),
                     on_click=lambda e: self.new_project_dialog.get_directory_path(),
+                ),
+                ft.MenuItemButton(
+                    content=ft.Text("Open Project"),
+                    leading=ft.Icon(ft.icons.FILE_PRESENT_ROUNDED),
+                    on_click=lambda e: self.open_project_dialog.get_directory_path(),
                 ),
                 ft.MenuItemButton(
                     content=ft.Text("Open"),
@@ -94,6 +105,7 @@ class FileMenu(ft.UserControl):
             file.write("{}")  # Empty JSON object as placeholder
 
         with open(f"{project_path}/config.toml", "w") as file:
+            file.write('software = "QuaSi"\n')# TOML configuration for packages
             file.write("packages = []")  # TOML configuration for packages
 
         subprocess.run(["python3", "-m", "venv", f"{project_path}/.venv"])
@@ -102,6 +114,17 @@ class FileMenu(ft.UserControl):
         pm.configure(venv=f"{project_path}/.venv")
         pm.install("git+ssh://git@github.com/tqsd/QuaSi.git@master")
         self.close_dialog()
+
+    def handle_open_project(self, e):
+        project_path = e.path
+        config_path = Path(f"{project_path}/config.toml")
+        if config_path.exists():
+            config_data = toml.load(f"{project_path}/config.toml")
+            if not config_data.get("software") == "QuaSi":
+                return 
+        pm = ProjectManager()
+        print("Opening existing project")
+        pm.open_project(project_path)
 
     def handle_open(self, e):
         """ """
@@ -113,7 +136,8 @@ class FileMenu(ft.UserControl):
         """
         Saves the project
         """
-        self.project.save()
+        pm = ProjectManager()
+        pm.save()
 
     def handle_save_as(self, e):
         """

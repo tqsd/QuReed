@@ -1,6 +1,8 @@
 """quasi installation configuration"""
+
 from setuptools import find_packages, setup
 import os
+
 current_dir = os.path.abspath(os.path.dirname(__file__))
 setup(
     name="quasi",
@@ -15,23 +17,24 @@ setup(
         "numba",
         "scipy",
         "photon_weave@git+ssh://git@github.com/tqsd/photon_weave.git@master",
-        #"photon_weave @ file://{}/photon-weave".format(current_dir),
+        # "photon_weave @ file://{}/photon-weave".format(current_dir),
         "flet",
         "matplotlib",
         "qutip",
         "seaborn",
         "plotly",
         "jinja2",
-        "mpmath"
+        "mpmath",
+        "toml",
     ],
     package_data={
         "quasi": ["templates/*.jinja"],
     },
     include_package_data=True,
     entry_points={
-        'console_scripts':[
-            'quasi-template=quasi.cli:main',
-            'quasi-gui=quasi.gui.main:start'
+        "console_scripts": [
+            "quasi-template=quasi.cli:main",
+            "quasi-gui=quasi.gui.main:start",
         ],
     },
 )

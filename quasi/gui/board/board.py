@@ -155,6 +155,7 @@ class Board(ft.UserControl):
         e.control.update()
 
     def load_device(self, dev_class, position, uid, values):
+        print("loading_device")
         dev_class = get_class_from_string(dev_class)
         dev_instance = dev_class(uid=uid)
         if "variable" in dev_instance.gui_tags:
