@@ -36,7 +36,7 @@ def main(page: ft.Page):
         content=ft.Stack(
             [
                 main_panel,
-                side_panel,
+                #side_panel,
                 menu_bar,
             ]
         ),

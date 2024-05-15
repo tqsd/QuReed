@@ -157,7 +157,6 @@ class PortComponent(ft.UserControl):
         _ = e
         bc = BoardConnector(self.page)
         bc.handle_disconnect(self)
-        print(self.port_instance)
         self.port_instance.disconnect()
 
     def assign_connection(self, connection):
@@ -344,7 +343,6 @@ class BoardConnector():
             elif issubclass(sig_2_cls, sig_1_cls):
                 parent_sig_cls = sig_1_cls
             else:
-                print("PORTS INCOMPATIBLE; CONNECTION NOT POSSIBLE")
                 self.first_click = None
                 return
             parent_sig_obj = parent_sig_cls()
@@ -373,6 +371,7 @@ class BoardConnector():
         dev2 = sim_wrp.get_device(connection["conn"][1]["device_uuid"])
         pl2 = connection["conn"][1]["port"]
 
+   
         sim_wrp.create_connection(
             sig=signal_class(),
             dev1=dev1,

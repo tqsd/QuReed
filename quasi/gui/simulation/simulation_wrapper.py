@@ -8,6 +8,8 @@ from quasi.experiment import Experiment
 from quasi.extra import Loggers, get_custom_logger
 from quasi.gui.report import GuiLogHandler 
 
+import subprocess
+
 class SimulationWrapper:
     """
     SimulationWrapper is a Singleton which
@@ -36,19 +38,29 @@ class SimulationWrapper:
         """
         Execution Trigger
         """
-        # Configure the loggers
-        loggerA = get_custom_logger(Loggers.Devices)
-        loggerB = get_custom_logger(Loggers.Simulation)
-        log_handler = GuiLogHandler()
-        loggerA.addHandler(log_handler)
-        loggerB.addHandler(log_handler)
-        
-        self.simulation.list_devices()
-        self.simulation.set_backend(FockBackendFirst())
-        self.simulation.run_des(self.simulation_time)
-        # We print the experiment outcome
-        exp = Experiment.get_instance()
-        state = exp.state
+        from quasi.gui.project import ProjectManager
+        pm = ProjectManager()
+
+        print(dir(pm))
+        print(pm.venv)
+        if pm.venv is None:
+            print("Invalid project venv not configured")
+            return
+
+        python_executable = f"{pm.venv}/bin/activate"
+
+        command = ["pip", "freeze"]
+
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, errors = process.communicate()
+
+        if process.returncode != 0:
+            print("Error running simulation:")
+            print(errors.decode())
+        else:
+            print("Simulation output:")
+            print(output.decode())
+
 
     def add_device(self, device):
         self.devices.append(device)

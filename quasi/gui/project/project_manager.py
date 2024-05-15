@@ -109,6 +109,7 @@ class ProjectManager:
         self.path = project_path
         path = Path(self.path)
         self.name = path.name
+        self.venv = path / ".venv"
 
         pm = ProjectPanel.get_instance()
         pm.update_project(self.path)

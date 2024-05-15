@@ -155,11 +155,9 @@ class Board(ft.UserControl):
         e.control.update()
 
     def load_device(self, dev_class, position, uid, values):
-        print("loading_device")
         dev_class = get_class_from_string(dev_class)
         dev_instance = dev_class(uid=uid)
         if "variable" in dev_instance.gui_tags:
-            print(values)
             d = VariableComponent(
                 page=self.page,
                 board=self,
@@ -209,7 +207,7 @@ class Board(ft.UserControl):
         self.clear_menus()
 
     def on_scroll(self, e):
-        print("scrolling the board (board.py)")
+        pass
 
     def clear_menus(self):
         for m in self.menus:

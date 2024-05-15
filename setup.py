@@ -35,6 +35,7 @@ setup(
         "console_scripts": [
             "quasi-template=quasi.cli:main",
             "quasi-gui=quasi.gui.main:start",
+            "quasi-execute=quasi.simulation.simulate_from_json:main"
         ],
     },
 )

@@ -6,6 +6,7 @@ from quasi.gui.board.info_bar import InfoBar
 from quasi.gui.panels.documentation_panel import DocumentationTab
 from quasi.gui.report import Report
 from quasi.gui.panels.project_panel import ProjectPanel
+from quasi.gui.panels.side_panel import SidePanel
 
 
 class MainPanel(ft.UserControl):
@@ -19,6 +20,7 @@ class MainPanel(ft.UserControl):
         self.info_bar = InfoBar()
         self.info_bar.set_page(page)
         self.project_panel = ProjectPanel(page)
+        self.side_panel = SidePanel(offset_top=25)
         self.tabs = ft.Tabs(
             on_change=self.on_change,
             tab_alignment=ft.TabAlignment.START,
@@ -43,7 +45,8 @@ class MainPanel(ft.UserControl):
                                         Board(self.page),
                                         self.project_panel,
                                         self.simulation_bar,
-                                        self.info_bar
+                                        self.info_bar,
+                                        self.side_panel
                                     ]
                                 ))]
                     )
