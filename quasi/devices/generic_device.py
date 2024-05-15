@@ -18,9 +18,10 @@ def log_action(method):
         l = get_custom_logger(Loggers.Devices)
         time_as_float = float(time)
         # Correctly format the string before passing to l.info
-        formatted_message = "{} is computing at {:.2e}s".format(self.name, time_as_float)
+        formatted_message = "{}{} is computing at {:.2e}s".format(self.name, type(self),time_as_float)
 
         # Now, pass the formatted_message to the log
+        #print(formatted_message)
         l.info(formatted_message)
         return method(self, time, *args, **kwargs)
     return wrapper
@@ -87,6 +88,7 @@ def schedule_next_event(method):
                     next_device.name,
                     next_device.__class__.__name__,
                     time_as_float)
+                #print(formatted_message)
                 l.info(formatted_message)
                 signals = {
                     port:signal

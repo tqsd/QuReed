@@ -3,9 +3,14 @@ This module handles execution from json schemes
 """
 import argparse
 import json
+import logging
+from logging.handlers import SocketHandler
+
 from quasi.gui.simulation import SimulationWrapper
 from quasi.gui.board.board import get_class_from_string
 from quasi.gui.board.ports import BoardConnector
+from quasi.extra import Loggers, get_custom_logger
+
 
 
 class JsonExecution():
@@ -13,10 +18,13 @@ class JsonExecution():
         self.main_scheme = str(kwargs.get("scheme"))
         self.simulation_type = kwargs.get("sim_type")
         self.duration = kwargs.get("duration")
+        self.port = kwargs.get("port")
+        print(self.port)
         self.sw = SimulationWrapper()
         self.schemes = {}
 
     def assemble_simulation(self):
+        
         self._get_scheme_dict(self.main_scheme)
         if self.schemes[self.main_scheme].get("devices") is not None:
             for d in self.schemes[self.main_scheme]["devices"]:
@@ -39,6 +47,15 @@ class JsonExecution():
                     port_label_2=pl2
                 )
 
+    def configure_loggers(self):
+        loggerA = get_custom_logger(Loggers.Devices)
+        loggerB = get_custom_logger(Loggers.Simulation)
+        if self.port is not None:
+            socket_handler = SocketHandler('localhost', self.port)
+            loggerA.addHandler(socket_handler)
+            loggerB.addHandler(socket_handler)
+        
+
     def run(self):
         match self.simulation_type:
             case "des":
@@ -58,6 +75,8 @@ def main():
     parser.add_argument("--scheme", type=str, required=True, help="Path to the main json scheme to execute")
     parser.add_argument("--sim_type", type=str, default="des", help="Type of simulation")
     parser.add_argument('--duration', type=int, help='Duration of the simulation, required only for DES type.')
+
+    parser.add_argument('--port', type=int, help='Log connection port', required=False)
     
     args  = parser.parse_args()
 
@@ -68,7 +87,10 @@ def main():
 
     JE = JsonExecution(**vars(args))
     JE.assemble_simulation()
+    print("Running Simulation")
+    JE.configure_loggers()
     JE.run()
+    print("Completed")
 
 
 

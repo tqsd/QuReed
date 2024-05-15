@@ -44,7 +44,7 @@ class FloatVariable(GenericDevice):
 
     def __init__(self, name=None, uid=None):
         super().__init__(name=name, uid=uid)
-        self.simulation.schedule_event(0, self)
+        self.simulation.schedule_event(-1, self)
 
     @ensure_output_compute
     @coordinate_gui
@@ -62,5 +62,4 @@ class FloatVariable(GenericDevice):
         signal = GenericFloatSignal()
         signal.set_float(self.values["value"])
         result = [("float", signal, time)]
-        print(self.values["value"])
         return result

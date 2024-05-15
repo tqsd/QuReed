@@ -36,7 +36,7 @@ class IntVariable(GenericDevice):
     power_peak = 0
     reference = None
 
-    def __init__(self, name=None, time=0, uid=None):
+    def __init__(self, name=None, time=-1, uid=None):
         super().__init__(name=name, uid=uid)
         self.time = time
         self.simulation = Simulation.get_instance()

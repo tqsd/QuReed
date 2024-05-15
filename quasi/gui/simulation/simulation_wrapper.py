@@ -2,11 +2,16 @@
 This is the connection between the GUI and
 the simulation engine
 """
+import logging
 from quasi.simulation import Simulation, DeviceInformation
 from quasi.backend.fock_first_backend import FockBackendFirst
 from quasi.experiment import Experiment
 from quasi.extra import Loggers, get_custom_logger
 from quasi.gui.report import GuiLogHandler 
+from .remote_log_handler import (
+    find_free_port,
+    start_tcp_server
+)
 
 import subprocess
 
@@ -41,25 +46,25 @@ class SimulationWrapper:
         from quasi.gui.project import ProjectManager
         pm = ProjectManager()
 
-        print(dir(pm))
-        print(pm.venv)
         if pm.venv is None:
-            print("Invalid project venv not configured")
             return
 
-        python_executable = f"{pm.venv}/bin/activate"
-
-        command = ["pip", "freeze"]
-
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, errors = process.communicate()
-
-        if process.returncode != 0:
-            print("Error running simulation:")
-            print(errors.decode())
-        else:
-            print("Simulation output:")
-            print(output.decode())
+        python_executable = f"{pm.venv}/bin/quasi-execute"
+        PORT = find_free_port()
+        server, server_thread = start_tcp_server(PORT)
+        command = [python_executable, "--scheme" , f"{pm.path}/experiment.json",
+                   "--sim_type", "des", "--duration", "10", "--port", str(PORT)]
+        try:
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = process.communicate()  # This waits for the subprocess to complete
+            print("STDOUT:", stdout.decode())
+            print("STDERR:", stderr.decode())
+        except Exception as e:
+            print("An error occured:", str(e))
+        finally:
+            server.shutdown_server()
+            server_thread.join()
+            logging.info("TCP server has been shut down")
 
 
     def add_device(self, device):

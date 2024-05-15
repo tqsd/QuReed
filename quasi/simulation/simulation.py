@@ -162,11 +162,14 @@ class Simulation:
         return cls.dimensions
 
     def run_des(self, simulation_time):
+        print("Running DES")
         logger = get_custom_logger(Loggers.Simulation)
         logger.info("Starting Simulation")
         self.end_time += simulation_time
         while self.event_queue and self.current_time <= self.end_time:
             event = heapq.heappop(self.event_queue)
+            print(event.device)
+            print(event.kwargs)
             time_as_float = float(event.event_time)
             logger.info(
                 f"Processing Event for {event.device.name} of type {event.device.__class__.__name__} at {time_as_float:.2e}s"

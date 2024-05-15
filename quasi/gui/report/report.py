@@ -26,14 +26,12 @@ class GuiLogHandler(logging.Handler):
             self.log_buffer.append(log_entry)
 
     def flush_logs(self):
-        print("Log Flush")
         if self.ready and self.log_buffer:
             self.output_control.value = "\n".join(self.log_buffer)
             self.output_control.update()
             self.log_buffer.clear()
 
     def set_ready(self, ready):
-        print(f"Set Ready {ready}")
         self.ready = ready
         if ready:
             self.flush_logs()
@@ -70,6 +68,4 @@ class Report(ft.UserControl):
         )
 
     def on_visible_changed(self, visible):
-        print("Visible")
-        print(self.logs_control.value)
         self.log_handler.set_ready(visible)
