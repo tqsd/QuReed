@@ -5,9 +5,6 @@ on:
     tags:
       - 'v*'
 
-
-
-
 jobs:
   build:
     runs-on: windows-latest
@@ -18,21 +15,23 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}  # Using GH_TOKEN to checkout private submodules if any
 
-
       - name: Setup SSH Key
         uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: ${{ secrets.SSH_DEPLOY_KEY }}  # Use the name of your secret here
-
-      - name: Ensure .ssh Directory Exists
-        run: |
-          mkdir $env:USERPROFILE\.ssh -Force
+          ssh-private-key: ${{ secrets.PHOTON_WEAVE_SSH_KEY }}  # Use the name of your secret here
 
       - name: Update known hosts
         run: |
-          ssh-keygen -R github.com
+          mkdir $env:USERPROFILE\.ssh
+          ssh-keygen -R github.com || true
           ssh-keyscan github.com >> $env:USERPROFILE\.ssh\known_hosts
-        shell: powershell
+
+      - name: Test Clone Repository
+        run: |
+          ssh -T git@github.com || true # Ignore error
+          git clone git@github.com:tqsd/photon_weave.git
+        env:
+          GIT_SSH_COMMAND: "ssh -v"
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -45,16 +44,6 @@ jobs:
           pip install .
           pip install pyinstaller
           pip install flet  # Make sure to install Flet, not PyInstaller if you are using flet to pack
-          pip install mpmath
-          pip install numpy
-          pip install numba
-          pip install scipy
-          pip install qutip
-          pip install matplotlib
-          pip install plotly
-          pip install jinja2
-          pip install toml
-
 
       - name: Build with PyInstaller
         run: |
