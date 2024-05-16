@@ -4,6 +4,7 @@ import subprocess
 import os
 import json
 import pathlib
+import platform
 
 from quasi.gui.board.board import Board
 from quasi.gui.board.ports import BoardConnector
@@ -23,6 +24,7 @@ class ProjectManager:
             cls._instance.venv = None
             cls._instance.current_scheme = None
             cls._instance.modified_schemes = {}
+            cls._instance.packages = []
         return cls._instance
 
     def configure(self, **kwargs):
@@ -45,19 +47,28 @@ class ProjectManager:
     def install(self, *packages):
         # Use packages from arguments or fallback to config.toml packages
         packages = packages if packages else self.packages
+
         if not packages:
-            return
+            config_path = Path(self.path) / "config.toml"
+            if config_path.exists():
+                config = toml.load(config_path)
+                packages = config.get("packages", [])
 
         # Ensure virtual environment path is set
         if not hasattr(self, "venv"):
             return
 
-        # Construct the path to the Python executable in the virtual environment
-        python_exec = Path(self.venv) / "bin" / "python"
+        if platform.system() == "Windows":
+            python_exec = Path(self.venv) / "Scripts" / "python.exe"
+        else:
+            python_exec = Path(self.venv) / "bin" / "python"
 
-        # Execute pip install for the packages
         command = [str(python_exec), "-m", "pip", "install"] + list(packages)
-        subprocess.run(command, check=True)
+        try:
+            subprocess.run(command, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error: Failed to install packages. {e}")
+            return
 
         # Update config.toml file
         config_path = Path(self.path) / "config.toml"
@@ -111,6 +122,10 @@ class ProjectManager:
         self.name = path.name
         self.venv = path / ".venv"
 
+        if not self.venv.exists():
+            self.create_venv()
+            self.install()
+
         pm = ProjectPanel.get_instance()
         pm.update_project(self.path)
         
@@ -131,7 +146,6 @@ class ProjectManager:
                 bc.load_connection(s)
 
         self.current_scheme = scheme
-        
 
     def save(self):
         """
@@ -197,3 +211,9 @@ class ProjectManager:
         with open(f"{self.path}/{scheme}") as f:
             data = json.load(f)
         return data
+
+    def create_venv(self, path=None):
+        if path is None:
+            path = self.path
+        python_command = "python3" if platform.system() != "Windows" else "python"
+        subprocess.run([python_command, "-m", "venv",  os.path.join(path, ".venv")], check=True)
