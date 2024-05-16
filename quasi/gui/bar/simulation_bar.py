@@ -73,5 +73,4 @@ class SimulationBar(ft.UserControl):
 
 
     def on_dimensions_change(self, e):
-        print("changing dimensions")
         Simulation.set_dimensions(int(e.control.value))

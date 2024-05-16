@@ -45,6 +45,7 @@ class SimulationWrapper:
         """
         from quasi.gui.project import ProjectManager
         pm = ProjectManager()
+        pm.save()
 
         if pm.venv is None:
             return

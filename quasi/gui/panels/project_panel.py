@@ -1,6 +1,9 @@
+from pathlib import Path
+
 import flet as ft
 
 from quasi.gui.project import ProjectManager
+from quasi.gui.panels.side_panel import DraggableDevice
 
 class ProjectPanel(ft.Container):
     _instance = None
@@ -19,7 +22,6 @@ class ProjectPanel(ft.Container):
             spacing=0,
             auto_scroll=True
         )
-        self.file_list.contents = ft.Text("test")
         self.content = ft.Stack([
             ft.Container(
                 top=0,
@@ -68,11 +70,11 @@ class ProjectPanel(ft.Container):
             elements = []
             for f in files:
                 if isinstance(f, str):
-                    elements.append(File(text=f))
+                    elements.append(File(path=f))
                 elif isinstance(f, dict):
-                    for dir_name, contents in f.items():
+                    for dir_path, contents in f.items():
                         dir_elements = recursive_tree_update(contents)
-                        elements.append(Directory(name=dir_name, elements=dir_elements))
+                        elements.append(Directory(path=dir_path, elements=dir_elements))
             return elements
 
         self.file_list.controls = recursive_tree_update(self.files)
@@ -81,7 +83,9 @@ class ProjectPanel(ft.Container):
 
 
 class Directory(ft.Column):
-    def __init__(self, name, elements):
+    def __init__(self, path, elements):
+        self.path = path
+        self.name = Path(path).name
         super().__init__()
         self.is_visible = False
         self.spacing = 0
@@ -97,7 +101,7 @@ class Directory(ft.Column):
             content=ft.Row([
                 ft.Icon(name=ft.icons.KEYBOARD_ARROW_RIGHT),
                 ft.Text(
-                    name,
+                    self.name,
                     size=15,
                     color="#9d9ca0",
                     weight=ft.FontWeight.BOLD)],
@@ -121,20 +125,39 @@ class Directory(ft.Column):
         e.control.page.update() 
 
 class File(ft.TextButton):
-    def  __init__(self, text):
+    def  __init__(self, path):
+        self.path = path
+        self.name = Path(path).name
         super().__init__()
-        self.text = text
-        self.content=ft.Text(
-            text,
-            size=15,
-            weight=ft.FontWeight.BOLD,
-            color="#9d9ca0")
+
+
+        if self.name[-3:] == ".py":
+            pm = ProjectManager()
+            self.cls = pm.load_class_from_file(self.path)
+            self.content=DraggableDevice(
+                d_cls={"class":self.cls},
+                group="device",
+                content_feedback=ft.Container(
+                    width=70,
+                    height=50,
+                    bgcolor="black",
+                    opacity=0.2,
+                ),
+                content=ft.Text(
+                    self.name,
+                    size=15,
+                    weight=ft.FontWeight.BOLD,
+                    color="#9d9ca0")
+                )
+        else:
+            self.content = ft.Text(
+                    self.name,
+                    size=15,
+                    weight=ft.FontWeight.BOLD,
+                    color="#9d9ca0")
         self.on_click = self.handle_on_click
 
     def handle_on_click(self, e):
-        if self.text[-5:] == ".json":
+        if self.name[-5:] == ".json":
             pm = ProjectManager()
-            pm.open_scheme(self.text)
-
-       
-    
+            pm.open_scheme(self.name)

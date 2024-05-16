@@ -5,6 +5,8 @@ import argparse
 import json
 import logging
 from logging.handlers import SocketHandler
+import sys
+from pathlib import Path
 
 from quasi.gui.simulation import SimulationWrapper
 from quasi.gui.board.board import get_class_from_string
@@ -19,12 +21,14 @@ class JsonExecution():
         self.simulation_type = kwargs.get("sim_type")
         self.duration = kwargs.get("duration")
         self.port = kwargs.get("port")
-        print(self.port)
         self.sw = SimulationWrapper()
         self.schemes = {}
 
+        base_path = Path(self.main_scheme).parent
+        if str(base_path) not in sys.path:
+            sys.path.append(str(base_path))
+
     def assemble_simulation(self):
-        
         self._get_scheme_dict(self.main_scheme)
         if self.schemes[self.main_scheme].get("devices") is not None:
             for d in self.schemes[self.main_scheme]["devices"]:
