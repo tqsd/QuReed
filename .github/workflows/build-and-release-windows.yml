@@ -1,9 +1,6 @@
 name: Build and Release for Windows
 
-on:
-  push:
-    tags:
-      - 'v*'
+on: [push]
 
 jobs:
   build:
@@ -15,17 +12,21 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}  # Using GH_TOKEN to checkout private submodules if any
 
-      - name: Update known hosts
-        run: |
-          mkdir $env:USERPROFILE\.ssh
-          ssh-keygen -R github.com
-          ssh-keyscan github.com >> $env:USERPROFILE\.ssh\known_hosts
 
       - name: Setup SSH Key
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.SSH_DEPLOY_KEY }}  # Use the name of your secret here
 
+      - name: Ensure .ssh Directory Exists
+        run: |
+          mkdir $env:USERPROFILE\.ssh -Force
+
+      - name: Update known hosts
+        run: |
+          ssh-keygen -R github.com
+          ssh-keyscan github.com >> $env:USERPROFILE\.ssh\known_hosts
+        shell: powershell
       - name: Test Clone Repository
         run: |
           ssh -T git@github.com || true # Ignore error
