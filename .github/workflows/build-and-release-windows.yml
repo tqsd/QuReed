@@ -15,6 +15,18 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}  # Using GH_TOKEN to checkout private submodules if any
 
+      - name: Setup SSH Key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_DEPLOY_KEY }}  # Use the name of your secret here
+
+      - name: Test Clone Repository
+        run: |
+          ssh -T git@github.com || true # Ignore error
+          git clone git@github.com:tqsd/photon_weave.git
+        env:
+          GIT_SSH_COMMAND: "ssh -v"
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -29,7 +41,7 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onefile --windowed --icon=quasi/gui/assets/icon/quasi_icon.ico quasi/gui/main.py --add-data "quasi/gui/assets;quasi/gui/assets"
+          pyinstaller quasi.spec
           dir dist
 
       - name: Archive production artifacts
