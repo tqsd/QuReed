@@ -17,8 +17,9 @@ jobs:
 
       - name: Update known hosts
         run: |
+          mkdir $env:USERPROFILE\.ssh
           ssh-keygen -R github.com
-          ssh-keyscan github.com >> C:\Users\runneradmin\.ssh\known_hosts
+          ssh-keyscan github.com >> $env:USERPROFILE\.ssh\known_hosts
 
       - name: Setup SSH Key
         uses: webfactory/ssh-agent@v0.5.3
