@@ -73,12 +73,9 @@ class DeviceList(ft.UserControl):
 
     def _get_device_class(self, module: ModuleType) -> List[Dict[str, Any]]:
         list_of_devices = [d for d in dir(module) if d[0].isupper() and "_" not in d]
-        print("\n\n\n")
-        print(list_of_devices)
         return_list = []
         for d in list_of_devices:
             device_class = getattr(module, d)
-            print(dir(device_class))
             return_list.append(
                 {
                     "name": device_class.gui_name,

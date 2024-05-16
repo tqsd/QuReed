@@ -92,13 +92,21 @@ class FileMenu(ft.UserControl):
     def confirm_new_project(self, e, project_path):
         project_path = f"{project_path}/{self.new_project_name.value}"
         directories = [
+            f"{project_path}/custom",
             f"{project_path}/custom/devices",
             f"{project_path}/custom/signals",
             f"{project_path}/logs",
             f"{project_path}/plots",
         ]
         for directory in directories:
+            print(directory)
             os.makedirs(directory, exist_ok=True)
+            if "custom" in directory:  # Check if it's a package directory
+                print("should create init")
+                init_file_path = os.path.join(directory, '__init__.py')
+                with open(init_file_path, 'w') as init_file:
+                    init_file.write("# This file is required to make Python treat the directories as containing packages.\n")
+
 
         # Create files with initial content or empty
         with open(f"{project_path}/experiment.json", "w") as file:
@@ -114,6 +122,8 @@ class FileMenu(ft.UserControl):
         pm.configure(venv=f"{project_path}/.venv")
         pm.install("git+ssh://git@github.com/tqsd/QuaSi.git@master")
         self.close_dialog()
+        e.path = project_path
+        self.handle_open_project(e)
 
     def handle_open_project(self, e):
         project_path = e.path

@@ -1,9 +1,12 @@
 from pathlib import Path
 import toml
 import subprocess
+import importlib
 import os
 import json
 import pathlib
+import sys
+import inspect
 
 from quasi.gui.board.board import Board
 from quasi.gui.board.ports import BoardConnector
@@ -27,7 +30,7 @@ class ProjectManager:
 
     def configure(self, **kwargs):
         if "path" in kwargs:
-            self.path = kwargs["path"]
+            self.path = Path(kwargs["path"])
             path = Path(self.path)
             self.name = path.name
 
@@ -38,7 +41,6 @@ class ProjectManager:
                 self.packages = config.get("packages", [])
             else:
                 self.packages = []
-
         if "venv" in kwargs:
             self.venv = kwargs["venv"]
 
@@ -66,6 +68,35 @@ class ProjectManager:
         with open(config_path, "w") as file:
             toml.dump(config, file)
 
+    def load_class_from_file(self, relative_module_path):
+        print(f"Loading from relative path: {relative_module_path}")
+        print(sys.path)
+
+        # Construct the full path to the module file
+        full_path = Path(self.path) / relative_module_path
+        
+        # Resolve the path to ensure it's absolute and normalize any irregular path components
+        full_path = full_path.resolve()
+        if not full_path.exists():
+            raise FileNotFoundError(f"No such file: {full_path}")
+
+        # Debug prints for verification
+        if not full_path.is_relative_to(self.path):
+            raise ValueError("Attempted to access a file outside of the base directory")
+
+        # Convert the full path to a dot-separated module path relative to the base path
+        module_str = str(full_path.relative_to(self.path)).replace('/', '.').replace('\\', '.').rstrip('.py')
+        
+        class_name = str(Path(full_path).name)[:-3]
+        class_name = ''.join(x.capitalize() or '_' for x in class_name.split('_'))
+        # Dynamically import the module
+        module = importlib.import_module(module_str)
+        
+        # Inspect the module and return the first found class
+        for name, obj in inspect.getmembers(module, inspect.isclass):
+            if name == class_name and obj.__module__ == module.__name__:
+                return obj
+
     def get_file_tree(self):
         """
         Gets the file tree of the project
@@ -74,12 +105,16 @@ class ProjectManager:
             tree = []
             for entry in os.listdir(directory):
                 full_path = os.path.join(directory, entry)
+                if entry in ["None", "__init__.py", "__pycache__"]:
+                    continue
                 if os.path.isdir(full_path):
                     if entry == ".venv":
                         continue
-                    tree.append({entry:list_files(full_path)})
+                    relative_path = os.path.relpath(full_path, self.path)
+                    tree.append({relative_path:list_files(full_path)})
                 else:
-                    tree.append(entry)
+                    relative_path = os.path.relpath(full_path, self.path)
+                    tree.append(relative_path)
             return tree
         if self.path is None:
             return []
@@ -111,6 +146,10 @@ class ProjectManager:
         self.name = path.name
         self.venv = path / ".venv"
 
+        devices_path = os.path.join(self.path, 'custom', 'devices')
+        if str(self.path) not in sys.path:
+            sys.path.append(str(self.path))
+
         pm = ProjectPanel.get_instance()
         pm.update_project(self.path)
         
@@ -131,7 +170,6 @@ class ProjectManager:
                 bc.load_connection(s)
 
         self.current_scheme = scheme
-        
 
     def save(self):
         """
@@ -154,6 +192,7 @@ class ProjectManager:
         }
 
         for d in board.content.controls:
+            print(d, type(d))
             if isinstance(d, Device):
                 dt = f"{type(d.device_instance).__module__}.{type(d.device_instance).__name__}"
                 device = {

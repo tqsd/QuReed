@@ -61,7 +61,7 @@ def main():
 
 
     in_port_num = int(input("How many input ports does the device have?  "))
-    out_port_num = int(input("How many input ports does the device have?  "))
+    out_port_num = int(input("How many output ports does the device have?  "))
     input_ports = {}
     output_ports = {}
     signal_types = list_signals()
