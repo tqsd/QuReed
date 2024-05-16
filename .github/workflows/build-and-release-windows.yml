@@ -15,6 +15,11 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}  # Using GH_TOKEN to checkout private submodules if any
 
+      - name: Update known hosts
+        run: |
+          ssh-keygen -R github.com
+          ssh-keyscan github.com >> C:\Users\runneradmin\.ssh\known_hosts
+
       - name: Setup SSH Key
         uses: webfactory/ssh-agent@v0.5.3
         with:
