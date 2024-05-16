@@ -26,6 +26,7 @@ setup(
         "jinja2",
         "mpmath",
         "toml",
+        "mpmath",
     ],
     package_data={
         "quasi": ["templates/*.jinja"],
