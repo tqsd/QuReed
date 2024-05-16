@@ -46,6 +46,15 @@ jobs:
           pip install pyinstaller
           pip install flet  # Make sure to install Flet, not PyInstaller if you are using flet to pack
           pip install mpmath
+          pip install numpy
+          pip install numba
+          pip install scipy
+          pip install qutip
+          pip install matplotlib
+          pip install plotly
+          pip install jinja2
+          pip install toml
+
 
       - name: Build with PyInstaller
         run: |

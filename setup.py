@@ -25,8 +25,7 @@ setup(
         "plotly",
         "jinja2",
         "mpmath",
-        "toml",
-        "mpmath",
+        "toml"
     ],
     package_data={
         "quasi": ["templates/*.jinja"],
