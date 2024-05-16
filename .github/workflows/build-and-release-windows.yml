@@ -20,13 +20,6 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_DEPLOY_KEY }}  # Use the name of your secret here
 
-      - name: Test Clone Repository
-        run: |
-          ssh -T git@github.com || true # Ignore error
-          git clone git@github.com:tqsd/photon_weave.git
-        env:
-          GIT_SSH_COMMAND: "ssh -v"
-
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
