@@ -22,7 +22,9 @@ jobs:
 
       - name: Update known hosts
         run: |
-          mkdir $env:USERPROFILE\.ssh
+          if (-Not (Test-Path -Path $env:USERPROFILE\.ssh)) {
+            mkdir $env:USERPROFILE\.ssh
+          }
           ssh-keygen -R github.com || true
           ssh-keyscan github.com >> $env:USERPROFILE\.ssh\known_hosts
 
