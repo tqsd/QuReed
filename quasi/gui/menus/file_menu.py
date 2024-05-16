@@ -7,6 +7,7 @@ import os
 import venv
 from pathlib import Path
 import toml
+import platform
 
 from quasi.gui.functionalities.project_management import Project
 from quasi.gui.board.board import Board
@@ -108,10 +109,16 @@ class FileMenu(ft.UserControl):
             file.write('software = "QuaSi"\n')# TOML configuration for packages
             file.write("packages = []")  # TOML configuration for packages
 
-        subprocess.run(["python3", "-m", "venv", f"{project_path}/.venv"])
+        python_command = "python3" if platform.system() != "Windows" else "python"
+
+        subprocess.run([python_command, "-m", "venv",  os.path.join(project_path, ".venv")], check=True)
+        print([python_command, "-m", "venv",  os.path.join(project_path, ".venv")])
         pm = ProjectManager()
+        print("Configuring path")
         pm.configure(path=project_path)
+        print("Configuring venv")
         pm.configure(venv=f"{project_path}/.venv")
+        print("Installing")
         pm.install("git+ssh://git@github.com/tqsd/QuaSi.git@master")
         self.close_dialog()
 

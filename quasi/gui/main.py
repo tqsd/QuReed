@@ -24,7 +24,7 @@ def main(page: ft.Page):
     page.padding = 0
     page.window_height = 800
     page.window_width = 900
-    page.window_frameless = True
+    page.window_frameless = False
 
     menu_bar = MenuBar(page)
     side_panel = SidePanel(offset_top=menu_bar.height)
