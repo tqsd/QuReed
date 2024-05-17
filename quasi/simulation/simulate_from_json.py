@@ -7,13 +7,22 @@ import logging
 from logging.handlers import SocketHandler
 import sys
 from pathlib import Path
+import socket
+import struct
+import pickle
 
 from quasi.gui.simulation import SimulationWrapper
 from quasi.gui.board.board import get_class_from_string
 from quasi.gui.board.ports import BoardConnector
 from quasi.extra import Loggers, get_custom_logger
 
-
+class LengthPrefixedSocketHandler(logging.handlers.SocketHandler):
+    def makePickle(self, record):
+        # Create a pickle of the log record
+        record_dict = record.__dict__
+        data = pickle.dumps(record_dict)
+        # Prefix the data with its length (using network byte order)
+        return struct.pack('>L', len(data)) + data
 
 class JsonExecution():
     def __init__(self, **kwargs):
@@ -54,16 +63,23 @@ class JsonExecution():
     def configure_loggers(self):
         loggerA = get_custom_logger(Loggers.Devices)
         loggerB = get_custom_logger(Loggers.Simulation)
+        loggerC = get_custom_logger(Loggers.Simulation)
         if self.port is not None:
-            socket_handler = SocketHandler('localhost', self.port)
+            socket_handler = LengthPrefixedSocketHandler('localhost', self.port)
             loggerA.addHandler(socket_handler)
             loggerB.addHandler(socket_handler)
+            loggerC.addHandler(socket_handler)
         
-
     def run(self):
+        simulation_logger = get_custom_logger(Loggers.Simulation)
+        
         match self.simulation_type:
             case "des":
-                self.sw.simulation.run_des(self.duration)
+                try:
+                    self.sw.simulation.run_des(self.duration)
+                except Exception as e:
+                    simulation_logger.error(f"An error occurred during DES simulation: {e}")
+
 
     def _get_scheme_dict(self, scheme):
         with open(scheme, 'r', encoding='UTF-8') as f:

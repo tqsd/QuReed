@@ -34,6 +34,7 @@ class Board(ft.UserControl):
         self.offset_x = 0
         self.offset_y = 0
         self.menus = []
+        self.current_scheme = "No diagram opened"
         # Canvas draws connection paths
 
         self.canvas = cv.Canvas(
@@ -58,6 +59,13 @@ class Board(ft.UserControl):
             width=float("inf"),
             height=float("inf"),
         )
+
+        self.scheme_name=ft.Container(
+            top=25,
+            left=205,
+            content=ft.Text(
+                self.current_scheme
+        ))
         
         self.board = ft.Stack([
             self.canvas_container,
@@ -68,6 +76,7 @@ class Board(ft.UserControl):
                 on_scroll=self.on_scroll
             ),
             self.content,
+            self.scheme_name,
         ])
         self.board_wrapper = ft.Container(
             top=0,
@@ -236,3 +245,13 @@ class Board(ft.UserControl):
             return [x for x in self.content.controls if x.device_instance.ref.uuid == uuid][0]
         else:
             raise Exception("Either uuid or sim_device Must be given")
+
+    def set_new_scheme(self, scheme: str):
+        self.current_scheme = scheme
+        self.scheme_name.content.value = scheme
+        self.scheme_name.update() 
+
+    def set_label_location(self, top: float, left: float):
+        self.scheme_name.top = top
+        self.scheme_name.left = left
+        self.scheme_name.update()

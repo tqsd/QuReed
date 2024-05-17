@@ -3,9 +3,8 @@ This is the connection between the GUI and
 the simulation engine
 """
 import logging
-from quasi.simulation import Simulation, DeviceInformation
-from quasi.backend.fock_first_backend import FockBackendFirst
-from quasi.experiment import Experiment
+import threading
+from quasi.simulation import Simulation
 from quasi.extra import Loggers, get_custom_logger
 from quasi.gui.report import GuiLogHandler 
 from .remote_log_handler import (
@@ -37,6 +36,7 @@ class SimulationWrapper:
             self.devices = []
             self.signals = []
             self.simulation_time = 1
+            self._setup_logging()
         self.simulation = Simulation.get_instance()
 
     def execute(self):
@@ -57,16 +57,45 @@ class SimulationWrapper:
                    "--sim_type", "des", "--duration", "10", "--port", str(PORT)]
         try:
             process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = process.communicate()  # This waits for the subprocess to complete
-            print("STDOUT:", stdout.decode())
-            print("STDERR:", stderr.decode())
-        except Exception as e:
-            print("An error occured:", str(e))
-        finally:
-            server.shutdown_server()
-            server_thread.join()
-            logging.info("TCP server has been shut down")
 
+            # Thread to read stdout
+            def read_stdout():
+                for line in iter(process.stdout.readline, b''):
+                    self.logger.info(line.decode().strip())
+
+            # Thread to read stderr
+            def read_stderr():
+                for line in iter(process.stderr.readline, b''):
+                    self.logger.error(line.decode().strip())
+
+            stdout_thread = threading.Thread(target=read_stdout)
+            stderr_thread = threading.Thread(target=read_stderr)
+
+            stdout_thread.start()
+            stderr_thread.start()
+
+            stdout_thread.join()
+            stderr_thread.join()
+
+            process.stdout.close()
+            process.stderr.close()
+
+        except Exception as e:
+            self.logger.error(f"An error occurred: {str(e)}")
+        finally:
+            server.shutdown_server()  # This calls the updated shutdown_server method
+            server_thread.join()  # Wait for the server thread to finish
+            self.logger.info("TCP server has been shut down")
+
+    def _setup_logging(self):
+        self.logger = logging.getLogger('SimulationWrapper')
+        self.logger.setLevel(logging.DEBUG)
+        self.log_handler = GuiLogHandler()
+        print("Simulation Wrapper")
+        print(id(self.log_handler))
+        for log_name in Loggers:
+            custom_logger = get_custom_logger(log_name)
+            custom_logger.addHandler(self.log_handler)
 
     def add_device(self, device):
         self.devices.append(device)

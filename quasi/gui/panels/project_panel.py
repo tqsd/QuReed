@@ -4,6 +4,7 @@ import flet as ft
 
 from quasi.gui.project import ProjectManager
 from quasi.gui.panels.side_panel import DraggableDevice
+from quasi.gui.board.board import Board
 
 class ProjectPanel(ft.Container):
     _instance = None
@@ -45,10 +46,13 @@ class ProjectPanel(ft.Container):
         ProjectPanel._instance = self
 
     def toggle_panel(self, e):
+        board = Board.get_board()
         if self.width == 200:
+            board.set_label_location(top=25, left=10)
             self.width = 5
             self.file_list.visible = False
         else:
+            board.set_label_location(top=25, left=205)
             self.width = 200
             self.file_list.visible = True
 
@@ -144,7 +148,7 @@ class File(ft.TextButton):
                     opacity=0.2,
                 ),
                 content=ft.Text(
-                    self.name,
+                    self.cls.gui_name,
                     size=15,
                     weight=ft.FontWeight.BOLD,
                     color="#9d9ca0")

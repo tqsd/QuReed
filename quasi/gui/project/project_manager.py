@@ -28,6 +28,7 @@ class ProjectManager:
             cls._instance.current_scheme = None
             cls._instance.modified_schemes = {}
             cls._instance.packages = []
+            cls._instance.current_scheme = None
         return cls._instance
 
     def configure(self, **kwargs):
@@ -80,9 +81,6 @@ class ProjectManager:
             toml.dump(config, file)
 
     def load_class_from_file(self, relative_module_path):
-        print(f"Loading from relative path: {relative_module_path}")
-        print(sys.path)
-
         # Construct the full path to the module file
         full_path = Path(self.path) / relative_module_path
         
@@ -96,7 +94,12 @@ class ProjectManager:
             raise ValueError("Attempted to access a file outside of the base directory")
 
         # Convert the full path to a dot-separated module path relative to the base path
-        module_str = str(full_path.relative_to(self.path)).replace('/', '.').replace('\\', '.').rstrip('.py')
+        module_str = str(full_path.relative_to(self.path)).replace('/', '.').replace('\\', '.')
+
+        # Only strip the '.py' suffix if it is at the end
+        if module_str.endswith('.py'):
+            module_str = module_str[:-3]
+
         
         class_name = str(Path(full_path).name)[:-3]
         class_name = ''.join(x.capitalize() or '_' for x in class_name.split('_'))
@@ -116,7 +119,9 @@ class ProjectManager:
             tree = []
             for entry in os.listdir(directory):
                 full_path = os.path.join(directory, entry)
-                if entry in ["None", "__init__.py", "__pycache__"]:
+                if entry in ["None", "__init__.py", "__pycache__", ".git", ".gitignore"]:
+                    continue
+                if "~" in entry or entry.startswith("."):
                     continue
                 if os.path.isdir(full_path):
                     if entry == ".venv":
@@ -169,13 +174,16 @@ class ProjectManager:
         pm.update_project(self.path)
         
     def open_scheme(self, scheme):
+        print(f"Opening scheme {scheme}")
         board = Board.get_board()
         # save existing scheme to memory
         if self.current_scheme is not None:
             self.modified_schemes[self.current_scheme] = self._capture_board_dict()
 
+        self.current_scheme = scheme
         data = self._get_scheme_dict(scheme)
         board.clear_board()
+        board.set_new_scheme(scheme)
         bc = BoardConnector()
         if data.get("devices") is not None:
             for d in data["devices"]:
@@ -207,7 +215,6 @@ class ProjectManager:
         }
 
         for d in board.content.controls:
-            print(d, type(d))
             if isinstance(d, Device):
                 dt = f"{type(d.device_instance).__module__}.{type(d.device_instance).__name__}"
                 device = {
@@ -241,7 +248,6 @@ class ProjectManager:
                 d["device_uuid"] = p.device.ref.uuid
                 d["port"] = p.label
                 signal["conn"].append(d)
-
             json_description["connections"].append(signal)
         return json_description
 
