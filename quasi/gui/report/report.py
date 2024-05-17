@@ -62,13 +62,7 @@ class Report(ft.UserControl):
                 expand=1,
                 multiline=True,
                 text_size=14,
-                value="""None<class 'quasi.devices.sources.ideal_n_photon_source.IdealNPhotonSource'> is computing at 0.00e+00s
-None (IdealNPhotonSource) is scheduling new event None (IdealFiber) 0.00e+00s
-Processing Event for None of type IdealFiber at 0.00e+00s
-None<class 'quasi.devices.fiber.ideal_fiber.IdealFiber'> is computing at 0.00e+00s
-None (IdealFiber) is scheduling new event None (IdealDetector) 4.84e-07s
-Processing Event for None of type IdealDetector at 4.84e-07s
-None<class 'quasi.devices.detectors.ideal_detector.IdealDetector'> is computing at 4.84e-07s""",
+                value="",
                 color="#FFFFFF",
                 border=ft.InputBorder.NONE,
                 content_padding= ft.padding.all(20),
