@@ -36,10 +36,6 @@ class GuiLogHandler(logging.Handler):
             self.new_buffer.append(log_entry)
 
     def flush_logs(self):
-        print("FLUSHING")
-        print(self.log_count)
-        print(self.new_buffer)
-        print(self.log_buffer)
         if self.ready and self.output_control is not None and self.log_buffer:
             self.output_control.logs_control.value += "\n" + "\n".join(self.log_buffer)
             self.output_control.logs_control.update()
@@ -51,22 +47,31 @@ class GuiLogHandler(logging.Handler):
             self.flush_logs()
 
 class Report(ft.UserControl):
-    __instance = None
+    _instance = None
 
     def __new__(cls, *args, **kwargs):
-        if cls.__instance is None:
-            cls.__instance = super(Report, cls).__new__(cls)
-        return cls.__instance
+        if cls._instance is None:
+            cls._instance = super(Report, cls).__new__(cls)
+        return cls._instance
 
     def __init__(self):
         super().__init__()
         if not hasattr(self, 'initialized'):  # Prevents reinitialization
             self.logs_control = ft.TextField(
-                label="Logs",
+                label=None,
                 expand=1,
                 multiline=True,
                 text_size=14,
-                value="",
+                value="""None<class 'quasi.devices.sources.ideal_n_photon_source.IdealNPhotonSource'> is computing at 0.00e+00s
+None (IdealNPhotonSource) is scheduling new event None (IdealFiber) 0.00e+00s
+Processing Event for None of type IdealFiber at 0.00e+00s
+None<class 'quasi.devices.fiber.ideal_fiber.IdealFiber'> is computing at 0.00e+00s
+None (IdealFiber) is scheduling new event None (IdealDetector) 4.84e-07s
+Processing Event for None of type IdealDetector at 4.84e-07s
+None<class 'quasi.devices.detectors.ideal_detector.IdealDetector'> is computing at 4.84e-07s""",
+                color="#FFFFFF",
+                border=ft.InputBorder.NONE,
+                content_padding= ft.padding.all(20),
                 read_only=True)
             self.log_handler = GuiLogHandler(self.logs_control)
             print("Report")
@@ -79,9 +84,15 @@ class Report(ft.UserControl):
             left=0,
             right=0,
             bottom=0,
-            bgcolor="#FFFFFF",
+            bgcolor="#000000",
             content=self.logs_control
         )
+
+    def clean_logs(self):
+        self.logs_control.value = ""
+
+    def save_logs(self):
+        pass
 
     def on_visible_changed(self, visible):
         self.log_handler.set_output_control(self)

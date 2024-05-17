@@ -44,11 +44,16 @@ class SimulationWrapper:
         Execution Trigger
         """
         from quasi.gui.project import ProjectManager
+        from quasi.gui.report import Report
         pm = ProjectManager()
         pm.save()
 
         if pm.venv is None:
             return
+        
+        if Report._instance is not None:
+            r = Report._instance
+            r.clean_logs()
 
         python_executable = f"{pm.venv}/bin/quasi-execute"
         PORT = find_free_port()
