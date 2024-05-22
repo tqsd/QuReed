@@ -4,6 +4,8 @@ the simulation engine
 """
 import logging
 import threading
+import platform
+
 from quasi.simulation import Simulation
 from quasi.extra import Loggers, get_custom_logger
 from quasi.gui.report import GuiLogHandler 
@@ -45,6 +47,7 @@ class SimulationWrapper:
         """
         from quasi.gui.project import ProjectManager
         from quasi.gui.report import Report
+        print("executing")
         pm = ProjectManager()
         pm.save()
 
@@ -55,11 +58,16 @@ class SimulationWrapper:
             r = Report._instance
             r.clean_logs()
 
-        python_executable = f"{pm.venv}/bin/quasi-execute"
+        system = platform.system()
+        if system == 'Windows':
+            python_executable = f"{pm.venv}\\Scripts\\quasi-execute"
+        else:  # Assume UNIX-like for any other system
+            python_executable = f"{pm.venv}/bin/quasi-execute"
         PORT = find_free_port()
         server, server_thread = start_tcp_server(PORT)
         command = [python_executable, "--scheme" , f"{pm.path}/experiment.json",
                    "--sim_type", "des", "--duration", "10", "--port", str(PORT)]
+        print(command)
         try:
             process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -86,6 +94,7 @@ class SimulationWrapper:
             process.stderr.close()
 
         except Exception as e:
+            print(e)
             self.logger.error(f"An error occurred: {str(e)}")
         finally:
             server.shutdown_server()  # This calls the updated shutdown_server method

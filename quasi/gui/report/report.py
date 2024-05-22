@@ -28,8 +28,8 @@ class GuiLogHandler(logging.Handler):
     def emit(self, record):
         log_entry = self.format(record)
         if self.ready and self.output_control is not None:
-            self.output_control.value += f"\n{log_entry}"
-            self.output_control.update()
+            self.output_control.logs_control.value += f"\n{log_entry}"
+            self.output_control.logs_control.update()
         else:
             self.log_count += 1
             self.log_buffer.append(log_entry)
