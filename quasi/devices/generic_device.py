@@ -1,10 +1,12 @@
 """
 Generic Device definition
 """
+
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Dict, Type
 from copy import deepcopy
+import functools
 
 from quasi.simulation import Simulation, DeviceInformation
 from quasi.extra import Loggers, get_custom_logger
@@ -12,25 +14,38 @@ from quasi.signals.generic_signal import GenericSignal
 from quasi.devices.port import Port
 from quasi.simulation import ModeManager
 
+
 def log_action(method):
+    @functools.wraps(method)
     def wrapper(self, time, *args, **kwargs):
         # Convert mpf to float for formatting
         l = get_custom_logger(Loggers.Devices)
         time_as_float = float(time)
         # Correctly format the string before passing to l.info
-        formatted_message = "{}{} is computing at {:.2e}s".format(self.name, type(self),time_as_float)
+        if self.name is not None:
+            formatted_message = "[{:-3e}s] {} ({}) is computing".format(
+                time_as_float, self.name, self.__class__.__name__
+            )
+        else:
+            formatted_message = "[{:.3e}s] {} is computing".format(
+                time_as_float, self.__class__.__name__
+            )
 
         # Now, pass the formatted_message to the log
-        #print(formatted_message)
+        # print(formatted_message)
         l.info(formatted_message)
         return method(self, time, *args, **kwargs)
+
     return wrapper
+
 
 def wait_input_compute(method):
     """
     Wrapper function, makes sure that the inputs are
     computed before computing outputs.
     """
+
+    @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         for port in self.ports.keys():
             port = self.ports[port]
@@ -49,8 +64,10 @@ def ensure_output_compute(method):
     TODO: write the logic
     """
 
+    @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         return method(self, *args, **kwargs)
+
     return wrapper
 
 
@@ -59,6 +76,8 @@ def coordinate_gui(method):
     Wrapper funciton, informs the gui about the
     status of the simulation
     """
+
+    @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         if self.coordinator is not None:
             self.coordinator.start_processing()
@@ -69,10 +88,13 @@ def coordinate_gui(method):
 
     return wrapper
 
+
 def schedule_next_event(method):
     """
     Schedules the next device event, if it exists
     """
+
+    @functools.wraps(method)
     def wrapper(self, time, *args, **kwargs):
         results = method(self, time, *args, **kwargs)
         if results is None:
@@ -82,24 +104,43 @@ def schedule_next_event(method):
             if not next_device is None:
                 time_as_float = float(time)
                 l = get_custom_logger(Loggers.Devices)
-                formatted_message = "{} ({}) is scheduling new event {} ({}) {:.2e}s".format(
-                    self.name,
-                    self.__class__.__name__,
-                    next_device.name,
-                    next_device.__class__.__name__,
-                    time_as_float)
-                #print(formatted_message)
+                if self.name is None:
+                    if next_device.name is None:
+                        formatted_message = (
+                            "<{:.3e}s> {} is scheduling new event for {}".format(
+                                time_as_float,
+                                self.__class__.__name__,
+                                next_device.__class__.__name__,
+                                time_as_float,
+                            )
+                        )
+                    else:
+                        formatted_message = (
+                            "<{:.3e}s> {} is scheduling new event for {} ({})".format(
+                                time_as_float,
+                                self.__class__.__name__,
+                                next_device.name,
+                                next_device.__class__.__name__,
+                                time_as_float,
+                            )
+                        )
+                else:
+                    formatted_message = (
+                        "<{:.3e}s>{} ({}) is scheduling new event for {} ({})".format(
+                            time_as_float,
+                            self.name,
+                            self.__class__.__name__,
+                            next_device.name,
+                            next_device.__class__.__name__,
+                            time_as_float,
+                        )
+                    )
+                # print(formatted_message)
                 l.info(formatted_message)
-                signals = {
-                    port:signal
-                }
-                self.simulation.schedule_event(
-                    time,
-                    next_device,
-                    signals=signals
-                )
-    return wrapper
+                signals = {port: signal}
+                self.simulation.schedule_event(time, next_device, signals=signals)
 
+    return wrapper
 
 
 class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
@@ -155,7 +196,6 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         signal.register_port(port, self)
         port.signal = signal
 
-
     @wait_input_compute
     @coordinate_gui
     @abstractmethod
@@ -201,9 +241,9 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
 
     @log_action
     def des(self, time, *args, **kwargs):
-        if hasattr(self, 'envelope_backend'):
+        if hasattr(self, "envelope_backend"):
             self.envelope_backend(*args, **kwargs)
-        elif hasattr(self, 'des_action'):
+        elif hasattr(self, "des_action"):
             self.des_action(time, *args, **kwargs)
         else:
             raise DESActionNotDefined()
@@ -215,6 +255,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
                 if connected_port != port:
                     return connected_port.device, connected_port.label
         return None, None
+
 
 class DESActionNotDefined(Exception):
     """

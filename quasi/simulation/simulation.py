@@ -84,6 +84,8 @@ class SimulationEvent:
     """
 
     def __init__(self, event_time, device, *args, **kwargs):
+        if kwargs.get("signals") is None:
+            kwargs["signals"] = {}
         self.event_time = event_time
         self.device = device
         self.args = args
@@ -162,17 +164,14 @@ class Simulation:
         return cls.dimensions
 
     def run_des(self, simulation_time):
-        print("Running DES")
         logger = get_custom_logger(Loggers.Simulation)
         logger.info("Starting Simulation")
         self.end_time += simulation_time
         while self.event_queue and self.current_time <= self.end_time:
             event = heapq.heappop(self.event_queue)
-            print(event.device)
-            print(event.kwargs)
             time_as_float = float(event.event_time)
             logger.info(
-                f"Processing Event for {event.device.name} of type {event.device.__class__.__name__} at {time_as_float:.2e}s"
+                f"[{time_as_float:.3e}s] Processing Event for {event.device.name} of type {event.device.__class__.__name__}"
             )
             event.device.des(event.event_time, *event.args, **event.kwargs)
             # remove from the event map
@@ -185,7 +184,6 @@ class Simulation:
         event = SimulationEvent(time, device, *args, **kwargs)
         key = (time, device)
         if key in self.event_map:
-            print("HERE")
             existing_event = self.event_map[key]
             existing_event.merge_event(event)
         else:

@@ -38,8 +38,16 @@ class Device(BaseDeviceComponent):
         if len(self.ports_out.ports) > 0:
             width += 10
 
+        base_height = 50
+        max_ports = max(len(self.ports_in.ports),
+                        len(self.ports_out.ports))
+
+
+        if max_ports >= 4:
+            base_height = max_ports * 15
+
         super().__init__(
-            height=50,
+            height=base_height,
             width=width,
             *args,
             **kwargs)

@@ -1,4 +1,3 @@
-
 import flet as ft
 
 from .base_device_component import BaseDeviceComponent
@@ -14,9 +13,7 @@ class VariableComponent(BaseDeviceComponent):
         if "values" in kwargs:
             self.device_instance.values = kwargs["values"]
         self.sim_gui_coordinator = DeviceSimGuiCoordinator(self)
-        self.device_instance.set_coordinator(
-            self.sim_gui_coordinator
-        )
+        self.device_instance.set_coordinator(self.sim_gui_coordinator)
 
         # Gui Components
         width = 80
@@ -31,19 +28,14 @@ class VariableComponent(BaseDeviceComponent):
         if len(self.ports_out.ports) > 0:
             width += 10
 
-
-        super().__init__(
-            height=50,
-            width=width,
-            *args,
-            **kwargs)
+        super().__init__(height=50, width=width, *args, **kwargs)
         self.device_class = self.device_instance.__class__
-        if "float" in self.device_class.gui_tags:
+        if any(tag in ["float", "time"] for tag in self.device_class.gui_tags):
             self.input_filter = ft.InputFilter(
                 allow=True,
                 regex_string=r"[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?",
-                replacement_string="")
-
+                replacement_string="",
+            )
         elif "integer" in self.device_class.gui_tags:
             self.input_filter = ft.NumbersOnlyInputFilter()
         value = kwargs.get("values")
@@ -51,7 +43,7 @@ class VariableComponent(BaseDeviceComponent):
             value = value.get("value")
         self.field = ft.TextField(
             height=25,
-            width=width-10,
+            width=width - 10,
             content_padding=0,
             color="white",
             border_color="#c0bfbc",
@@ -60,7 +52,7 @@ class VariableComponent(BaseDeviceComponent):
             input_filter=self.input_filter,
             filled=False,
             disabled=False,
-            value = value
+            value=value,
         )
         self.field_container = ft.Container(
             content=self.field,
@@ -77,15 +69,15 @@ class VariableComponent(BaseDeviceComponent):
                 bottom=0,
                 bgcolor="#3f3e42",
                 content=ft.Stack(
-                    controls=[self.ports_in,
-                              self.field_container,
-                              self.ports_out,
-                              ],
-                    expand=True
-                )
+                    controls=[
+                        self.ports_in,
+                        self.field_container,
+                        self.ports_out,
+                    ],
+                    expand=True,
+                ),
             )
         )
-
 
     def _compute_ports(self) -> None:
         """
@@ -95,12 +87,14 @@ class VariableComponent(BaseDeviceComponent):
             device=self,
             page=self.page,
             device_cls=self.device_instance,
-            direction="input")
+            direction="input",
+        )
         self.ports_out = Ports(
             device=self,
             page=self.page,
             device_cls=self.device_instance,
-            direction="output")
+            direction="output",
+        )
 
     def change_var(self, e) -> None:
         self.device_instance.set_value(e.control.value)

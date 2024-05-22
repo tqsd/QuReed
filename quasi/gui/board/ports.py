@@ -191,6 +191,7 @@ class Ports(ft.UserControl):
             device_cls,
             direction: str = "input"):
         super().__init__()
+        self.port_num = 0
         self.page = page
         self.device = device
         self.device_cls = device_cls

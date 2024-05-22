@@ -130,9 +130,11 @@ class IdealCoherentSource(GenericDevice):
     @log_action
     def des(self, time, *args, **kwargs):
         signals = kwargs.get("signals")
-        if self.alpha is None or self.phi is None:
+        if "alpha" in signals or "phi" in signals:
             self._extract_parameters(kwargs)
-        elif signals and "trigger" in signals:
+        if "trigger" in signals:
+            if self.alpha is None:
+                raise Exception("Alpha not provided")
             if signals["trigger"].contents:
                 env = Envelope()
                 op = FockOperation(FockOperationType.Displace, alpha=self.alpha)
@@ -140,6 +142,7 @@ class IdealCoherentSource(GenericDevice):
                 signal = GenericQuantumSignal()
                 signal.set_contents(content=env)
                 result = [("output", signal, time)]
+                return result
 
     def _extract_parameters(self, kwargs):
         signals = kwargs.get("signals")
