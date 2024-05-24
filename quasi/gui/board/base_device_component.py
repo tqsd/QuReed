@@ -8,6 +8,7 @@ import flet as ft
 
 from quasi.gui.board.options import DeviceOptions
 from quasi.gui.board.info_bar import InfoBar
+from quasi.gui.panels.device_settings import DeviceSettings
 
 
 class BaseDeviceComponent(ft.UserControl):
@@ -24,10 +25,13 @@ class BaseDeviceComponent(ft.UserControl):
                  resizable=False,
                  height=100,
                  width=100,
+                 direction="right",
                  *args,
                  **kwargs
                  ):
         super().__init__()
+        self.direction = "right"
+        self.removed = False
         self.top = top
         self.left = left
         self.board = board
@@ -76,6 +80,7 @@ class BaseDeviceComponent(ft.UserControl):
                        on_vertical_drag_update=self.handle_device_move,
                        on_secondary_tap=self.handle_secondary,
                        mouse_cursor=ft.MouseCursor.GRAB,
+                       on_tap=self.on_select,
                        on_enter=self.on_hover_enter,
                        on_exit=self.on_hover_exit
                    )
@@ -120,6 +125,18 @@ class BaseDeviceComponent(ft.UserControl):
                  self.resize_container]
             )
         )
+
+    def on_select(self, e):
+        self.board.handle_device_select(self)
+        self.base_wrapper.border = ft.border.all(3, "#fff38e")
+        e.control.update()
+        self.update()
+
+    def deselect(self):
+        self.base_wrapper.border = None
+        if not self.removed:
+            self.update()
+
 
     def set_contents(self, device_content):
         self.content_wrapper.content.controls.append(
@@ -174,7 +191,6 @@ class BaseDeviceComponent(ft.UserControl):
 
     def on_hover_exit(self, e):
         self._info_bar.notify()
-    
 
 
     def start_processing(self):
@@ -206,6 +222,65 @@ class BaseDeviceComponent(ft.UserControl):
         if p is not False:
             return p[0]
         return p
-            
         
+    def handle_remove(self):
+        self.board.handle_device_select()
+        self.removed = True
 
+    def change_direction(self):
+        if self.direction == "right":
+            self.direction = "left"
+        else:
+            self.direction = "right"
+        print("Changing Directions")
+        ports_in_tmp = None
+        ports_out_tmp = None
+        if hasattr(self, "ports_in"):
+            ports_in_tmp = self.ports_in
+        if hasattr(self, "ports_out"):
+            ports_out_tmp = self.ports_out
+            
+        if ports_in_tmp:
+            self.ports_out = ports_in_tmp
+            self.ports_out.direction = "output"
+            #self.ports_out.set_side("output")
+            self.ports_out.compute_side()
+        if ports_out_tmp:
+            self.ports_in = ports_out_tmp
+            self.ports_in.direction = "input"
+            #self.ports_in.set_side("input")
+            self.ports_in.compute_side()
+
+        self.update()
+        self.base_wrapper.update()
+        self.ports_in.update()
+        self.ports_out.update()
+        self.update_layout()
+
+    def update_layout(self):
+        # Rebuild and update the container holding the ports
+        self.set_contents(
+            ft.Container(
+                top=0,
+                left=0,
+                right=0,
+                bottom=0,
+                bgcolor="#3f3e42",
+                content=ft.Stack(
+                    controls=[
+                        self.ports_in.build(),
+                        self.ports_out.build(),
+                        ft.Container(
+                            top=0,
+                            left=self.image_left,
+                            right=self.image_right,
+                            bottom=0,
+                            content=self.image
+                        )
+                    ],
+                    expand=True
+                )
+            )
+        )
+        # Refresh the base wrapper to update the display
+        self.base_wrapper.update()

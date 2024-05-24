@@ -23,7 +23,7 @@ def log_action(method):
         time_as_float = float(time)
         # Correctly format the string before passing to l.info
         if self.name is not None:
-            formatted_message = "[{:-3e}s] {} ({}) is computing".format(
+            formatted_message = "[{:-3e}s] *{}* ({}) is computing".format(
                 time_as_float, self.name, self.__class__.__name__
             )
         else:
@@ -126,7 +126,7 @@ def schedule_next_event(method):
                         )
                 else:
                     formatted_message = (
-                        "<{:.3e}s>{} ({}) is scheduling new event for {} ({})".format(
+                        "<{:.3e}s> {} ({}) is scheduling new event for {} ({})".format(
                             time_as_float,
                             self.name,
                             self.__class__.__name__,
@@ -191,7 +191,9 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
             isinstance(signal, port.signal_type)
             or issubclass(type(signal), port.signal_type)
         ):
-            raise PortSignalMismatchException()
+            print(signal, port.signal_type)
+            print(type(signal), port.signal_type)
+            raise PortSignalMismatchException("This port does not support selected signal")
 
         signal.register_port(port, self)
         port.signal = signal

@@ -1,6 +1,7 @@
 
 import flet as ft
 from quasi.gui.panels.documentation_panel import DocumentationTab
+from quasi.gui.panels.device_settings import DeviceSettings
 
 class DeviceOptions(ft.UserControl):
     def __init__(self, top, left, device_instance, control_instance):
@@ -18,12 +19,17 @@ class DeviceOptions(ft.UserControl):
             content=ft.Column(
                 spacing=0,
                 controls=[
-                    ft.Text("Rename", color="white"),
                     ft.Container(
                         height=25,
                         width=self.width,
                         content=ft.Text("Documentation", color="white"),
                         on_click=self.open_documentation
+                    ),
+                    ft.Container(
+                        height=25,
+                        width=self.width,
+                        content=ft.Text("Change Direction", color="white"),
+                        on_click=self.change_direction
                     ),
                     ft.Container(
                         height=25,
@@ -47,6 +53,8 @@ class DeviceOptions(ft.UserControl):
 
     def _remove_self(self, *args, **kwargs):
         from quasi.gui.board.board import Board
+        self.control_instance.handle_remove()
+        ds = DeviceSettings.get_instance()
         b = Board.get_board()
         b.remove_device(self.control_instance)
         b.clear_menus()
@@ -60,3 +68,9 @@ class DeviceOptions(ft.UserControl):
         dt = DocumentationTab(self.device_instance)
         mp.new_documentation_tab(dt)
         self._remove_self()
+
+    def change_direction(self, e):
+        from quasi.gui.board.board import Board
+        self.control_instance.change_direction()
+        b = Board.get_board()
+        b.clear_menus()

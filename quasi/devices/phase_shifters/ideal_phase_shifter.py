@@ -4,6 +4,8 @@ Ideal Phase Shifter
 from quasi.devices import (GenericDevice,
                            wait_input_compute,
                            coordinate_gui,
+                           log_action,
+                           schedule_next_event,
                            ensure_output_compute)
 from quasi.devices.port import Port
 from quasi.signals import (GenericSignal,
@@ -13,6 +15,9 @@ from quasi.extra.logging import Loggers, get_custom_logger
 from quasi.gui.icons import icon_list
 from quasi.simulation import Simulation, SimulationType, ModeManager
 
+from photon_weave.operation.fock_operation  import (
+    FockOperationType, FockOperation
+)
 logger = get_custom_logger(Loggers.Devices)
 
 class IdealPhaseShifter(GenericDevice):
@@ -37,6 +42,10 @@ class IdealPhaseShifter(GenericDevice):
     power_peak = 0
     power_average = 0
     reference = None
+
+    def __init__(self, name=None, time=0, uid=None):
+        super().__init__(name=name, uid=uid)
+        self.phi = 0
 
     def set_phi(self, phi):
         """
@@ -84,3 +93,21 @@ class IdealPhaseShifter(GenericDevice):
             timestamp=0,
             mode_id=mode)
         self.ports["output"].signal.set_computed()
+
+    @log_action
+    @schedule_next_event
+    def des(self, time=None, *args, **kwargs):
+        if "theta" in kwargs.get("signals"):
+            self.theta = kwargs["signals"]["theta"].contents
+        if "input" in kwargs.get("signals"):
+            env = kwargs["signals"]["input"].contents
+            fo = FockOperation(
+                FockOperationType.PhaseShift,
+                phi=self.theta
+            )
+            env.apply_operation(fo)
+            signal = GenericQuantumSignal()
+            signal.set_contents(env)
+            result = [("output", signal, time)]
+            return result
+

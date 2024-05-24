@@ -54,12 +54,19 @@ class FloatVariable(GenericDevice):
         self.ports["float"].signal.set_computed()
 
     def set_value(self, value: str):
-        self.values["value"] = float(value)
+        print(f"Setting Value {value}")
+        if value == "":
+            self.values["value"] = float(0)
+        else:
+            self.values["value"] = float(value)
 
     @log_action
     @schedule_next_event
     def des_action(self, time=None, *args, **kwargs):
         signal = GenericFloatSignal()
-        signal.set_float(self.values["value"])
+        if self.values["value"] is None:
+            signal.set_float(0)
+        else:
+            signal.set_float(self.values["value"])
         result = [("float", signal, time)]
         return result

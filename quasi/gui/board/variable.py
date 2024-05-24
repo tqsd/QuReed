@@ -33,14 +33,17 @@ class VariableComponent(BaseDeviceComponent):
         if any(tag in ["float", "time"] for tag in self.device_class.gui_tags):
             self.input_filter = ft.InputFilter(
                 allow=True,
-                regex_string=r"[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?",
+                regex_string=r"[-+]?([0-9]*\.?[0-9]*)([eE][-+]?\d+)?",
                 replacement_string="",
             )
         elif "integer" in self.device_class.gui_tags:
             self.input_filter = ft.NumbersOnlyInputFilter()
-        value = kwargs.get("values")
-        if value:
-            value = value.get("value")
+        values = kwargs.get("values")
+        value=0
+        if values:
+            value = values.get("value")
+            if value is None:
+                value = values.get("time")
         self.field = ft.TextField(
             height=25,
             width=width - 10,

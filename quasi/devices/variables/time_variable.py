@@ -54,12 +54,15 @@ class TimeVariable(GenericDevice):
         self.ports["time"].signal.set_computed()
 
     def set_value(self, value: str):
-        self.values["time"] = float(value)
+        if value is "":
+            self.values["time"] = float(0)
+        else:
+            self.values["time"] = float(value)
 
     @log_action
     @schedule_next_event
     def des_action(self, time=None, *args, **kwargs):
         signal = GenericTimeSignal()
-        signal.set_time(self.values["value"])
+        signal.set_time(self.values["time"])
         result = [("time", signal, time)]
         return result

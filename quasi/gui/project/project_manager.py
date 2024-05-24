@@ -174,7 +174,6 @@ class ProjectManager:
         pm.update_project(self.path)
         
     def open_scheme(self, scheme):
-        print(f"Opening scheme {scheme}")
         board = Board.get_board()
         # save existing scheme to memory
         if self.current_scheme is not None:
@@ -187,7 +186,7 @@ class ProjectManager:
         bc = BoardConnector()
         if data.get("devices") is not None:
             for d in data["devices"]:
-                board.load_device(d["device"], d["location"], d["uuid"], d.get("values"))
+                board.load_device(d["device"], d["location"], d["uuid"], d.get("values"), d["name"])
 
             for s in data["connections"]:
                 bc.load_connection(s)
@@ -221,7 +220,7 @@ class ProjectManager:
                     #"device": type(d.device_instance),
                     "device": dt,
                     "location": (d.left*2, d.top*2),
-                    "name": d.device_instance.ref.name,
+                    "name": d.device_instance.name,
                     "uuid": d.device_instance.ref.uuid,
                 }
                 json_description["devices"].append(device)

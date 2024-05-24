@@ -192,21 +192,28 @@ class Ports(ft.UserControl):
             direction: str = "input"):
         super().__init__()
         self.port_num = 0
+        self.direction = direction
         self.page = page
         self.device = device
         self.device_cls = device_cls
         self.ports = []
         self.ports_controls = []
         for _, item in device_cls.ports.items():
-            if item.direction == direction:
+            if item.direction == self.direction:
                 self.ports.append(item)
         self.left_radius = 0
         self.right_radius = 0
-        if direction == "input":
+        if self.direction == "input":
             self.side = Ports.left_side
-        elif direction == "output":
+        elif self.direction == "output":
             self.side = Ports.right_side
         self.create_ports(self.side)
+
+    def compute_side(self):
+        if self.direction == "input":
+            self.side = Ports.left_side
+        elif self.direction == "output":
+            self.side = Ports.right_side
 
     def build(self) -> ft.Container():
         return ft.Container(
@@ -226,6 +233,7 @@ class Ports(ft.UserControl):
         """
         Creates ports component
         """
+        self.ports_controls = []
         for i, port in enumerate(self.ports):
             self.ports_controls.append(
                 PortComponent(
@@ -253,6 +261,22 @@ class Ports(ft.UserControl):
     def disconnect_all(self):
         for pc in self.ports_controls:
             pc.handle_on_right_click(e=None)
+
+    def set_side(self, new_side: str):
+        if new_side != self.side:
+            self.side = new_side
+            # Remove old port controls
+            self.ports_controls.clear()
+            # Create new port controls
+            self.create_ports(self.side)
+            # Reconstruct the content of the container
+            self.update_layout()
+
+    def update_layout(self):
+        # Assume build() returns a new ft.Container
+        self.build()
+        # Depending on the Flet structure you may need to explicitly set self.content or update self.base_wrapper
+        self.update()  
 
 
 class BoardConnector():
@@ -340,9 +364,9 @@ class BoardConnector():
             sig_2_cls = device_cls.ports[label].signal_type
             parent_sig_cls = None
             if issubclass(sig_1_cls, sig_2_cls):
-                parent_sig_cls = sig_2_cls
-            elif issubclass(sig_2_cls, sig_1_cls):
                 parent_sig_cls = sig_1_cls
+            elif issubclass(sig_2_cls, sig_1_cls):
+                parent_sig_cls = sig_2_cls
             else:
                 self.first_click = None
                 return

@@ -105,8 +105,6 @@ class SimulationWrapper:
         self.logger = logging.getLogger('SimulationWrapper')
         self.logger.setLevel(logging.DEBUG)
         self.log_handler = GuiLogHandler()
-        print("Simulation Wrapper")
-        print(id(self.log_handler))
         for log_name in Loggers:
             custom_logger = get_custom_logger(log_name)
             custom_logger.addHandler(self.log_handler)

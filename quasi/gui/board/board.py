@@ -9,6 +9,7 @@ import flet.canvas as cv
 from quasi.gui.board.device import Device
 from quasi.gui.board.variable import VariableComponent
 from quasi.gui.simulation.simulation_wrapper import SimulationWrapper
+from quasi.gui.panels.device_settings import DeviceSettings
 
 def get_class_from_string(class_path):
     """
@@ -33,6 +34,7 @@ class Board(ft.UserControl):
         self.group = "device"
         self.offset_x = 0
         self.offset_y = 0
+        self.selected_device = None
         self.menus = []
         self.current_scheme = "No diagram opened"
         # Canvas draws connection paths
@@ -163,9 +165,9 @@ class Board(ft.UserControl):
         self.sim_wrapper.add_device(dev_instance)
         e.control.update()
 
-    def load_device(self, dev_class, position, uid, values):
+    def load_device(self, dev_class, position, uid, values, name=None):
         dev_class = get_class_from_string(dev_class)
-        dev_instance = dev_class(uid=uid)
+        dev_instance = dev_class(uid=uid, name=name)
         if "variable" in dev_instance.gui_tags:
             d = VariableComponent(
                 page=self.page,
@@ -214,6 +216,7 @@ class Board(ft.UserControl):
 
     def on_click(self, e):
         self.clear_menus()
+        self.handle_device_select()
 
     def on_scroll(self, e):
         pass
@@ -247,6 +250,8 @@ class Board(ft.UserControl):
             raise Exception("Either uuid or sim_device Must be given")
 
     def set_new_scheme(self, scheme: str):
+        self.selected_device = None
+        self.handle_device_select()
         self.current_scheme = scheme
         self.scheme_name.content.value = scheme
         self.scheme_name.update() 
@@ -255,3 +260,13 @@ class Board(ft.UserControl):
         self.scheme_name.top = top
         self.scheme_name.left = left
         self.scheme_name.update()
+
+    def handle_device_select(self, device=None):
+        ds = DeviceSettings.get_instance()
+        ds.show_device_settings(device)
+        if self.selected_device is not None:
+            if not device is self.selected_device:
+                self.selected_device.deselect()
+        self.selected_device = device
+
+    

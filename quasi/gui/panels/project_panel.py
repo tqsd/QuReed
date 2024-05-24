@@ -5,6 +5,7 @@ import flet as ft
 from quasi.gui.project import ProjectManager
 from quasi.gui.panels.side_panel import DraggableDevice
 from quasi.gui.board.board import Board
+from quasi.gui.panels.device_settings import DeviceSettings
 
 class ProjectPanel(ft.Container):
     _instance = None
@@ -39,7 +40,8 @@ class ProjectPanel(ft.Container):
                 bottom=0,
                 left=5,
                 content=self.file_list
-            )
+            ),
+            DeviceSettings()
         ])
         pm = ProjectManager()
         self.files = pm.get_file_tree()
@@ -137,6 +139,7 @@ class File(ft.TextButton):
 
         if self.name[-3:] == ".py":
             pm = ProjectManager()
+            print(self.path)
             self.cls = pm.load_class_from_file(self.path)
             self.content=DraggableDevice(
                 d_cls={"class":self.cls},
