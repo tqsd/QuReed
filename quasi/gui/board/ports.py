@@ -2,6 +2,7 @@
 This file implements
 the gui port functionality
 """
+
 from typing import List, Tuple
 
 import flet as ft
@@ -12,12 +13,13 @@ from quasi.gui.board.connections import Connection
 from quasi.gui.board.info_bar import InfoBar
 from quasi.gui.simulation import SimulationWrapper
 
+
 def get_class_from_string(class_path):
     """
     Helper for loading board from a saved file
     """
-    parts = class_path.split('.')
-    module_path = '.'.join(parts[:-1])
+    parts = class_path.split(".")
+    module_path = ".".join(parts[:-1])
     class_name = parts[-1]
 
     module = __import__(module_path, fromlist=[class_name])
@@ -31,15 +33,17 @@ class PortComponent(ft.UserControl):
     it includes logic for GUI port.
     """
 
-    def __init__(self,
-                 page: ft.Page,
-                 index:  int,
-                 num_of_ports: int,
-                 label,
-                 device_comp,
-                 device_cls,
-                 side: str,
-                 port_instance=None):
+    def __init__(
+        self,
+        page: ft.Page,
+        index: int,
+        num_of_ports: int,
+        label,
+        device_comp,
+        device_cls,
+        side: str,
+        port_instance=None,
+    ):
         super().__init__()
         self.num_of_ports = num_of_ports
         self.index = index
@@ -68,9 +72,9 @@ class PortComponent(ft.UserControl):
                 width=10,
                 bgcolor=Ports.default_color,
                 border_radius=ft.border_radius.horizontal(
-                    left=self.left_radius,
-                    right=self.right_radius)
-            )
+                    left=self.left_radius, right=self.right_radius
+                ),
+            ),
         )
 
     def build(self) -> ft.Container:
@@ -94,12 +98,12 @@ class PortComponent(ft.UserControl):
         port relative to the
         ft.Stack()
         """
-        x = 2*self.device.left
+        x = 2 * self.device.left
         if self.side == Ports.right_side:
             x += self.device.base_wrapper_width - 5
         elif self.side == Ports.left_side:
             x += 5
-        y = 2*self.device.top + self.device.header_height
+        y = 2 * self.device.top + self.device.header_height
         y += self.vertical_offset()
         return [x, y]
 
@@ -107,10 +111,9 @@ class PortComponent(ft.UserControl):
         """
         Computes vertical offset of the port component
         """
-        offset = (self.device.base_wrapper_height -
-                  self.device.header_height)
+        offset = self.device.base_wrapper_height - self.device.header_height
         offset /= self.num_of_ports * 2
-        offset = offset * (1 + 2*self.index)
+        offset = offset * (1 + 2 * self.index)
         return offset
 
     def connect(self):
@@ -171,7 +174,6 @@ class PortComponent(ft.UserControl):
             self.connection.move(self, delta_x, delta_y)
 
 
-
 class Ports(ft.UserControl):
     """
     Ports is a component, which includes
@@ -184,12 +186,7 @@ class Ports(ft.UserControl):
     right_side = "RIGHT"
     left_side = "LEFT"
 
-    def __init__(
-            self,
-            page: ft.Page,
-            device,
-            device_cls,
-            direction: str = "input"):
+    def __init__(self, page: ft.Page, device, device_cls, direction: str = "input"):
         super().__init__()
         self.port_num = 0
         self.direction = direction
@@ -225,8 +222,8 @@ class Ports(ft.UserControl):
             content=ft.Column(
                 spacing=5,
                 alignment=ft.MainAxisAlignment.SPACE_AROUND,
-                controls=self.ports_controls
-            )
+                controls=self.ports_controls,
+            ),
         )
 
     def create_ports(self, side):
@@ -244,7 +241,7 @@ class Ports(ft.UserControl):
                     side=side,
                     device_comp=self.device,
                     device_cls=self.device_cls,
-                    port_instance=port
+                    port_instance=port,
                 )
             )
 
@@ -276,10 +273,10 @@ class Ports(ft.UserControl):
         # Assume build() returns a new ft.Container
         self.build()
         # Depending on the Flet structure you may need to explicitly set self.content or update self.base_wrapper
-        self.update()  
+        self.update()
 
 
-class BoardConnector():
+class BoardConnector:
     """
     BoardConnector implements
     the port connecting functionality
@@ -287,14 +284,15 @@ class BoardConnector():
     """
 
     def __new__(cls, *args, **kwargs):
-        if not hasattr(cls, 'instance'):
+        if not hasattr(cls, "instance"):
             cls.instance = super(BoardConnector, cls).__new__(cls)
         return cls.instance
 
     def __init__(self, *args, **kwargs):
         # pylint: disable=import-outside-toplevel
         from quasi.gui.board.board import Board
-        if not hasattr(self, 'initialized'):
+
+        if not hasattr(self, "initialized"):
             self.first_location = None
             self.page = Board.get_board().page
             self.first_click = None
@@ -302,8 +300,7 @@ class BoardConnector():
             self.canvas = Board.get_canvas()
             self.board = Board.get_board()
 
-    def draw_connection(self, point1=(100, 100),
-                        point2=(200, 200)):
+    def draw_connection(self, point1=(100, 100), point2=(200, 200)):
         """
         Draws the connection between the
         two points
@@ -315,15 +312,16 @@ class BoardConnector():
                 cv.Path.CubicTo(
                     point1[0] + strength * (point2[0] - point1[0]),
                     point1[1],
-                    point1[0] + (1-strength) * (point2[0] - point1[0]),
+                    point1[0] + (1 - strength) * (point2[0] - point1[0]),
                     point2[1],
-                    point2[0], point2[1]
+                    point2[0],
+                    point2[1],
                 ),
             ],
             paint=ft.Paint(
-                    stroke_width=3,
-                    style=ft.PaintingStyle.STROKE,
-                ),
+                stroke_width=3,
+                style=ft.PaintingStyle.STROKE,
+            ),
         )
         self.canvas.shapes.append(conn)
         self.canvas.update()
@@ -336,7 +334,6 @@ class BoardConnector():
         if port.connection is not None:
             port.connection.remove()
 
-
     def handle_connect(self, port: Port, device_cls, label):
         """
         Handler for connection creation.
@@ -348,11 +345,7 @@ class BoardConnector():
                 self.first_click = None
             return
         if self.first_click is None:
-            self.first_click = {
-                "port": port,
-                "device_cls": device_cls,
-                "label": label
-            }
+            self.first_click = {"port": port, "device_cls": device_cls, "label": label}
             self.first_location = port.get_location_on_board()
             self.first_click["port"].activate()
         else:
@@ -360,7 +353,11 @@ class BoardConnector():
             # INFORM THE SIMULATION KERNEL ABOUT THE CONNECTION
             sim_wrp = SimulationWrapper()
             # Checking if the signals match
-            sig_1_cls = self.first_click["device_cls"].ports[self.first_click["label"]].signal_type
+            sig_1_cls = (
+                self.first_click["device_cls"]
+                .ports[self.first_click["label"]]
+                .signal_type
+            )
             sig_2_cls = device_cls.ports[label].signal_type
             parent_sig_cls = None
             if issubclass(sig_1_cls, sig_2_cls):
@@ -376,11 +373,10 @@ class BoardConnector():
                 dev1=self.first_click["device_cls"],
                 port_label_1=self.first_click["label"],
                 dev2=device_cls,
-                port_label_2=label
+                port_label_2=label,
             )
             self.first_click["port"].connect()
-            conn = Connection(port_a=self.first_click["port"],
-                              port_b=port)
+            conn = Connection(port_a=self.first_click["port"], port_b=port)
             port.connect()
             conn.draw()
             self.first_click["port"].assign_connection(conn)
@@ -389,6 +385,7 @@ class BoardConnector():
 
     def load_connection(self, connection):
         from quasi.gui.board.board import Board
+
         sim_wrp = SimulationWrapper()
         signal_class = get_class_from_string(connection["signal"])
         dev1 = sim_wrp.get_device(connection["conn"][0]["device_uuid"])
@@ -396,13 +393,8 @@ class BoardConnector():
         dev2 = sim_wrp.get_device(connection["conn"][1]["device_uuid"])
         pl2 = connection["conn"][1]["port"]
 
-   
         sim_wrp.create_connection(
-            sig=signal_class(),
-            dev1=dev1,
-            port_label_1=pl1,
-            dev2=dev2,
-            port_label_2=pl2
+            sig=signal_class(), dev1=dev1, port_label_1=pl1, dev2=dev2, port_label_2=pl2
         )
         b = Board.get_board()
         port1 = b.get_device(sim_device=dev1).get_port(pl1)

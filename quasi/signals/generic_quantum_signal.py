@@ -1,10 +1,10 @@
 """
 Generic Quantum Signal implementation
 """
+
 from enum import Enum, auto
 
 from quasi.signals.generic_signal import GenericSignal
-
 
 
 class GenericQuantumSignal(GenericSignal):
@@ -18,10 +18,7 @@ class GenericQuantumSignal(GenericSignal):
         self.mode_id = None
         self.timestamp = None
 
-    def set_contents(self,
-                     timestamp=None,
-                     mode_id=None,
-                     content=None):
+    def set_contents(self, content=None, timestamp=None, mode_id=None):
         self.timestamp = timestamp
         self.mode_id = mode_id
         self.contents = content

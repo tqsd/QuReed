@@ -2,19 +2,18 @@
 This is the connection between the GUI and
 the simulation engine
 """
+
 import logging
 import threading
 import platform
 
 from quasi.simulation import Simulation
 from quasi.extra import Loggers, get_custom_logger
-from quasi.gui.report import GuiLogHandler 
-from .remote_log_handler import (
-    find_free_port,
-    start_tcp_server
-)
+from quasi.gui.report import GuiLogHandler
+from .remote_log_handler import find_free_port, start_tcp_server
 
 import subprocess
+
 
 class SimulationWrapper:
     """
@@ -23,6 +22,7 @@ class SimulationWrapper:
 
     its control to the gui
     """
+
     __instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -47,38 +47,48 @@ class SimulationWrapper:
         """
         from quasi.gui.project import ProjectManager
         from quasi.gui.report import Report
-        print("executing")
+
         pm = ProjectManager()
         pm.save()
 
         if pm.venv is None:
             return
-        
+
         if Report._instance is not None:
             r = Report._instance
             r.clean_logs()
 
         system = platform.system()
-        if system == 'Windows':
+        if system == "Windows":
             python_executable = f"{pm.venv}\\Scripts\\quasi-execute"
         else:  # Assume UNIX-like for any other system
             python_executable = f"{pm.venv}/bin/quasi-execute"
         PORT = find_free_port()
         server, server_thread = start_tcp_server(PORT)
-        command = [python_executable, "--scheme" , f"{pm.path}/experiment.json",
-                   "--sim_type", "des", "--duration", "10", "--port", str(PORT)]
-        print(command)
+        command = [
+            python_executable,
+            "--scheme",
+            f"{pm.path}/experiment.json",
+            "--sim_type",
+            "des",
+            "--duration",
+            "10",
+            "--port",
+            str(PORT),
+        ]
         try:
-            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process = subprocess.Popen(
+                command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
 
             # Thread to read stdout
             def read_stdout():
-                for line in iter(process.stdout.readline, b''):
+                for line in iter(process.stdout.readline, b""):
                     self.logger.info(line.decode().strip())
 
             # Thread to read stderr
             def read_stderr():
-                for line in iter(process.stderr.readline, b''):
+                for line in iter(process.stderr.readline, b""):
                     self.logger.error(line.decode().strip())
 
             stdout_thread = threading.Thread(target=read_stdout)
@@ -102,7 +112,7 @@ class SimulationWrapper:
             self.logger.info("TCP server has been shut down")
 
     def _setup_logging(self):
-        self.logger = logging.getLogger('SimulationWrapper')
+        self.logger = logging.getLogger("SimulationWrapper")
         self.logger.setLevel(logging.DEBUG)
         self.log_handler = GuiLogHandler()
         for log_name in Loggers:
@@ -121,9 +131,7 @@ class SimulationWrapper:
             return d[0]
         return None
 
-    def create_connection(self, sig,
-                          dev1, port_label_1,
-                          dev2, port_label_2):
+    def create_connection(self, sig, dev1, port_label_1, dev2, port_label_2):
         dev1.register_signal(signal=sig, port_label=port_label_1)
         dev2.register_signal(signal=sig, port_label=port_label_2)
         self.signals.append(sig)

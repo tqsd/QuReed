@@ -183,17 +183,19 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         if port.signal is not None:
             if not override:
                 raise PortConnectedException(
-                    "Signal was already registered for the port\n"
-                    + "If this is intended, set override to True"
+                    f"Signal was already registered for the port\n"
+                    + "If this is intended, set override to True\n"
+                    + f"Device: {type(self)}, {self.name}, {self.ref.uuid}\n"
+                    + f"Port: {type(port.signal)}, {port_label}"
                 )
 
         if not (
             isinstance(signal, port.signal_type)
             or issubclass(type(signal), port.signal_type)
         ):
-            print(signal, port.signal_type)
-            print(type(signal), port.signal_type)
-            raise PortSignalMismatchException("This port does not support selected signal")
+            raise PortSignalMismatchException(
+                "This port does not support selected signal"
+            )
 
         signal.register_port(port, self)
         port.signal = signal
