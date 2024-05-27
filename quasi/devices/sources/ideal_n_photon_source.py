@@ -124,7 +124,7 @@ class IdealNPhotonSource(GenericDevice):
         if "photon_num" in kwargs["signals"]:
             self.set_photon_num(float(kwargs["signals"]["photon_num"].contents))
         elif "trigger" in kwargs["signals"] and self.photon_num is not None:
-            n = self.photon_num
+            n = int(self.photon_num)
             # Creating new envelopt
             env = Envelope()
             # Applying operation

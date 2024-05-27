@@ -70,6 +70,7 @@ class IdealDetector(GenericDevice):
         env = kwargs["signals"]["input"].contents
         outcome = env.measure()
         signal = GenericIntSignal()
+        print(outcome)
         signal.set_int(outcome)
 
         results = [("output", signal, time)]

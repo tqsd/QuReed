@@ -2,8 +2,9 @@
 Generic Float Signal implementation
 """
 from quasi.signals.generic_signal import GenericSignal
+from quasi.signals.generic_complex_signal import GenericComplexSignal
 
-class GenericFloatSignal(GenericSignal):
+class GenericFloatSignal(GenericComplexSignal):
     """
     All Quantum Signals should extend this class
     """
