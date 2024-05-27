@@ -136,6 +136,14 @@ class SimulationWrapper:
         dev2.register_signal(signal=sig, port_label=port_label_2)
         self.signals.append(sig)
 
+    def remove_connection(self, sig):
+        signal_to_remove = None
+        for s in self.signals:
+            print(s.ports)
+        print(sig)
+        print(self.signals)
+        self.signals.remove(sig)
+
     def clear(self):
         self.simulation.clear_all()
         self.devices = []

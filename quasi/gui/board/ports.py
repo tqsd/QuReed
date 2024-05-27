@@ -332,7 +332,12 @@ class BoardConnector:
         with right click
         """
         if port.connection is not None:
+            sim_wrp = SimulationWrapper()
+            pi = port.port_instance
+            if not pi.signal is None:
+                sim_wrp.remove_connection(sig=pi.signal)
             port.connection.remove()
+            
 
     def handle_connect(self, port: Port, device_cls, label):
         """

@@ -137,7 +137,7 @@ class IdealCoherentSource(GenericDevice):
                 raise Exception("Alpha not provided")
             if signals["trigger"].contents:
                 env = Envelope()
-                env.fock.dimensions = 24
+                env.fock.dimensions = 10
                 op = FockOperation(FockOperationType.Displace, alpha=self.alpha)
                 env.apply_operation(op)
                 signal = GenericQuantumSignal()
