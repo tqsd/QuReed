@@ -11,6 +11,8 @@ a = Analysis(
     
     datas=[
         ('quasi/gui/assets/*', 'quasi/gui/assets'), 
+        ('wheels/linux/*.whl', 'wheels/linux'),  # Linux wheels
+        ('wheels/windows/*.whl', 'wheels/windows') # Windows wheels
     ], 
     hiddenimports=[
         'numpy', 'numba', 'scipy', 'flet', 'matplotlib', 'qutip', 

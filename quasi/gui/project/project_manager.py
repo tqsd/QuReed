@@ -48,8 +48,9 @@ class ProjectManager:
             self.venv = kwargs["venv"]
 
     def install(self, *packages):
-        # Use packages from arguments or fallback to config.toml packages
         packages = packages if packages else self.packages
+        os_name = platform.system().lower()
+        wheel_dir = Path(self.path) / 'wheels' / os_name
 
         if not packages:
             config_path = Path(self.path) / "config.toml"
@@ -57,28 +58,18 @@ class ProjectManager:
                 config = toml.load(config_path)
                 packages = config.get("packages", [])
 
-        # Ensure virtual environment path is set
-        if not hasattr(self, "venv"):
-            return
+        if packages:
+            self.update_config(packages)  # Update the config file with the new packages
 
-        if platform.system() == "Windows":
-            python_exec = Path(self.venv) / "Scripts" / "python.exe"
-        else:
-            python_exec = Path(self.venv) / "bin" / "python"
+        python_executable = Path(self.venv_path) / 'bin' / 'python' if os_name != 'windows' else Path(self.venv_path) / 'Scripts' / 'python.exe'
+        for package in packages:
+            wheel_files = list(wheel_dir.glob(f'{package}*.whl'))
+            if wheel_files:
+                wheel_file = wheel_files[0]
+                subprocess.run([str(python_executable), '-m', 'pip', 'install', str(wheel_file)], check=True)
+            else:
+                print(f"No wheel file found for {package}")
 
-        command = [str(python_exec), "-m", "pip", "install"] + list(packages)
-        try:
-            subprocess.run(command, check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Error: Failed to install packages. {e}")
-            return
-
-        # Update config.toml file
-        config_path = Path(self.path) / "config.toml"
-        config = toml.load(config_path) if config_path.exists() else {}
-        config["packages"] = list(packages)
-        with open(config_path, "w") as file:
-            toml.dump(config, file)
 
     def load_class_from_file(self, relative_module_path):
         # Construct the full path to the module file

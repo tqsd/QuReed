@@ -54,7 +54,7 @@ class TimeVariable(GenericDevice):
         self.ports["time"].signal.set_computed()
 
     def set_value(self, value: str):
-        if value is "":
+        if value == "":
             self.values["time"] = float(0)
         else:
             self.values["time"] = float(value)

@@ -122,7 +122,8 @@ class FileMenu(ft.UserControl):
         pm = ProjectManager()
         pm.configure(path=project_path)
         pm.configure(venv=f"{project_path}/.venv")
-        pm.install("git+ssh://git@github.com/tqsd/QuaSi.git@master")
+        pm.install("photon_weave")
+        pm.install("quasi")
         self.close_dialog()
         e.path = project_path
         self.handle_open_project(e)
