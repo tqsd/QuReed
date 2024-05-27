@@ -72,6 +72,7 @@ class FileMenu(ft.UserControl):
         return self.menu
 
     def handle_new_project(self, e):
+        print("NEW PROJECT")
         project_path = e.path
         self.new_project_name = ft.TextField()
         self.dlg = ft.AlertDialog(

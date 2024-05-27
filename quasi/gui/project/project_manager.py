@@ -29,6 +29,10 @@ class ProjectManager:
             cls._instance.modified_schemes = {}
             cls._instance.packages = []
             cls._instance.current_scheme = None
+            # Determine if running in a PyInstaller bundle
+            if getattr(sys, 'frozen', False):
+            # If the application is run from a PyInstaller bundle
+               cls._instance.base_path = Path(sys._MEIPASS)
         return cls._instance
 
     def configure(self, **kwargs):
@@ -47,28 +51,82 @@ class ProjectManager:
         if "venv" in kwargs:
             self.venv = kwargs["venv"]
 
+    def load_config(self):
+        """ Load the existing configuration from a TOML file. """
+        config_path = Path(self.path) / "config.toml"
+        if config_path.exists():
+            with open(config_path, 'r') as file:
+                return toml.load(file)
+        return {}
+
+    def update_config(self, updates):
+        """
+        Update the configuration file with new values.
+
+        Args:
+        updates (dict): A dictionary containing configuration updates.
+        """
+
+        config_path = Path(self.path) / "config.toml"
+        with open(config_path, 'r') as f:
+            config = toml.load(f)
+
+        # Update the configuration with new values
+        for key, value in updates.items():
+            if isinstance(value, list):
+                # Ensure no duplicate entries in lists
+                existing_items = set(config.get(key, []))
+                updated_items = existing_items.union(set(value))
+                config[key] = list(updated_items)
+            else:
+                # Update or add new key-value pairs
+                config[key] = value
+
+        print("-------------------------------------------")
+        # Write the updated configuration back to the file
+        with open(config_path, 'w') as file:
+            toml.dump(config, file)
+        
+
     def install(self, *packages):
         packages = packages if packages else self.packages
         os_name = platform.system().lower()
-        wheel_dir = Path(self.path) / 'wheels' / os_name
+        wheel_dir = Path(self.base_path) / 'wheels' / os_name
 
         if not packages:
             config_path = Path(self.path) / "config.toml"
             if config_path.exists():
                 config = toml.load(config_path)
                 packages = config.get("packages", [])
+        else:
+            if packages:
+                self.update_config({'packages': list(packages)})
 
-        if packages:
-            self.update_config(packages)  # Update the config file with the new packages
-
-        python_executable = Path(self.venv_path) / 'bin' / 'python' if os_name != 'windows' else Path(self.venv_path) / 'Scripts' / 'python.exe'
+        python_executable = Path(self.venv) / 'bin' / 'python' if os_name != 'windows' else Path(self.venv) / 'Scripts' / 'python.exe'
         for package in packages:
             wheel_files = list(wheel_dir.glob(f'{package}*.whl'))
+            print(f"Searching for wheels in {wheel_dir} for package {package}")
             if wheel_files:
                 wheel_file = wheel_files[0]
                 subprocess.run([str(python_executable), '-m', 'pip', 'install', str(wheel_file)], check=True)
             else:
-                print(f"No wheel file found for {package}")
+                print(f"NO WHEEL FOR {package}")
+                if package == "quasi":
+                    subprocess.run(
+                        [
+                            str(python_executable),
+                            '-m',
+                            'pip', 'install',
+                            "git+ssh://git@github.com/tqsd/QuaSi.git@master"
+                        ], check=True)
+                if package == "photon_weave":
+                    subprocess.run(
+                        [
+                            str(python_executable),
+                            '-m',
+                            'pip', 'install',
+                            "git+ssh://git@github.com/tqsd/photon_weave.git@master"
+                        ], check=True)
 
 
     def load_class_from_file(self, relative_module_path):
@@ -95,6 +153,8 @@ class ProjectManager:
         class_name = str(Path(full_path).name)[:-3]
         class_name = ''.join(x.capitalize() or '_' for x in class_name.split('_'))
         # Dynamically import the module
+        print(module_str)
+        from photon_weave.state.composite_envelope import CompositeEnvelope
         module = importlib.import_module(module_str)
         
         # Inspect the module and return the first found class

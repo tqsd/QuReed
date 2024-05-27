@@ -1,14 +1,18 @@
 # -*- mode: python ; coding: utf-8 -*-
 import platform
-
+from PyInstaller.utils.hooks import collect_dynamic_libs
+from PyInstaller.utils.hooks import collect_all
 
 block_cipher = None
+
+def hook(hook_api):
+    packages = collect_all('qutip')
 
 
 a = Analysis(
     ['quasi/gui/main.py'],
     pathex=['.'],
-    binaries=[],
+    binaries = collect_dynamic_libs('qutip', destdir='qutip/core/cy'),
     
     datas=[
         ('quasi/gui/assets/*', 'quasi/gui/assets'), 
@@ -19,9 +23,10 @@ a = Analysis(
         'numpy', 'numba', 'scipy', 'flet', 'matplotlib', 'qutip', 
         'seaborn', 'plotly', 'jinja2', 'mpmath', 'toml', 
         'scipy.special._ufuncs', 'scipy.special._cdflib',
-        'photon_weave'
+        'photon_weave',
+        'photon_weave.state.envelope',
     ], 
-    hookspath=['hooks'],
+    hookspath=['./hooks'],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
@@ -30,10 +35,9 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
-os_name = platform.syste().lower()
+
+
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
-wheel_path = 'wheels/windows' if os_name == 'windows' else 'wheels/linux'
-a.datas += [(f'{wheel_path}/*.whl', 'wheels')]
 
 exe = EXE(
     pyz,
