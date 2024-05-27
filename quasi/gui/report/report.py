@@ -6,14 +6,12 @@ class GuiLogHandler(logging.Handler):
 
     def __new__(cls, *args, **kwargs):
         if cls.__instance is None:
-            print("\n\n\nCREATING NEW GUI LOG HANDLER\n\n\n")
             cls.__instance = super(GuiLogHandler, cls).__new__(cls)
         return cls.__instance
 
     def __init__(self, output_control=None):
         super().__init__()
         if not hasattr(self, 'initialized'):  # Prevents reinitialization
-            print("INITIALIZING....................................................")
             self.output_control = output_control
             self.log_buffer = []
             self.new_buffer = []
@@ -68,8 +66,6 @@ class Report(ft.UserControl):
                 content_padding= ft.padding.all(20),
                 read_only=True)
             self.log_handler = GuiLogHandler(self.logs_control)
-            print("Report")
-            print(self.log_handler)
             self.initialized = True
 
     def build(self) -> ft.Container:

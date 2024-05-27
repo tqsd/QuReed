@@ -139,7 +139,6 @@ class File(ft.TextButton):
 
         if self.name[-3:] == ".py":
             pm = ProjectManager()
-            print(self.path)
             self.cls = pm.load_class_from_file(self.path)
             self.content=DraggableDevice(
                 d_cls={"class":self.cls},

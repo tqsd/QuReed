@@ -28,6 +28,7 @@ class Connection():
         self._simulation_create_signal()
 
     def _simulation_create_signal(self):
+        return
         print("Creating signal in the simulation kernel")
         print(type(self.port_a))
         print(dir(self.port_a.device))

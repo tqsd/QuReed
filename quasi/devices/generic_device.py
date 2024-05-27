@@ -32,7 +32,6 @@ def log_action(method):
             )
 
         # Now, pass the formatted_message to the log
-        # print(formatted_message)
         l.info(formatted_message)
         return method(self, time, *args, **kwargs)
 
@@ -135,7 +134,6 @@ def schedule_next_event(method):
                             time_as_float,
                         )
                     )
-                # print(formatted_message)
                 l.info(formatted_message)
                 signals = {port: signal}
                 self.simulation.schedule_event(time, next_device, signals=signals)

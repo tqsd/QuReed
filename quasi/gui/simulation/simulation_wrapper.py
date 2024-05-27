@@ -138,10 +138,6 @@ class SimulationWrapper:
 
     def remove_connection(self, sig):
         signal_to_remove = None
-        for s in self.signals:
-            print(s.ports)
-        print(sig)
-        print(self.signals)
         self.signals.remove(sig)
 
     def clear(self):

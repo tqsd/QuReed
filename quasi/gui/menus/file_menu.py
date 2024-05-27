@@ -100,10 +100,8 @@ class FileMenu(ft.UserControl):
             f"{project_path}/plots",
         ]
         for directory in directories:
-            print(directory)
             os.makedirs(directory, exist_ok=True)
             if "custom" in directory:  # Check if it's a package directory
-                print("should create init")
                 init_file_path = os.path.join(directory, '__init__.py')
                 with open(init_file_path, 'w') as init_file:
                     init_file.write("# This file is required to make Python treat the directories as containing packages.\n")
@@ -122,11 +120,8 @@ class FileMenu(ft.UserControl):
         subprocess.run([python_command, "-m", "venv",  os.path.join(project_path, ".venv")], check=True)
         print([python_command, "-m", "venv",  os.path.join(project_path, ".venv")])
         pm = ProjectManager()
-        print("Configuring path")
         pm.configure(path=project_path)
-        print("Configuring venv")
         pm.configure(venv=f"{project_path}/.venv")
-        print("Installing")
         pm.install("git+ssh://git@github.com/tqsd/QuaSi.git@master")
         self.close_dialog()
         e.path = project_path
@@ -140,7 +135,6 @@ class FileMenu(ft.UserControl):
             if not config_data.get("software") == "QuaSi":
                 return 
         pm = ProjectManager()
-        print("Opening existing project")
         pm.open_project(project_path)
 
     def handle_open(self, e):
@@ -183,7 +177,6 @@ class FileMenu(ft.UserControl):
         self.handle_save()
 
     def close_dialog(self, e=None):
-        print("close dialog")
         self.dlg.open = False
         self.page.update()
 

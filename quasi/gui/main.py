@@ -53,7 +53,6 @@ def start():
         base_path = os.path.dirname(os.path.abspath(__file__))
 
     assets_path = os.path.join(base_path, "quasi", "gui", "assets")
-    print("Assets directory:", assets_path)
     ft.app(target=main, assets_dir=assets_path)
 
 
