@@ -120,7 +120,6 @@ class IdealPhaseShifter(GenericDevice):
         if "theta" in kwargs.get("signals"):
             self.theta = kwargs["signals"]["theta"].contents
         if "input" in kwargs.get("signals"):
-            print(f"Shifting by {self.theta}")
             env = kwargs["signals"]["input"].contents
             fo = FockOperation(FockOperationType.PhaseShift, phi=self.theta)
             env.apply_operation(fo)
