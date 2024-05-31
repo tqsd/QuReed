@@ -198,15 +198,6 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         signal.register_port(port, self)
         port.signal = signal
 
-    @wait_input_compute
-    @coordinate_gui
-    @abstractmethod
-    def compute_outputs(self):
-        """
-        Computes all outputs given the inputs.
-        Output is computed when all of the input signal (COMPUTED is set)
-        """
-
     @property
     @abstractmethod
     def ports(self) -> Dict[str, Type["Port"]]:
@@ -215,15 +206,15 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
 
     @property
     @abstractmethod
-    def power_average(self):
-        """Average Power Draw"""
-        raise NotImplementedError("power must be defined")
+    def gui_name(self):
+        """Gui name"""
+        raise NotImplementedError("gui_name must be defined")
 
     @property
     @abstractmethod
-    def power_peak(self):
-        """Peak Power Draw"""
-        raise NotImplementedError("peak_power must be defined.")
+    def gui_icon(self):
+        """Gui name"""
+        raise NotImplementedError("gui_icon must be defined")
 
     @property
     @abstractmethod
@@ -232,7 +223,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         Reference is used to compile references for specific
         experiment.
         """
-        raise NotImplementedError("Can be set to None")
+        raise NotImplementedError("reference can be set to None, but must be implemented")
 
     def set_coordinator(self, coordinator):
         """
@@ -248,7 +239,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         elif hasattr(self, "des_action"):
             self.des_action(time, *args, **kwargs)
         else:
-            raise DESActionNotDefined()
+            raise DESActionNotDefined("Either des or des_action method must be defined")
 
     def get_next_device_and_port(self, port: str):
         port = self.ports[port]

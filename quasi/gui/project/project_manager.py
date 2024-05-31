@@ -29,6 +29,7 @@ class ProjectManager:
             cls._instance.modified_schemes = {}
             cls._instance.packages = []
             cls._instance.current_scheme = None
+            cls._instance.base_path = None
             # Determine if running in a PyInstaller bundle
             if getattr(sys, 'frozen', False):
             # If the application is run from a PyInstaller bundle
@@ -91,7 +92,10 @@ class ProjectManager:
     def install(self, *packages):
         packages = packages if packages else self.packages
         os_name = platform.system().lower()
-        wheel_dir = Path(self.base_path) / 'wheels' / os_name
+
+        wheel_dir = None
+        if not self.base_path is None:
+            wheel_dir = Path(self.base_path) / 'wheels' / os_name
 
         if not packages:
             config_path = Path(self.path) / "config.toml"
@@ -104,7 +108,9 @@ class ProjectManager:
 
         python_executable = Path(self.venv) / 'bin' / 'python' if os_name != 'windows' else Path(self.venv) / 'Scripts' / 'python.exe'
         for package in packages:
-            wheel_files = list(wheel_dir.glob(f'{package}*.whl'))
+            wheel_files = None
+            if not wheel_dir is None:
+                wheel_files = list(wheel_dir.glob(f'{package}*.whl'))
             print(f"Searching for wheels in {wheel_dir} for package {package}")
             if wheel_files:
                 wheel_file = wheel_files[0]
