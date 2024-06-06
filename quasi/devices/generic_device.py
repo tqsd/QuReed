@@ -223,7 +223,9 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         Reference is used to compile references for specific
         experiment.
         """
-        raise NotImplementedError("reference can be set to None, but must be implemented")
+        raise NotImplementedError(
+            "reference can be set to None, but must be implemented"
+        )
 
     def set_coordinator(self, coordinator):
         """

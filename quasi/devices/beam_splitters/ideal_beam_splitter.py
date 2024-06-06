@@ -1,100 +1,221 @@
 """
-Ideal Beam Splitter implementation
+Ideal Beam Splitter
 """
 
-from quasi.devices import (GenericDevice,
-                           schedule_next_event,
-                           log_action,
-                           wait_input_compute,
-                           ensure_output_compute)
+import heapq
+import mpmath
+
+from quasi.devices.generic_device import (
+    GenericDevice,
+    log_action,
+    ensure_output_compute,
+    schedule_next_event,
+    wait_input_compute,
+)
 from quasi.devices.port import Port
-from quasi.signals import (GenericSignal,
-                           GenericQuantumSignal)
-from math import pi
-
+from quasi.simulation import Simulation
+from quasi.extra import Reference
+from quasi.signals import GenericQuantumSignal
 from quasi.gui.icons import icon_list
-from quasi.simulation import Simulation, SimulationType, ModeManager
-from quasi.extra.logging import Loggers, get_custom_logger
-from photon_weave.state.envelope import Envelope
 
-logger = get_custom_logger(Loggers.Devices)
+from photon_weave.state.envelope import Envelope
+from photon_weave.state.composite_envelope import CompositeEnvelope
+from photon_weave.operation.composite_operation import (
+    CompositeOperation,
+    CompositeOperationType,
+)
+
+
+_BEAM_SPLITTER_BIB = {
+    "title": "Quantum theory of the lossless beam splitter",
+    "author": "Fearn, H and Loudon, R",
+    "journal": "Optics communications",
+    "volume": 64,
+    "number": 6,
+    "pages": "485--490",
+    "year": 1987,
+    "publisher": "Elsevier",
+}
+
+_BEAM_SPLITTER_DOI = "10.1016/0030-4018(87)90275-6"
+
+
+class PhotonEvent:
+    def __init__(self, mean_time, std_dev, port, *args, **kwargs):
+        self.port = port
+        self.mean_time = mean_time
+        self.std_dev = std_dev
+        self.args = args
+        self.kwargs = kwargs
+
 
 class IdealBeamSplitter(GenericDevice):
     """
-    Implements Ideal Single Photon Source
+    Ideal Beam Splitter Device
     """
+
     ports = {
-        "A": Port(label="A", direction="input", signal=None,
-                  signal_type=GenericQuantumSignal, device=None),
-        "B": Port(label="B", direction="input", signal=None,
-                  signal_type=GenericQuantumSignal, device=None),
-        "C": Port(label="C", direction="output", signal=None,
-                  signal_type=GenericQuantumSignal, device=None),
-        "D": Port(label="D", direction="output", signal=None,
-                  signal_type=GenericQuantumSignal, device=None),
+        "A": Port(
+            label="A",
+            direction="input",
+            signal=None,
+            signal_type=GenericQuantumSignal,
+            device=None,
+        ),
+        "B": Port(
+            label="B",
+            direction="input",
+            signal=None,
+            signal_type=GenericQuantumSignal,
+            device=None,
+        ),
+        "C": Port(
+            label="C",
+            direction="output",
+            signal=None,
+            signal_type=GenericQuantumSignal,
+            device=None,
+        ),
+        "D": Port(
+            label="D",
+            direction="output",
+            signal=None,
+            signal_type=GenericQuantumSignal,
+            device=None,
+        ),
     }
 
-    # Gui Configuration
+    power_average = 0
+    power_peak = 0
+    reference = Reference(doi=_BEAM_SPLITTER_DOI, bib_dict=_BEAM_SPLITTER_BIB)
+    processing_time = mpmath.mpf("1e-9")
+
     gui_icon = icon_list.BEAM_SPLITTER
     gui_tags = ["ideal"]
     gui_name = "Ideal Beam Splitter"
     gui_documentation = "ideal_beam_splitter.md"
 
-    power_average = 0
-    power_peak = 0
-    reference = None
-
     def __init__(self, name=None, uid=None):
         super().__init__(name=name, uid=uid)
+        self.incomming_photons = []
+        self.scheduled_event_time = None
 
-
+    @ensure_output_compute
     @wait_input_compute
-    def compute_outputs(self,  *args, **kwargs):
-        simulation = Simulation.get_instance()
-        if simulation.simulation_type is SimulationType.FOCK:
-            self.simulate_fock()
-
-    def simulate_fock(self):
+    def compute_outputs(self):
         """
-        Fock Simulation
+        Waits for the input singlas to be computed
+        and then the outputs are computed by this method
         """
-        simulation = Simulation.get_instance()
-        backend = simulation.get_backend()
-        mm = ModeManager()
+        pass
 
-        # Utilize a helper function to streamline mode ID retrieval or creation
-        def get_or_create_mode_id(port):
-            if port.signal is None:
-                logger.info("Beam Splitter - %s - empty signal, new mode generated", self.name)
-                return mm.create_new_mode()
-            return port.signal.mode_id
-
-        m_id_a = get_or_create_mode_id(self.ports["B"])
-        m_id_b = get_or_create_mode_id(self.ports["A"])
-
-        # Apply beam splitter operation in a more concise manner
-        op = backend.beam_splitter(theta=pi/4, phi=pi/2)
-        backend.apply_operator(op, [mm.get_mode_index(m_id_a),
-                                    mm.get_mode_index(m_id_b)])
-
-        # Simplify signal content setting using a loop to avoid repetition
-        for port, mode_id in zip(
-                [self.ports["C"], self.ports["D"]], [m_id_a, m_id_b]):
-            if port.signal is not None:
-                logger.info("Beam Splitter - %s - assisning mode %s to signal on port %s",
-                            self.name, mm.get_mode_index(mode_id), port.label)
-                port.signal.set_contents(timestamp=0, mode_id=mode_id)
-                port.signal.set_computed()
-
-
-    @log_action
     @schedule_next_event
-    def des_action(self, time=None, *args, **kwargs):
-        print("BEAMSPLITTER")
-        
+    @log_action
+    def des(self, time, *args, **kwargs):
+        # Check if this call is for processing or for scheduling
+        if kwargs.get("process_now", False):
+            self.process_delayed_events(time)
+        signals = kwargs.get("signals", {})
+        new_events = []
+        if "A" in signals:
+            envelope_A = signals["A"].contents
+            std_dev_A = envelope_A.temporal_profile.get_std_dev()
+            new_events.append(PhotonEvent(time, std_dev_A, "A", signals=signals))
+        if "B" in signals:
+            envelope_B = signals["B"].contents
+            std_dev_B = envelope_B.temporal_profile.get_std_dev()
+            new_events.append(PhotonEvent(time, std_dev_B, "B", signals=signals))
 
+        self.incomming_photons.extend(new_events)
+        if new_events:
+            delay_time = max(
+                mpmath.mpf(10) * mpmath.mpf(event.std_dev) ** 2 for event in new_events
+            )
+            print(f"Delay Time: {delay_time}")
+            new_scheduled_time = mpmath.mpf(time) + delay_time
+            if (
+                self.scheduled_event_time is None
+                or new_scheduled_time > self.scheduled_event_time
+            ):
+                self.scheduled_event_time = new_scheduled_time
+                simulation = Simulation.get_instance()
+                simulation.schedule_event(
+                    self.scheduled_event_time, self, process_now=True
+                )
 
-    def compute_overlap(self, env1:Envelope, env2:Envelope):
-        """
-        Computes overlap for two photons
-        """
+    @schedule_next_event
+    def process_delayed_events(self, time):
+        results = []
+        if len(self.incomming_photons) == 1:
+            pe = self.incomming_photons[0]
+            env1 = pe.kwargs["signals"][pe.port].contents
+            env2 = Envelope()
+            ce = CompositeEnvelope(env1, env2)
+            op = CompositeOperation(CompositeOperationType.NonPolarizingBeamSplit)
+            if pe.port == "A":
+                ce.apply_operation(op, env1, env2)
+                sig1 = GenericQuantumSignal()
+                sig1.set_contents(env1)
+                sig2 = GenericQuantumSignal()
+                sig2.set_contents(env2)
+            else:
+                ce.apply_operation(op, env2, env1)
+                sig1 = GenericQuantumSignal()
+                sig1.set_contents(env2)
+                sig2 = GenericQuantumSignal()
+                sig2.set_contents(env1)
+
+            results.append(
+                ("C", sig1, pe.mean_time + IdealBeamSplitter.processing_time)
+            )
+            results.append(
+                ("D", sig2, pe.mean_time + IdealBeamSplitter.processing_time)
+            )
+
+        elif len(self.incomming_photons) > 1:
+            for i in range(len(self.incomming_photons)):
+                for j in range(i + 1, len(self.incomming_photons)):
+                    p1 = self.incomming_photons[i]
+                    p2 = self.incomming_photons[j]
+
+                    if p1.port != p2.port:
+                        time_dif = abs(p1.mean_time - p2.mean_time)
+                        print(f"Time_dif:{time_dif}")
+                        env1 = p1.kwargs["signals"][p1.port].contents
+                        env2 = p2.kwargs["signals"][p2.port].contents
+                        overlap = float(env1.overlap_integral(env2, time_dif))
+                        print(f"Overlap: {overlap}")
+                        # overlap = 1
+                        ce = CompositeEnvelope(env1, env2)
+                        op = CompositeOperation(
+                            CompositeOperationType.NonPolarizingBeamSplit,
+                            overlap=overlap,
+                        )
+                        if p1.port == "A":
+                            ce.apply_operation(op, env1, env2)
+                            sig1 = GenericQuantumSignal()
+                            sig1.set_contents(env1)
+                            sig2 = GenericQuantumSignal()
+                            sig2.set_contents(env2)
+                        else:
+                            ce.apply_operation(op, env2, env1)
+                            sig1 = GenericQuantumSignal()
+                            sig1.set_contents(env2)
+                            sig2 = GenericQuantumSignal()
+                            sig2.set_contents(env1)
+                        results.append(
+                            (
+                                "C",
+                                sig1,
+                                p1.mean_time + IdealBeamSplitter.processing_time,
+                            )
+                        )
+                        results.append(
+                            (
+                                "D",
+                                sig2,
+                                p2.mean_time + IdealBeamSplitter.processing_time,
+                            )
+                        )
+        self.incomming_photons = []
+        return results

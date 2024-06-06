@@ -68,9 +68,12 @@ class IdealDetector(GenericDevice):
     @schedule_next_event
     def des(self, time, *args, **kwargs):
         env = kwargs["signals"]["input"].contents
-        outcome = env.measure()
+        ce = env.composite_envelope
+        print(ce.states[0][0])
+        outcome = ce.measure(env)
         signal = GenericIntSignal()
-        signal.set_int(outcome)
+        print(outcome)
+        signal.set_int(outcome[0])
 
         results = [("output", signal, time)]
         return results
