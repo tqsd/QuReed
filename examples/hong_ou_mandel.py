@@ -2,9 +2,9 @@
 Example: Hong-Ou-Mandel Experiment
 """
 
-from quasi.simulation import Simulation
-from quasi.experiement import Experiement
-from quasi.components.gates import Squeezing, Beamsplitter
+from qureed.simulation import Simulation
+from qureed.experiement import Experiement
+from qureed.components.gates import Squeezing, Beamsplitter
 from math import pi
 
 Sim = Simulation.get_instance()

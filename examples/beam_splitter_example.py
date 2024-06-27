@@ -2,14 +2,15 @@
 Ideal Beam Splitter experiment example
 """
 
-from quasi.simulation import Simulation, SimulationType
-from quasi.devices.sources import IdealNPhotonSource, IdealCoherentSource
-from quasi.devices.control import SimpleTrigger
-from quasi.devices.beam_splitters import IdealBeamSplitter
-from quasi.signals import GenericBoolSignal, GenericQuantumSignal
-from quasi.experiment import Experiment
-from quasi.backend.fock_first_backend import FockBackendFirst
+from qureed.simulation import Simulation, SimulationType
+from qureed.devices.sources import IdealNPhotonSource, IdealCoherentSource
+from qureed.devices.control import SimpleTrigger
+from qureed.devices.beam_splitters import IdealBeamSplitter
+from qureed.signals import GenericBoolSignal, GenericQuantumSignal
+from qureed.experiment import Experiment
+from qureed.backend.fock_first_backend import FockBackendFirst
 import numpy as np
+
 np.set_printoptions(precision=3, suppress=True)
 
 sim = Simulation()
@@ -19,9 +20,9 @@ sim.set_dimensions(5)
 sim.set_simulation_type(SimulationType.FOCK)
 
 s1 = IdealCoherentSource()
-s1.set_displacement(2,0)
-#s1 = IdealNPhotonSource()
-#s1.set_photon_num(1)
+s1.set_displacement(2, 0)
+# s1 = IdealNPhotonSource()
+# s1.set_photon_num(1)
 
 
 s2 = IdealNPhotonSource()
@@ -44,7 +45,6 @@ bs.register_signal(signal=qs1, port_label="A")
 qs2 = GenericQuantumSignal()
 s2.register_signal(signal=qs2, port_label="output")
 bs.register_signal(signal=qs2, port_label="B")
-
 
 
 sim.run()

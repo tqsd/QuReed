@@ -1,0 +1,20 @@
+#+TITLE: Kernel
+
+The qureed kernel takes care of quantum mechanical simulations.
+All of the quantum systems as well as quantum operations are
+managed by the kernel.
+
+Future features of the kernel:
+  + Quantum Systems addressing:
+    * Devices create and operate on quantum systems
+    * Kernel keeps the record of all quantum systems
+    * Signal only keep reference to the quantum systems
+    * Components with the reference to the quantum system
+      can operate on the actual system
+  + Quantum System Exporting and Importing
+    * If end user implements devices, which do not use the kernel
+      they should be able to get the system out of the kernel
+    * Exported object should (somehow) contain also references to the
+      subsystems, which actually are accessible by the device
+    * Imports should check if only the accessible parts of the quantum systems
+      were modified

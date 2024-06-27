@@ -5,48 +5,48 @@ simulation:
 
 components:
   sps1:
-    type: quasi.devices.ideal.SinglePhotonSource
+    type: qureed.devices.ideal.SinglePhotonSource
     # Trigger means that experiment will trigger devices
     # with this property at x ps after the experiment began
     trigger: 0 #ps
 
   sps2:
-    type: quasi.devices.ideal.SinglePhotonSource
+    type: qureed.devices.ideal.SinglePhotonSource
     trigger: 0 #ps
 
   bs:
-    type: quasi.devices.ideal.BeamSplitter
+    type: qureed.devices.ideal.BeamSplitter
 
   spd1:
-    type: quasi.devices.ideal.SinglePhotonDetector
+    type: qureed.devices.ideal.SinglePhotonDetector
 
   spd2:
-    type: quasi.devices.ideal.SinglePhotonDetector
+    type: qureed.devices.ideal.SinglePhotonDetector
 
   fib1:
-    type: quasi.devices.ideal.Fiber
+    type: qureed.devices.ideal.Fiber
     params:
       length: 10 #km
 
   fib2:
-    type: quasi.devices.ideal.Fiber
+    type: qureed.devices.ideal.Fiber
     params:
       length: 10 #km
 
   fib3:
-    type: quasi.devices.ideal.Fiber
+    type: qureed.devices.ideal.Fiber
     params:
       length: 10 #km
 
   fib4:
-    type: quasi.devices.ideal.Fiber
+    type: qureed.devices.ideal.Fiber
     params:
       length: 10 #km
 
 
 connections:
   qc1:
-    type: quasi.signals.GenericQuantumSignal
+    type: qureed.signals.GenericQuantumSignal
     in:
       device: sps1
       port: OUT
@@ -55,7 +55,7 @@ connections:
       port: IN
 
   qc2:
-    type: quasi.signals.GenericQuantumSignal
+    type: qureed.signals.GenericQuantumSignal
     in:
       device: sps2
       port: OUT
@@ -64,7 +64,7 @@ connections:
       port: IN
   
   qc3:
-    type: quasi.signals.GenericQuantumSignal
+    type: qureed.signals.GenericQuantumSignal
     in:
       device: fib1
       port: OUT
@@ -73,7 +73,7 @@ connections:
       port: A
 
   qc4:
-    type: quasi.signals.GenericQuantumSignal
+    type: qureed.signals.GenericQuantumSignal
     in:
       device: fib2
       port: OUT
@@ -82,7 +82,7 @@ connections:
       port: B
 
   qc5:
-    type: quasi.signals.GenericQuantumSignal
+    type: qureed.signals.GenericQuantumSignal
     in:
       device: bs
       port: C
@@ -91,7 +91,7 @@ connections:
       port: IN
 
   qc6:
-    type: quasi.signals.GenericQuantumSignal
+    type: qureed.signals.GenericQuantumSignal
     in:
       device: bs
       port: D
@@ -100,7 +100,7 @@ connections:
       port: IN
 
   qc7:
-    type: quasi.signals.GenericQuantumSignal
+    type: qureed.signals.GenericQuantumSignal
     in:
       device: fib3
       port: OUT
@@ -109,7 +109,7 @@ connections:
       port: IN
 
   qc8:
-    type: quasi.signals.GenericQuantumSignal
+    type: qureed.signals.GenericQuantumSignal
     in:
       device: fib4
       port: OUT

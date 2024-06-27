@@ -3,26 +3,29 @@
 """
 import mpmath
 from typing import Union
-from quasi.devices import (GenericDevice,
-                           wait_input_compute,
-                           schedule_next_event,
-                           coordinate_gui,
-                           log_action,
-                           ensure_output_compute)
-from quasi.devices.port import Port
-from quasi.simulation import ModeManager
-from quasi.signals import *
+from qureed.devices import (
+    GenericDevice,
+    wait_input_compute,
+    schedule_next_event,
+    coordinate_gui,
+    log_action,
+    ensure_output_compute,
+)
+from qureed.devices.port import Port
+from qureed.simulation import ModeManager
+from qureed.signals import *
 from photon_weave.state.envelope import Envelope
 from photon_weave.state.composite_envelope import CompositeEnvelope
 from photon_weave.operation.polarization_operations import (
-    PolarizationOperation, PolarizationOperationType
+    PolarizationOperation,
+    PolarizationOperationType,
 )
-from photon_weave.operation.fock_operation import (
-    FockOperationType, FockOperation
-)
+from photon_weave.operation.fock_operation import FockOperationType, FockOperation
 from photon_weave.operation.composite_operation import (
-    CompositeOperation, CompositeOperationType
+    CompositeOperation,
+    CompositeOperationType,
 )
+
 
 class EntangledPhotonSource(GenericDevice):
     ports = {
@@ -31,24 +34,26 @@ class EntangledPhotonSource(GenericDevice):
             direction="input",
             signal=None,
             signal_type=GenericBoolSignal,
-            device=None),
+            device=None,
+        ),
         "output": Port(
             label="output",
             direction="output",  # Changed from "input" to "output" for clarity
             signal=None,
             signal_type=GenericQuantumSignal,
-            device=None),
+            device=None,
+        ),
     }
 
     gui_icon = None
     gui_tags = None
-    gui_documentation= None
-      
+    gui_documentation = None
+
     power_peak = 0
     power_average = 0
-    
+
     reference = None
-      
+
     @ensure_output_compute
     @coordinate_gui
     @wait_input_compute
@@ -57,7 +62,7 @@ class EntangledPhotonSource(GenericDevice):
         Implement to use the regular backend
         """
         pass
-      
+
     @log_action
     @schedule_next_event
     def des(self, time, *args, **kwargs):
@@ -65,9 +70,9 @@ class EntangledPhotonSource(GenericDevice):
         Implement to use discrete event simulation
         """
         # biexciton
-        env1 =  Envelope(wavelength=830)
+        env1 = Envelope(wavelength=830)
         # exciton
-        env2 =  Envelope(wavelength=820)
+        env2 = Envelope(wavelength=820)
         # Modify Value
         photon_num = 5
         a_dagger = FockOperation(FockOperationType.Creation, apply_count=photon_num)
@@ -87,14 +92,12 @@ class EntangledPhotonSource(GenericDevice):
         s1.set_contents(content=env1)
         s2 = GenericQuantumSignal()
         s2.set_contents(content=env2)
-        return [("output", s1, time+t1),("output", s2, time+t2)]
-        
-
+        return [("output", s1, time + t1), ("output", s2, time + t2)]
 
     @log_action
     @schedule_next_event
     def des_action(self, time=None, *args, **kwargs):
         """
-	    Or implement this if you are implementing a trigger
-	    """
+        Or implement this if you are implementing a trigger
+        """
         pass

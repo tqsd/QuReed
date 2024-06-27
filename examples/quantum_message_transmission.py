@@ -1,8 +1,8 @@
-from quasi.simulation import Simulation
-from quasi.devices.control import ClockTrigger
-from quasi.devices.variables import FloatVariable
-from quasi.devices.sources import IdealCoherentSource
-from quasi.signals import GenericBoolSignal, GenericFloatSignal
+from qureed.simulation import Simulation
+from qureed.devices.control import ClockTrigger
+from qureed.devices.variables import FloatVariable
+from qureed.devices.sources import IdealCoherentSource
+from qureed.signals import GenericBoolSignal, GenericFloatSignal
 
 
 # Helper function for connecting
