@@ -1,16 +1,17 @@
-from quasi.devices import (GenericDevice,
-                           wait_input_compute,
-                           coordinate_gui,
-                           ensure_output_compute)
-from quasi.devices.port import Port
-from quasi.signals import (GenericSignal,
-                           GenericFloatSignal,
-                           GenericQuantumSignal)
-from quasi.extra.logging import Loggers, get_custom_logger
-from quasi.gui.icons import icon_list
-from quasi.simulation import Simulation, SimulationType, ModeManager
+from qureed.devices import (
+    GenericDevice,
+    wait_input_compute,
+    coordinate_gui,
+    ensure_output_compute,
+)
+from qureed.devices.port import Port
+from qureed.signals import GenericSignal, GenericFloatSignal, GenericQuantumSignal
+from qureed.extra.logging import Loggers, get_custom_logger
+from qureed.gui.icons import icon_list
+from qureed.simulation import Simulation, SimulationType, ModeManager
 
 logger = get_custom_logger(Loggers.Devices)
+
 
 class CustomPhaseShift(GenericDevice):
     """
@@ -18,18 +19,48 @@ class CustomPhaseShift(GenericDevice):
     """
 
     ports = {
-        "voltage": Port(label="voltage", direction="input", signal=None,
-                        signal_type=GenericFloatSignal, device=None),
-        "A": Port(label="A", direction="input", signal=None,
-                  signal_type=GenericFloatSignal, device=None),
-        "B": Port(label="B", direction="input", signal=None,
-                  signal_type=GenericFloatSignal, device=None),
-        "C": Port(label="C", direction="input", signal=None,
-                  signal_type=GenericFloatSignal, device=None),
-        "input": Port(label="input", direction="input", signal=None,
-                      signal_type=GenericQuantumSignal, device=None),
-        "output": Port(label="output", direction="output", signal=None,
-                       signal_type=GenericQuantumSignal, device=None)
+        "voltage": Port(
+            label="voltage",
+            direction="input",
+            signal=None,
+            signal_type=GenericFloatSignal,
+            device=None,
+        ),
+        "A": Port(
+            label="A",
+            direction="input",
+            signal=None,
+            signal_type=GenericFloatSignal,
+            device=None,
+        ),
+        "B": Port(
+            label="B",
+            direction="input",
+            signal=None,
+            signal_type=GenericFloatSignal,
+            device=None,
+        ),
+        "C": Port(
+            label="C",
+            direction="input",
+            signal=None,
+            signal_type=GenericFloatSignal,
+            device=None,
+        ),
+        "input": Port(
+            label="input",
+            direction="input",
+            signal=None,
+            signal_type=GenericQuantumSignal,
+            device=None,
+        ),
+        "output": Port(
+            label="output",
+            direction="output",
+            signal=None,
+            signal_type=GenericQuantumSignal,
+            device=None,
+        ),
     }
 
     gui_icon = icon_list.LASER
@@ -90,18 +121,18 @@ class CustomPhaseShift(GenericDevice):
         B = self.ports["B"].signal.contents
         C = self.ports["C"].signal.contents
 
+        phi = A * voltage**B + C
 
-        phi = A*voltage**B + C
-        
         # Initialize photon number state in the mode
         operator = backend.phase_shift(phi, mm.get_mode_index(mode))
         backend.apply_operator(operator, [mm.get_mode_index(mode)])
 
-        logger.info("Phase Shifter - %s - assisning mode %s to signal on port %s",
-                    self.name, mm.get_mode_index(mode),
-                    self.ports["output"].label)
+        logger.info(
+            "Phase Shifter - %s - assisning mode %s to signal on port %s",
+            self.name,
+            mm.get_mode_index(mode),
+            self.ports["output"].label,
+        )
 
-        self.ports["output"].signal.set_contents(
-            timestamp=0,
-            mode_id=mode)
+        self.ports["output"].signal.set_contents(timestamp=0, mode_id=mode)
         self.ports["output"].signal.set_computed()

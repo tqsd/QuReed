@@ -1,10 +1,10 @@
-from quasi.components.gates import Beamsplitter, Displacment, Phase, Squeezing
-from quasi._math.fock import (
+from qureed.components.gates import Beamsplitter, Displacment, Phase, Squeezing
+from qureed._math.fock import (
     vacuum_state,
     mean_photon_number,
     fock_probability,
 )
-from quasi.components.gates import Components
+from qureed.components.gates import Components
 import numpy as np
 
 qumode = 1

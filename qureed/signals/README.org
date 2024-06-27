@@ -1,0 +1,35 @@
+#+title: qureed Signals
+
+The Signal Classes are essential to the operation of the qureed framework.
+Devices use ports and when device is defined the ports specify which type of
+signal is accepted by the device.
+
+For Signals a Strict hierarchy exists. All signals inherit from the
+~GenericSignal(ABC)~ defined in [[./generic_signal.py]]. The ~GenericSignal(ABC)~ class
+cannot be used directly and is implemented as a way of enforcing the general
+structure of a signal.
+
+Signal can represent any type of signal like for example:
+ + analog electrical signal,
+ + discrete electrical signal,
+ + photons.
+
+* Signal Classes
+Here we list all implemented signals (Signal which is a subheading inherits from
+the parent heading Signal).
+
+** GenericSignal
+~GenericSignal(ABC)~ is a signal, which enforces Signal structure to all Signals
+
+*** GenericQuantumSignal
+~GenericQuantumSignal(ABC)~ is a quantum type signal, which enforces structure for
+all quantum signals. ~GenericQuantumSignal(ABC)~ is an Abstract Base Class,
+meaning it should be extended and not used directly.
+
+*** GenericDiscreteSignal
+~DiscreteSignal~ is not yet implemented, but it will serve as a signal which can
+take descrete values
+
+*** GenericAnalogSignal
+~DiscreteSignal~ is not yet implemented, but it will serve as a signal which can
+take analog (float) values

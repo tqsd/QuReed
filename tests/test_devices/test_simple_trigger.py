@@ -1,14 +1,14 @@
-import unittest
-from quasi.devices.control import SimpleTrigger
-from quasi.signals import GenericTimeSignal, GenericBoolSignal
-from quasi.simulation.simulation import Simulation
 import random
+import unittest
+
+from qureed.devices.control import SimpleTrigger
+from qureed.signals import GenericBoolSignal, GenericTimeSignal
+from qureed.simulation.simulation import Simulation
 
 from .helpers import get_unwrapped
 
 
 class TestSimpleTrigger(unittest.TestCase):
-
     def test_init(self):
         trigger = SimpleTrigger("Simple Trigger")
         self.assertTrue("time" in trigger.ports)

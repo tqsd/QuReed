@@ -47,7 +47,7 @@ jobs:
 
       - name: Build with Flet pack
         run: |
-          echo "y" | flet pack quasi/gui/main.py --add-data "quasi/gui/assets:quasi/gui/assets"
+          echo "y" | flet pack qureed/gui/main.py --add-data "qureed/gui/assets:qureed/gui/assets"
           ls -l
 
       - name: Archive production artifacts
