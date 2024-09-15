@@ -18,7 +18,7 @@ setup(
         "scipy",
         #"photon_weave@git+ssh://git@github.com/tqsd/photon_weave.git@master",
         # "photon_weave @ file://{}/photon-weave".format(current_dir),
-        "flet",
+        "flet=",
         "matplotlib",
         "qutip",
         "seaborn",
