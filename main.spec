@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['quasi\\gui\\main.py'],
+    ['qureed\\gui\\main.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -41,5 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['quasi\\gui\\assets\\icon\\quasi_icon.ico'],
+    icon=['qureed\\gui\\assets\\icon\\qureed_icon.ico'],
 )

@@ -1,6 +1,6 @@
-#+title: QuaSi: Quantum Hardware Simulation Framework
+#+title: qureed: Quantum Hardware Simulation Framework
 
-[[https://github.com/tqsd/QuaSi/actions/workflows/pylint.yml/badge.svg?branch=master]]
+[[https://github.com/tqsd/qureed/actions/workflows/pylint.yml/badge.svg?branch=master]]
 
 
 Framework for quantum simulations using realistic device models.
@@ -10,32 +10,32 @@ Framework for quantum simulations using realistic device models.
 ** Signals
 Signals represent interface between the devices.
 Each signal type should inherit from the Abstract Base Class ~GenericSignal~,
-implemented in [[file:./quasi/signals/generic_signal.py][quasi/signals/generic_signals.py]].
+implemented in [[file:./qureed/signals/generic_signal.py][qureed/signals/generic_signals.py]].
 
 
 ** Devices
 Each device design stems from the Abstract Base Class ~GenericDevice(ABC)~,
-implemented in [[file:./quasi/devices/generic_device.py][quasi/devices/generic_device.py]].
+implemented in [[file:./qureed/devices/generic_device.py][qureed/devices/generic_device.py]].
 
 
 
 
 * Installing
-QuaSi is currently in Alpha stage, it can be installed using github. Here we
-give the tutorial on how to install the quasi program from github.
+qureed is currently in Alpha stage, it can be installed using github. Here we
+give the tutorial on how to install the qureed program from github.
 ** Windows
 *** Miniconda
 On the webpage [[https://conda.io/projects/conda/en/latest/user-guide/install/windows.html][Miniconda]] find the appropriate installer and install the
 package. After completion, you can open the Anaconda Prompt and create a new
-virtual environment pertaining to quasi:
+virtual environment pertaining to qureed:
 
 #+begin_src bash :results output
-  conda create --name quasi python=3.12
+  conda create --name qureed python=3.12
 #+end_src
 
 Upon the completed process you can in the same prompt activate the environment
 #+begin_src bash :results output
-  conda activate quasi
+  conda activate qureed
 #+end_src
 If you want to deactivate the virtual environment, type:
 #+begin_src bash :results output
@@ -107,20 +107,20 @@ should contain ~setup.py~ and install the package:
 *** Running the GUI
 Now you should be able to run the gui
 #+begin_src bash :results output
-  quasi-gui
+  qureed-gui
 #+end_src
 or manually by
 #+begin_src bash :results output
-  # quasi/gui/
+  # qureed/gui/
   python main.py
 #+end_src
 
 * Usage
-Currently QuaSi is in development process, so you should use it as a developer.
+Currently qureed is in development process, so you should use it as a developer.
 Please read the notes on Conributing.
 ** GUI
 + in the *gui* branch
-The gui is implemented in [[quasi/gui]] directory. To run the gui
+The gui is implemented in [[qureed/gui]] directory. To run the gui
 execute the ~main.py~ file by:
 #+begin_src bash :results output
 flet main.py

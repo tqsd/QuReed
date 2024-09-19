@@ -1,11 +1,12 @@
-"""quasi installation configuration"""
+"""qureed installation configuration"""
+
+import os
 
 from setuptools import find_packages, setup
-import os
 
 current_dir = os.path.abspath(os.path.dirname(__file__))
 setup(
-    name="quasi",
+    name="qureed",
     version="0.0.2",
     author="Simon Sekavčnik",
     author_email="simon.sekavcnik@tum.de",
@@ -16,7 +17,7 @@ setup(
         "numpy",
         "numba",
         "scipy",
-        #"photon_weave@git+ssh://git@github.com/tqsd/photon_weave.git@master",
+        # "photon_weave@git+ssh://git@github.com/tqsd/photon_weave.git@master",
         # "photon_weave @ file://{}/photon-weave".format(current_dir),
         "flet==0.22.0",
         "matplotlib",
@@ -25,17 +26,17 @@ setup(
         "plotly",
         "jinja2",
         "mpmath",
-        "toml"
+        "toml",
     ],
     package_data={
-        "quasi": ["templates/*.jinja"],
+        "qureed": ["templates/*.jinja"],
     },
     include_package_data=True,
     entry_points={
         "console_scripts": [
-            "quasi-template=quasi.cli:main",
-            "quasi-gui=quasi.gui.main:start",
-            "quasi-execute=quasi.simulation.simulate_from_json:main"
+            "qureed-template=qureed.cli:main",
+            "qureed-gui=qureed.gui.main:start",
+            "qureed-execute=qureed.simulation.simulate_from_json:main",
         ],
     },
 )
