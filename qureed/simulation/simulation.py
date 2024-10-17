@@ -270,3 +270,7 @@ class Simulation:
 
     def get_backend(self) -> Backend:
         return self.backend
+
+    def stop_simulation(self) -> None:
+        while self.event_queue:
+            heapq.heappop(self.event_queue)
