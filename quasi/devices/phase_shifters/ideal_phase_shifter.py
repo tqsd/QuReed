@@ -16,7 +16,7 @@ from quasi.extra.logging import Loggers, get_custom_logger
 from quasi.gui.icons import icon_list
 from quasi.simulation import Simulation, SimulationType, ModeManager
 
-from photon_weave.operation.fock_operation import FockOperationType, FockOperation
+from photon_weave.operation import Operation, FockOperationType
 
 logger = get_custom_logger(Loggers.Devices)
 
@@ -121,8 +121,8 @@ class IdealPhaseShifter(GenericDevice):
             self.theta = kwargs["signals"]["theta"].contents
         if "input" in kwargs.get("signals"):
             env = kwargs["signals"]["input"].contents
-            fo = FockOperation(FockOperationType.PhaseShift, phi=self.theta)
-            env.apply_operation(fo)
+            fo = Operation(FockOperationType.PhaseShift, phi=self.theta)
+            env.fock.apply_operation(fo)
             signal = GenericQuantumSignal()
             signal.set_contents(env)
             result = [("output", signal, time)]

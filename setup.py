@@ -16,8 +16,7 @@ setup(
         "numpy",
         "numba",
         "scipy",
-        #"photon_weave@git+ssh://git@github.com/tqsd/photon_weave.git@master",
-        # "photon_weave @ file://{}/photon-weave".format(current_dir),
+        "photon_weave=0.1.4"
         "flet==0.22.0",
         "matplotlib",
         "qutip",

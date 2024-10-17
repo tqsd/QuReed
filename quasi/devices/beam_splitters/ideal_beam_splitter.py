@@ -4,6 +4,7 @@ Ideal Beam Splitter
 
 import heapq
 import mpmath
+import jax.numpy as jnp
 
 from quasi.devices.generic_device import (
     GenericDevice,
@@ -20,10 +21,7 @@ from quasi.gui.icons import icon_list
 
 from photon_weave.state.envelope import Envelope
 from photon_weave.state.composite_envelope import CompositeEnvelope
-from photon_weave.operation.composite_operation import (
-    CompositeOperation,
-    CompositeOperationType,
-)
+from photon_weave.operation import Operation, CompositeOperationType
 
 
 _BEAM_SPLITTER_BIB = {
@@ -153,13 +151,13 @@ class IdealBeamSplitter(GenericDevice):
             ce = CompositeEnvelope(env1, env2)
             op = CompositeOperation(CompositeOperationType.NonPolarizingBeamSplit)
             if pe.port == "A":
-                ce.apply_operation(op, env1, env2)
+                ce.apply_operation(op, env1.fock, env2.fock)
                 sig1 = GenericQuantumSignal()
                 sig1.set_contents(env1)
                 sig2 = GenericQuantumSignal()
                 sig2.set_contents(env2)
             else:
-                ce.apply_operation(op, env2, env1)
+                ce.apply_operation(op, env2.fock, env1.fock)
                 sig1 = GenericQuantumSignal()
                 sig1.set_contents(env2)
                 sig2 = GenericQuantumSignal()
@@ -180,25 +178,22 @@ class IdealBeamSplitter(GenericDevice):
 
                     if p1.port != p2.port:
                         time_dif = abs(p1.mean_time - p2.mean_time)
-                        print(f"Time_dif:{time_dif}")
                         env1 = p1.kwargs["signals"][p1.port].contents
                         env2 = p2.kwargs["signals"][p2.port].contents
-                        overlap = float(env1.overlap_integral(env2, time_dif))
-                        print(f"Overlap: {overlap}")
-                        # overlap = 1
+
                         ce = CompositeEnvelope(env1, env2)
-                        op = CompositeOperation(
+                        op = Operation(
                             CompositeOperationType.NonPolarizingBeamSplit,
-                            overlap=overlap,
+                            eta=jnp.pi/4,
                         )
                         if p1.port == "A":
-                            ce.apply_operation(op, env1, env2)
+                            ce.apply_operation(op, env1.fock, env2.fock)
                             sig1 = GenericQuantumSignal()
                             sig1.set_contents(env1)
                             sig2 = GenericQuantumSignal()
                             sig2.set_contents(env2)
                         else:
-                            ce.apply_operation(op, env2, env1)
+                            ce.apply_operation(op, env2.fock, env1.fock)
                             sig1 = GenericQuantumSignal()
                             sig1.set_contents(env2)
                             sig2 = GenericQuantumSignal()

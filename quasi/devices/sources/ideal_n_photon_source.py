@@ -21,9 +21,6 @@ from quasi.experiment import Experiment
 from quasi.extra.logging import Loggers, get_custom_logger
 from quasi.backend.envelope_backend import EnvelopeBackend
 from photon_weave.state.envelope import Envelope
-from photon_weave.operation.fock_operation import(
-    FockOperation, FockOperationType
-)
 
 logger = get_custom_logger(Loggers.Devices)
 
@@ -125,11 +122,9 @@ class IdealNPhotonSource(GenericDevice):
             self.set_photon_num(float(kwargs["signals"]["photon_num"].contents))
         elif "trigger" in kwargs["signals"] and self.photon_num is not None:
             n = int(self.photon_num)
-            # Creating new envelopt
+            # Creating new envelope
             env = Envelope()
-            # Applying operation
-            op = FockOperation(FockOperationType.Creation, apply_count=n)
-            env.apply_operation(op)
+            env.fock.state = n
             # Creating output
             signal = GenericQuantumSignal()
             signal.set_contents(content=env)

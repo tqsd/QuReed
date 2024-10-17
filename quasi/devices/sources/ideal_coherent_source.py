@@ -27,7 +27,7 @@ from quasi.simulation import Simulation, SimulationType, ModeManager
 from quasi._math.fock.ops import adagger, a, coherent_state
 
 from photon_weave.state.envelope import Envelope
-from photon_weave.operation.fock_operation import FockOperation, FockOperationType
+from photon_weave.operation import Operation, FockOperationType
 
 
 class IdealCoherentSource(GenericDevice):
@@ -125,7 +125,13 @@ class IdealCoherentSource(GenericDevice):
         self.ports["output"].signal.set_contents(timestamp=0, mode_id=mode)
         self.ports["output"].signal.set_computed()
 
-    @coordinate_gui
+    @coordinate_gui⎢ +0.37 + 0.00j ⎥ ⊗ 
+⎢ +0.10 + 0.00j ⎥ ⊗ 
+⎢ +0.02 + 0.00j ⎥ ⊗ 
+⎢ +0.00 + 0.00j ⎥ ⊗ 
+⎢ +0.00 + 0.00j ⎥ ⊗ 
+⎣ +0.00 + 0.00j ⎦ ⊗ 
+
     @schedule_next_event
     @log_action
     def des(self, time, *args, **kwargs):
@@ -137,12 +143,13 @@ class IdealCoherentSource(GenericDevice):
                 raise Exception("Alpha not provided")
             if signals["trigger"].contents:
                 env = Envelope()
-                env.fock.dimensions = 10
-                op = FockOperation(FockOperationType.Displace, alpha=self.alpha)
-                env.apply_operation(op)
+                op = Operation(FockOperationType.Displace, alpha=self.alpha)
+                env.fock.apply_operation(op)
                 signal = GenericQuantumSignal()
                 signal.set_contents(content=env)
                 result = [("output", signal, time)]
+                print(env)
+                print("OVER")
                 return result
 
     def _extract_parameters(self, kwargs):
