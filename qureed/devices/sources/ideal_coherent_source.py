@@ -3,10 +3,7 @@ Ideal Coherent Source Implementation
 """
 
 from math import factorial
-
 import numpy as np
-from photon_weave.operation.fock_operation import FockOperation, FockOperationType
-from photon_weave.state.envelope import Envelope
 
 from qureed._math.fock.ops import a, adagger, coherent_state
 from qureed.devices import (
@@ -25,18 +22,11 @@ from qureed.signals import (
     GenericQuantumSignal,
     GenericSignal,
 )
-<<<<<<< HEAD:quasi/devices/sources/ideal_coherent_source.py
 
-from quasi.gui.icons import icon_list
-from quasi.simulation import Simulation, SimulationType, ModeManager
-
-from quasi._math.fock.ops import adagger, a, coherent_state
+from qureed.simulation import ModeManager, Simulation, SimulationType
 
 from photon_weave.state.envelope import Envelope
 from photon_weave.operation import Operation, FockOperationType
-=======
-from qureed.simulation import ModeManager, Simulation, SimulationType
->>>>>>> ddc16cf44af4167d9f1366acdf8d6e4cd6439b29:qureed/devices/sources/ideal_coherent_source.py
 
 
 class IdealCoherentSource(GenericDevice):
@@ -134,13 +124,7 @@ class IdealCoherentSource(GenericDevice):
         self.ports["output"].signal.set_contents(timestamp=0, mode_id=mode)
         self.ports["output"].signal.set_computed()
 
-    @coordinate_gui⎢ +0.37 + 0.00j ⎥ ⊗ 
-⎢ +0.10 + 0.00j ⎥ ⊗ 
-⎢ +0.02 + 0.00j ⎥ ⊗ 
-⎢ +0.00 + 0.00j ⎥ ⊗ 
-⎢ +0.00 + 0.00j ⎥ ⊗ 
-⎣ +0.00 + 0.00j ⎦ ⊗ 
-
+    @coordinate_gui
     @schedule_next_event
     @log_action
     def des(self, time, *args, **kwargs):

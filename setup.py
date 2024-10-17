@@ -17,7 +17,7 @@ setup(
         "numpy",
         "numba",
         "scipy",
-        "photon_weave=0.1.4"
+        "photon_weave==0.1.4",
         "flet==0.22.0",
         "matplotlib",
         "qutip",

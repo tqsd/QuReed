@@ -5,7 +5,6 @@ manager
 import uuid
 
 from qureed._math.fock.ops import vacuum_state
-from qureed.simulation import Simulation
 
 
 class ModeManager:
@@ -17,6 +16,7 @@ class ModeManager:
     __instance = None
 
     def __new__(cls, *args, **kwargs):
+        from qureed.simulation import Simulation
         if not cls.__instance:
             cls.__instance = super(ModeManager, cls).__new__(cls)
             cls.__instance.__initialized = False

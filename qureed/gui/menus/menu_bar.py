@@ -53,10 +53,6 @@ class MenuBar(ft.UserControl):
         )
 
     def move_application_window(self, e) -> None:
-        print("——————————————————")
-        print(e.delta_x, e.delta_y)
-        print(e.local_x, e.local_y)
-        print(e.global_x, e.global_y)
         self.page.window_left = e.global_x
         self.page.window_top = e.global_y
         self.page.update()

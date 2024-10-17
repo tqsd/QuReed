@@ -2,10 +2,7 @@
 Ideal Single Photon Source implementation
 """
 import numpy as np
-from photon_weave.operation.fock_operation import FockOperation, FockOperationType
 from photon_weave.state.envelope import Envelope
-<<<<<<< HEAD:quasi/devices/sources/ideal_n_photon_source.py
-=======
 
 from qureed.backend.envelope_backend import EnvelopeBackend
 from qureed.devices import (
@@ -27,7 +24,6 @@ from qureed.signals import (
     GenericSignal,
 )
 from qureed.simulation import ModeManager, Simulation, SimulationType
->>>>>>> ddc16cf44af4167d9f1366acdf8d6e4cd6439b29:qureed/devices/sources/ideal_n_photon_source.py
 
 logger = get_custom_logger(Loggers.Devices)
 

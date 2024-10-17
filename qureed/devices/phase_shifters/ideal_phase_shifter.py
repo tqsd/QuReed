@@ -2,7 +2,6 @@
 Ideal Phase Shifter
 """
 
-from photon_weave.operation.fock_operation import FockOperation, FockOperationType
 
 from qureed.devices import (
     GenericDevice,
@@ -12,21 +11,14 @@ from qureed.devices import (
     schedule_next_event,
     wait_input_compute,
 )
-<<<<<<< HEAD:quasi/devices/phase_shifters/ideal_phase_shifter.py
-from quasi.devices.port import Port
-from quasi.signals import GenericSignal, GenericFloatSignal, GenericQuantumSignal
-from quasi.extra.logging import Loggers, get_custom_logger
-from quasi.gui.icons import icon_list
-from quasi.simulation import Simulation, SimulationType, ModeManager
 
-from photon_weave.operation import Operation, FockOperationType
-=======
 from qureed.devices.port import Port
 from qureed.extra.logging import Loggers, get_custom_logger
 from qureed.gui.icons import icon_list
 from qureed.signals import GenericFloatSignal, GenericQuantumSignal, GenericSignal
 from qureed.simulation import ModeManager, Simulation, SimulationType
->>>>>>> ddc16cf44af4167d9f1366acdf8d6e4cd6439b29:qureed/devices/phase_shifters/ideal_phase_shifter.py
+
+from photon_weave.operation import Operation, FockOperationType
 
 logger = get_custom_logger(Loggers.Devices)
 

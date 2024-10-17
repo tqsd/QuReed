@@ -141,7 +141,8 @@ class FileMenu(ft.UserControl):
         config_path = Path(f"{project_path}/config.toml")
         if config_path.exists():
             config_data = toml.load(f"{project_path}/config.toml")
-            if not config_data.get("software") == "qureed":
+            if not config_data.get("software") == "QuReed":
+                print("Error in config.toml")
                 return
         pm = ProjectManager()
         pm.open_project(project_path)
