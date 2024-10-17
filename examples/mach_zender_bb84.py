@@ -1,21 +1,22 @@
 """
 Mach Zender BB84 implementation
 """
-from quasi.simulation import Simulation, SimulationType, ModeManager
-from quasi.devices.sources import IdealNPhotonSource, IdealCoherentSource
-from quasi.devices.control import SimpleTrigger
-from quasi.devices.beam_splitters import IdealBeamSplitter
-from quasi.devices.phase_shifters import IdealPhaseShifter
-from quasi.signals import GenericBoolSignal, GenericQuantumSignal
-from quasi.experiment import Experiment
-from quasi.backend.fock_first_backend import FockBackendFirst
-from quasi._math.fock import ops
+from qureed.simulation import Simulation, SimulationType, ModeManager
+from qureed.devices.sources import IdealNPhotonSource, IdealCoherentSource
+from qureed.devices.control import SimpleTrigger
+from qureed.devices.beam_splitters import IdealBeamSplitter
+from qureed.devices.phase_shifters import IdealPhaseShifter
+from qureed.signals import GenericBoolSignal, GenericQuantumSignal
+from qureed.experiment import Experiment
+from qureed.backend.fock_first_backend import FockBackendFirst
+from qureed._math.fock import ops
 
 # Import Custom Phase Shift
 from custom_phase_shifter_device import CustomPhaseShift
 
 import numpy as np
 from math import pi
+
 np.set_printoptions(suppress=True)
 np.set_printoptions(linewidth=200)
 
@@ -28,13 +29,13 @@ BSa = IdealBeamSplitter("BSa")
 BSb = IdealBeamSplitter("BSb")
 BSc = IdealBeamSplitter("BSc")
 BSd = IdealBeamSplitter("BSd")
-#PSa = IdealPhaseShifter("PSa")
+# PSa = IdealPhaseShifter("PSa")
 PSa = CustomPhaseShift("PSa")
-PSa.set_params(voltage=pi/2, A=1, B=1, C=-pi/4)
-#PSa.set_phi(pi/4)
+PSa.set_params(voltage=pi / 2, A=1, B=1, C=-pi / 4)
+# PSa.set_phi(pi/4)
 
 PSb = IdealPhaseShifter("PSb")
-PSb.set_phi(pi/4)
+PSb.set_phi(pi / 4)
 
 S = IdealNPhotonSource("Source")
 S.set_photon_num(1)
@@ -77,10 +78,10 @@ BSb.register_signal(signal=signals["qsig4"], port_label="A")
 BSb.register_signal(signal=signals["qsig5"], port_label="C")
 BSb.register_signal(signal=signals["qsig6"], port_label="D")
 
-#BSb.register_signal(signal=signals["qsig6"], port_label="D")
+# BSb.register_signal(signal=signals["qsig6"], port_label="D")
 
 BSc.register_signal(signal=signals["qsig5"], port_label="A")
-#BSc.register_signal(signal=signals["qsig6"], port_label="B")
+# BSc.register_signal(signal=signals["qsig6"], port_label="B")
 
 
 # Connect beamsplitter c and phase shifter
@@ -106,12 +107,12 @@ sim.run()
 
 exp = Experiment.get_instance()
 
-#print(exp.state.all_fock_probs())
+# print(exp.state.all_fock_probs())
 state = exp.state
 mm = ModeManager()
 
 print("trace")
-#print(ops.calculate_trace(state))
+# print(ops.calculate_trace(state))
 
 print(mm.get_mode_index(dsig1.mode_id))
 

@@ -10,12 +10,12 @@ def hook(hook_api):
 
 
 a = Analysis(
-    ['quasi/gui/main.py'],
+    ['qureed/gui/main.py'],
     pathex=['.'],
     binaries = collect_dynamic_libs('qutip', destdir='qutip/core/cy'),
     
     datas=[
-        ('quasi/gui/assets/*', 'quasi/gui/assets'), 
+        ('qureed/gui/assets/*', 'qureed/gui/assets'), 
         ('wheels/linux/*.whl', 'wheels/linux'),  # Linux wheels
         ('wheels/windows/*.whl', 'wheels/windows') # Windows wheels
     ], 
@@ -46,7 +46,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='QuaSi',
+    name='qureed',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -59,5 +59,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='quasi/gui/assets/icon/quasi_icon.ico'
+    icon='qureed/gui/assets/icon/qureed_icon.ico'
 )
