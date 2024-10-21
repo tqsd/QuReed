@@ -59,6 +59,7 @@ class Device(BaseDeviceComponent):
             )  # Go up one level and into assets
 
         full_image_path = os.path.join(base_path, self.device_instance.gui_icon)
+        print(full_image_path)
 
         self.image = ft.Image(
             src=full_image_path,

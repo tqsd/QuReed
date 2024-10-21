@@ -196,6 +196,7 @@ class ProjectManager:
                     "__pycache__",
                     ".git",
                     ".gitignore",
+                    ".venv"
                 ]:
                     continue
                 if "~" in entry or entry.startswith("."):

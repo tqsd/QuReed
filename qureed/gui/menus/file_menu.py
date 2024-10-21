@@ -117,7 +117,7 @@ class FileMenu(ft.UserControl):
             file.write("{}")  # Empty JSON object as placeholder
 
         with open(f"{project_path}/config.toml", "w") as file:
-            file.write('software = "qureed"\n')  # TOML configuration for packages
+            file.write('software = "QuReed"\n')  # TOML configuration for packages
             file.write("packages = []")  # TOML configuration for packages
 
         python_command = "python3" if platform.system() != "Windows" else "python"
