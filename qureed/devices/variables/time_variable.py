@@ -10,10 +10,12 @@ from qureed.devices import (
     schedule_next_event,
     wait_input_compute,
 )
+from qureed.extra.logging import Loggers, get_custom_logger
 from qureed.devices.port import Port
 from qureed.gui.icons import icon_list
 from qureed.signals import GenericTimeSignal
 
+logger = get_custom_logger(Loggers.Devices)
 
 class TimeVariable(GenericDevice):
     """
@@ -39,11 +41,12 @@ class TimeVariable(GenericDevice):
     power_peak = 0
     reference = None
 
-    values = {"value": None}
+    values = {"value": 0}
 
     def __init__(self, name=None, uid=None):
         super().__init__(name=name, uid=uid)
         self.simulation.schedule_event(-1, self)
+        self.values = TimeVariable.values.copy()
 
     @ensure_output_compute
     @coordinate_gui
@@ -61,7 +64,12 @@ class TimeVariable(GenericDevice):
     @log_action
     @schedule_next_event
     def des_action(self, time=None, *args, **kwargs):
+        logger.info("HERE")
+        print("COMPUTING")
         signal = GenericTimeSignal()
+        logger.info("SIGNAL")
+        print(self.values)
         signal.set_time(self.values["time"])
         result = [("time", signal, time)]
+        print("OVER")
         return result
