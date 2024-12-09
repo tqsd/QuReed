@@ -26,6 +26,7 @@ setup(
         "jinja2",
         "mpmath",
         "toml",
+        "jax"
     ],
     package_data={
         "qureed": ["templates/*.jinja", "gui/assets/*.png"],

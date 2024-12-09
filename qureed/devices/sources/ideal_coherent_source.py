@@ -141,8 +141,6 @@ class IdealCoherentSource(GenericDevice):
                 signal = GenericQuantumSignal()
                 signal.set_contents(content=env)
                 result = [("output", signal, time)]
-                print(env)
-                print("OVER")
                 return result
 
     def _extract_parameters(self, kwargs):

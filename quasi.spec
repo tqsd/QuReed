@@ -25,6 +25,7 @@ a = Analysis(
         'scipy.special._ufuncs', 'scipy.special._cdflib',
         'photon_weave',
         'photon_weave.state.envelope',
+        'jax'
     ], 
     hookspath=['./hooks'],
     hooksconfig={},
@@ -59,5 +60,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='qureed/gui/assets/icon/qureed_icon.ico'
+    icon='qureed/gui/assets/icon/quasi_icon.ico'
 )
