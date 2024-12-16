@@ -34,7 +34,11 @@ class {{ class_name }}(GenericDevice):
     
     gui_icon = {{ gui_icon }}
     gui_name = "{{ name }}"
-    gui_tags = []
+    gui_tags = [
+    {% for tag in tags -%}
+       "{{ tag }}",
+    {% endfor %}
+    ]
     gui_documentation = None
     
     power_peak = 0
