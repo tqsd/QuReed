@@ -4,19 +4,15 @@
 """
 from typing import Union
 from qureed.devices import (GenericDevice,
-                           wait_input_compute,
                            schedule_next_event,
                            coordinate_gui,
-                           log_action,
-                           ensure_output_compute)
+                           log_action)
 
 from qureed.devices.port import Port
-from qureed.simulation import ModeManager
 from qureed.signals import *
-from qureed.gui.icons import icon_list
 
 
-class {{ name }}(GenericDevice):
+class {{ class_name }}(GenericDevice):
     ports = {
         {% for label, signal in input_ports.items() %}
         "{{ label }}": Port(
@@ -36,7 +32,7 @@ class {{ name }}(GenericDevice):
         {% endfor %}
     }
     
-    gui_icon = icon_list.{{ gui_icon }}
+    gui_icon = {{ gui_icon }}
     gui_name = "{{ name }}"
     gui_tags = []
     gui_documentation = None
@@ -45,15 +41,6 @@ class {{ name }}(GenericDevice):
     power_average = 0
     
     reference = None
-      
-    @ensure_output_compute
-    @coordinate_gui
-    @wait_input_compute
-    def compute_outputs(self, *args, **kwargs):
-        """
-        Implement to use the regular backend
-	"""
-        pass
       
     @log_action
     @schedule_next_event
