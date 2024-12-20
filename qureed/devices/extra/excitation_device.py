@@ -18,7 +18,7 @@ from qureed.signals import (
 )
 
 
-class Excitation(GenericDevice):
+class ExcitationDevice(GenericDevice):
     """
     Implements Simple Trigger,
     Trigger turns on at the start of simulation.
