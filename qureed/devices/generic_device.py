@@ -38,38 +38,6 @@ def log_action(method):
     return wrapper
 
 
-def wait_input_compute(method):
-    """
-    Wrapper function, makes sure that the inputs are
-    computed before computing outputs.
-    """
-
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        for port in self.ports.keys():
-            port = self.ports[port]
-            if port.direction == "input":
-                if port.signal is not None:
-                    port.signal.wait_till_compute()
-        return method(self, *args, **kwargs)
-
-    return wrapper
-
-
-def ensure_output_compute(method):
-    """
-    Wrapper function, makes sure that the inputs are
-    computed before computing outputs.
-    TODO: write the logic
-    """
-
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        return method(self, *args, **kwargs)
-
-    return wrapper
-
-
 def coordinate_gui(method):
     """
     Wrapper funciton, informs the gui about the
