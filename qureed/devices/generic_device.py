@@ -12,7 +12,7 @@ from typing import Dict, Type
 from qureed.devices.port import Port
 from qureed.extra import Loggers, get_custom_logger
 from qureed.signals.generic_signal import GenericSignal
-from qureed.simulation import DeviceInformation, ModeManager, Simulation
+from qureed.simulation import DeviceInformation, Simulation
 
 
 def log_action(method):
@@ -114,23 +114,53 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
     Generic Device class used to implement every device
     """
 
-    def __init__(self, name=None, uid=None):
+    properties = {
+        "name":{
+            "type": str,
+             }
+        }
+
+    def __init__(self, uid=None, **kwargs):
         """
         Initialization method
         """
-        self.name = name
         self.ports = deepcopy(self.__class__.ports)
-        if hasattr(self.__class__, "values"):
-            self.values = deepcopy(self.__class__.values)
+        #self.properties = deepcopy(self.__class__.properties)
+        self.properties = deepcopy(self._merge_properties())
+        print("All properties", self.properties)
         for port in self.ports.keys():
             self.ports[port].device = self
 
         simulation = Simulation.get_instance()
-        ref = DeviceInformation(name=name, obj_ref=self, uid=uid)
+        ref = DeviceInformation(obj_ref=self, uid=uid)
         self.ref = ref
         simulation.register_device(ref)
         self.coordinator = None
         self.simulation = Simulation.get_instance()
+
+    def _merge_properties(self):
+        """
+        Merge properties from the base class and the subclass.
+        """
+        combined_properties = deepcopy(GenericDevice.properties)
+        print(combined_properties)
+        subclass_properties = getattr(self.__class__, "properties", {})
+        print(subclass_properties)
+        combined_properties.update(subclass_properties)  # Subclass properties override or add to parent
+        return combined_properties
+
+    def set_property(self, property_name, value):
+        if not property_name in self.properties.keys():
+            raise AttributeError(f"{self.__class__.__name__} has no property {property_name}")
+        if not isinstance(value, self.properties[property_name]["type"]):
+            raise TypeError(f"{property_name} Expected {self.properties[property_name]['type']}, got {type(value)}")
+        self.properties[property_name]["value"] = value
+
+    def get_property(self, property_name):
+        if not property_name in self.properties.keys():
+            raise AttributeError(f"{self.__class__.__name__} has no property {property_name}")
+        return self.properties[property_name].get("value",None)
+        
 
     def register_signal(
         self, signal: GenericSignal, port_label: str, override: bool = False
@@ -151,7 +181,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
                 raise PortConnectedException(
                     f"Signal was already registered for the port\n"
                     + "If this is intended, set override to True\n"
-                    + f"Device: {type(self)}, {self.name}, {self.ref.uuid}\n"
+                    + f"Device: {type(self)}, {self.properties['name']['value']}, {self.ref.uuid}\n"
                     + f"Port: {type(port.signal)}, {port_label}"
                 )
 

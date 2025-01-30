@@ -6,14 +6,12 @@ Simple Trigger
 from qureed.devices import (
     GenericDevice,
     coordinate_gui,
-    ensure_output_compute,
     log_action,
     schedule_next_event,
-    wait_input_compute,
 )
 from qureed.devices.port import Port
 from qureed.extra import Loggers, get_custom_logger
-from qureed.gui.icons import icon_list
+from qureed.assets import icon_list
 from qureed.signals import GenericBoolSignal, GenericTimeSignal
 from qureed.simulation import Simulation
 
@@ -50,18 +48,11 @@ class SimpleTrigger(GenericDevice):
     power_peak = 0
     reference = None
 
-    def __init__(self, name=None, time=0, uid=None):
-        super().__init__(name=name, uid=uid)
+    def __init__(self, time=0, uid=None):
+        super().__init__(uid=uid)
         self.time = time
         self.simulation = Simulation.get_instance()
         self.simulation.schedule_event(0, self)
-
-    @ensure_output_compute
-    @coordinate_gui
-    @wait_input_compute
-    def compute_outputs(self, *args, **kwargs):
-        self.ports["trigger"].signal.set_bool(True)
-        self.ports["trigger"].signal.set_computed()
 
     @log_action
     @schedule_next_event

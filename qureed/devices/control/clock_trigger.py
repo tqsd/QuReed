@@ -5,13 +5,11 @@ Clock Trigger
 from qureed.devices import (
     GenericDevice,
     coordinate_gui,
-    ensure_output_compute,
     log_action,
     schedule_next_event,
-    wait_input_compute,
 )
 from qureed.devices.port import Port
-from qureed.gui.icons import icon_list
+from qureed.assets import icon_list
 from qureed.signals import (
     GenericBoolSignal,
     GenericFloatSignal,
@@ -69,8 +67,8 @@ class ClockTrigger(GenericDevice):
     power_peak = 0
     reference = None
 
-    def __init__(self, name=None, frequency=None, time=0, uid=None):
-        super().__init__(name=name, uid=uid)
+    def __init__(self, frequency=None, time=0, uid=None):
+        super().__init__(uid=uid)
         self._triger_count = 0
         self.frequency = frequency
         self.time = time
@@ -78,18 +76,6 @@ class ClockTrigger(GenericDevice):
         self.delay = 0
         self.simulation = Simulation.get_instance()
         self.simulation.schedule_event(time, self)
-
-    @ensure_output_compute
-    @coordinate_gui
-    @wait_input_compute
-    def compute_outputs(self, *args, **kwargs):
-        """
-        Reimplement this,
-        This component is a currently implemented as a visual
-        demo only.
-        """
-        self.ports["trigger"].signal.set_bool(True)
-        self.ports["trigger"].signal.set_computed()
 
     @log_action
     @schedule_next_event

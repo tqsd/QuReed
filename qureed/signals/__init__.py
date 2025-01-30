@@ -9,3 +9,4 @@ from .generic_int_signal import GenericIntSignal
 from .generic_quantum_signal import GenericQuantumSignal
 from .generic_signal import GenericSignal
 from .generic_time_signal import GenericTimeSignal
+from .generic_string_signal import GenericStringSignal

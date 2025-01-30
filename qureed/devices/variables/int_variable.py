@@ -4,13 +4,11 @@ Int Variable
 from qureed.devices import (
     GenericDevice,
     coordinate_gui,
-    ensure_output_compute,
     log_action,
     schedule_next_event,
-    wait_input_compute,
 )
 from qureed.devices.port import Port
-from qureed.gui.icons import icon_list
+from qureed.assets import icon_list
 from qureed.signals import GenericIntSignal
 from qureed.simulation import Simulation
 
@@ -46,13 +44,6 @@ class IntVariable(GenericDevice):
         self.simulation.schedule_event(time, self)
 
     values = {"value": None}
-
-    @ensure_output_compute
-    @coordinate_gui
-    @wait_input_compute
-    def compute_outputs(self, *args, **kwargs):
-        self.ports["int"].signal.set_int(self.values["value"])
-        self.ports["int"].signal.set_computed()
 
     def set_value(self, value: str):
         self.values["value"] = int(value)

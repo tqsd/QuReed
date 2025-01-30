@@ -15,21 +15,18 @@ setup(
     packages=find_packages(where="."),
     install_requires=[
         "numpy",
-        "numba",
         "scipy",
         "photon_weave==0.1.4",
         "flet==0.22.0",
         "matplotlib",
-        "qutip",
         "seaborn",
-        "plotly",
         "jinja2",
         "mpmath",
         "toml",
         "jax"
     ],
     package_data={
-        "qureed": ["templates/*.jinja", "gui/assets/*.png"],
+        "qureed": ["templates/*.jinja", "assets/*.png"],
     },
     include_package_data=True,
     entry_points={

@@ -12,9 +12,6 @@ from typing import TYPE_CHECKING, Type
 
 import mpmath
 
-from qureed.backend.backend import Backend, FockBackend
-from qureed.backend.fock_first_backend import FockBackendFirst
-from qureed.experiment.experiment_manager import Experiment
 from qureed.extra import Loggers, get_custom_logger
 from qureed.signals.generic_bool_signal import GenericBoolSignal
 from qureed.signals.generic_quantum_signal import GenericQuantumSignal
@@ -34,8 +31,7 @@ class DeviceInformation:
     name: str
     obj_ref: object
 
-    def __init__(self, name: str, obj_ref: Type["GenericDevice"], uid=None):
-        self.name = name
+    def __init__(self, obj_ref: Type["GenericDevice"], uid=None):
         self.obj_ref = obj_ref
         if uid is not None:
             self.uuid = uid
@@ -135,7 +131,6 @@ class Simulation:
         """
         if Simulation.__instance is None:
             Simulation.__instance = self
-            self.backend = FockBackendFirst
             self.devices = []
             self.initial_trigger_devices = []
             self.simulation_type = SimulationType.FOCK
@@ -173,7 +168,7 @@ class Simulation:
             event = heapq.heappop(self.event_queue)
             time_as_float = float(event.event_time)
             logger.info(
-                f"[{time_as_float:.3e}s] Processing Event for {event.device.name} of type {event.device.__class__.__name__}"
+                f"[{time_as_float:.3e}s] Processing Event of type {event.device.__class__.__name__}"
             )
             event.device.des(event.event_time, *event.args, **event.kwargs)
             # remove from the event map
@@ -192,34 +187,6 @@ class Simulation:
             heapq.heappush(self.event_queue, event)
             self.event_map[key] = event
 
-    def run(self):
-        """
-        Executes the experiment
-        """
-        # Determine number of modes
-        modes = sum([d.new_modes for d in self.devices])
-        if isinstance(self.backend, FockBackend):
-            self.backend.set_number_of_modes(modes)
-            self.backend.set_dimensions(self.dimensions)
-            self.backend.initialize()
-
-        for d in self.initial_trigger_devices:
-            d = d.obj_ref
-            sig = d.ports["TRIGGER"].signal
-            sig.set_contents = True
-            sig.set_computed()
-        processes = []
-        for d in self.devices:
-            p = Thread(target=d.obj_ref.compute_outputs, args=(d.obj_ref,))
-            processes.append(p)
-        for p in processes:
-            p.start()
-        for p in processes:
-            p.join()
-
-        if self.simulation_type == SimulationType.FOCK:
-            exp = Experiment.get_instance()
-            exp.execute()
 
     def register_triggers(self, *devices):
         """
@@ -239,38 +206,3 @@ class Simulation:
     def list_triggered_devices(self):
         self._list_devices(self.initial_trigger_devices, "TRIGGERED DEVICES")
 
-    def _list_devices(self, devices, title):
-        """
-        List a table of given device list with title
-        """
-        n = 10
-        d = 10
-        t = 25
-        u = 36
-        total_bot = 11 + n + t + u - 4
-        title = " " + title + " "
-        print("╭─" + title.center(total_bot, "─") + "─╮")
-        print(
-            f"│- {'NAME'.center(n, ' ')} - {'TYPE'.center(t, ' ')} - {'UUID'.center(u, ' ')} │"
-        )
-        print("├─" + "─" * total_bot + "─┤")
-        for d in devices:
-            print(
-                f"├─ {str(d.name).ljust(n)} : {str(d.device_type).ljust(t)} : {str(d.uuid).ljust(u)} │"
-            )
-        print("╰─" + "─" * total_bot + "─╯")
-
-    def clear_all(self):
-        for d in self.devices:
-            del d
-        self.devices = []
-
-    def set_backend(self, backend: Backend):
-        self.backend = backend
-
-    def get_backend(self) -> Backend:
-        return self.backend
-
-    def stop_simulation(self) -> None:
-        while self.event_queue:
-            heapq.heappop(self.event_queue)

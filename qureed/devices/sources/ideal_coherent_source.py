@@ -5,17 +5,14 @@ Ideal Coherent Source Implementation
 from math import factorial
 import numpy as np
 
-from qureed._math.fock.ops import a, adagger, coherent_state
 from qureed.devices import (
     GenericDevice,
     coordinate_gui,
-    ensure_output_compute,
     log_action,
     schedule_next_event,
-    wait_input_compute,
 )
 from qureed.devices.port import Port
-from qureed.gui.icons import icon_list
+from qureed.assets import icon_list
 from qureed.signals import (
     GenericBoolSignal,
     GenericFloatSignal,
@@ -23,7 +20,7 @@ from qureed.signals import (
     GenericSignal,
 )
 
-from qureed.simulation import ModeManager, Simulation, SimulationType
+from qureed.simulation import Simulation, SimulationType
 
 from photon_weave.state.envelope import Envelope
 from photon_weave.operation import Operation, FockOperationType
@@ -93,36 +90,6 @@ class IdealCoherentSource(GenericDevice):
         self.register_signal(signal=phi_sig, port_label="phi")
         phi_sig.set_computed()
         alpha_sig.set_computed()
-
-    @ensure_output_compute
-    @coordinate_gui
-    @wait_input_compute
-    def compute_outputs(self, *args, **kwargs):
-        simulation = Simulation.get_instance()
-        if simulation.simulation_type is SimulationType.FOCK:
-            self.simulate_fock()
-
-    def simulate_fock(self):
-        """
-        Fock Simulation
-        """
-        simulation = Simulation.get_instance()
-        backend = simulation.get_backend()
-
-        # Get the mode manager
-        mm = ModeManager()
-        # Generate new mode
-        mode = mm.create_new_mode()
-        # Displacement parameters
-        alpha = self.ports["alpha"].signal.contents
-        phi = self.ports["phi"].signal.contents
-
-        # Initialize photon number state in the mode
-        operator = backend.displace(alpha, phi, mm.get_mode_index(mode))
-        backend.apply_operator(operator, [mm.get_mode_index(mode)])
-
-        self.ports["output"].signal.set_contents(timestamp=0, mode_id=mode)
-        self.ports["output"].signal.set_computed()
 
     @coordinate_gui
     @schedule_next_event

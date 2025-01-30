@@ -43,7 +43,7 @@ class GenericFiber(GenericDevice, metaclass=EnforcePortsMeta):
             label="control",
             direction="length",
             signal=None,
-            signal_type=GenericFloatSignal,
+            signal_type=GenericFloatSignal
             device=None,
         ),
         "input": Port(

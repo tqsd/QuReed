@@ -3,13 +3,17 @@
  created with template
 """
 from typing import Union
-from qureed.devices import (GenericDevice,
-                           schedule_next_event,
-                           coordinate_gui,
-                           log_action)
-
+import qureed
+from qureed.devices import (
+    GenericDevice, schedule_next_event,
+    coordinate_gui, log_action )
+from qureed.assets.icon_list import *
 from qureed.devices.port import Port
 from qureed.signals import *
+
+{% if custom %}
+import custom
+{% endif %}
 
 
 class {{ class_name }}(GenericDevice):
@@ -31,8 +35,20 @@ class {{ class_name }}(GenericDevice):
             device=None),
         {% endfor %}
     }
+
+    properties = {
+	{% for label, property in properties.items() %}
+	"{{ label }}": {
+	    "type": "{{ property['type'] }}",
+	}{% if not loop.last %},{% endif %}
+	{% endfor %}
+    }
     
+{% if "custom/icons/" in gui_icon %}
     gui_icon = "{{ gui_icon }}"
+{% else %}
+    gui_icon = {{ gui_icon }}
+{% endif %}
     gui_name = "{{ name }}"
     gui_tags = [
     {% for tag in tags -%}

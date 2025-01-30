@@ -3,24 +3,20 @@
 
 import numpy as np
 
-from qureed._math.fock.ops import a, adagger
 from qureed.devices import (
     GenericDevice,
     coordinate_gui,
-    ensure_output_compute,
     log_action,
     schedule_next_event,
-    wait_input_compute,
 )
 from qureed.devices.port import Port
-from qureed.gui.icons import icon_list
+from qureed.assets import icon_list
 from qureed.signals import (
     GenericBoolSignal,
     GenericIntSignal,
     GenericQuantumSignal,
     GenericSignal,
 )
-from qureed.simulation import ModeManager
 
 
 class IdealDetector(GenericDevice):
@@ -55,12 +51,6 @@ class IdealDetector(GenericDevice):
     power_average = 0
 
     reference = None
-
-    @ensure_output_compute
-    @coordinate_gui
-    @wait_input_compute
-    def compute_outputs(self, *args, **kwargs):
-        pass
 
     @log_action
     @schedule_next_event

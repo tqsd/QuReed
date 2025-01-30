@@ -9,18 +9,15 @@ from typing import Union
 from qureed.devices import (
     GenericDevice,
     coordinate_gui,
-    ensure_output_compute,
     log_action,
     schedule_next_event,
-    wait_input_compute,
 )
 from qureed.devices.fiber.generic_fiber import GenericFiber
 from qureed.devices.port import Port
-from qureed.gui.icons import icon_list
+from qureed.assets import icon_list
 from qureed.signals.generic_float_signal import GenericFloatSignal
 from qureed.signals.generic_int_signal import GenericIntSignal
 from qureed.signals.generic_quantum_signal import GenericQuantumSignal
-from qureed.simulation import ModeManager
 from qureed.simulation.constants import C
 
 
@@ -79,18 +76,6 @@ class IdealFiber(GenericFiber):
         super().__init__(name=name, uid=uid)
         self.length = None
 
-    @ensure_output_compute
-    @coordinate_gui
-    @wait_input_compute
-    def compute_outputs(self, *args, **kwargs):
-        """
-        Ideal fiber only adds delay to the signal,
-        without any distortions
-        """
-        self.ports["output"].signal.set_contents(
-            timestamp=0, mode_id=self.ports["input"].signal.mode_id
-        )
-        self.ports["output"].signal.set_computed()
 
     @log_action
     @schedule_next_event

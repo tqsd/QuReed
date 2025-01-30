@@ -4,26 +4,22 @@ Ideal Single Photon Source implementation
 import numpy as np
 from photon_weave.state.envelope import Envelope
 
-from qureed.backend.envelope_backend import EnvelopeBackend
 from qureed.devices import (
     GenericDevice,
     coordinate_gui,
-    ensure_output_compute,
     log_action,
     schedule_next_event,
-    wait_input_compute,
 )
 from qureed.devices.port import Port
-from qureed.experiment import Experiment
 from qureed.extra.logging import Loggers, get_custom_logger
-from qureed.gui.icons import icon_list
+from qureed.assets import icon_list
 from qureed.signals import (
     GenericBoolSignal,
     GenericIntSignal,
     GenericQuantumSignal,
     GenericSignal,
 )
-from qureed.simulation import ModeManager, Simulation, SimulationType
+from qureed.simulation import Simulation, SimulationType
 
 logger = get_custom_logger(Loggers.Devices)
 
@@ -80,39 +76,6 @@ class IdealNPhotonSource(GenericDevice):
         self.register_signal(signal=photon_num_sig, port_label="photon_num")
         photon_num_sig.set_computed()
 
-    @ensure_output_compute
-    @coordinate_gui
-    @wait_input_compute
-    def compute_outputs(self, *args, **kwargs):
-        simulation = Simulation.get_instance()
-        if simulation.simulation_type is SimulationType.FOCK:
-            self.simulate_fock()
-
-    def simulate_fock(self):
-        """
-        Fock Simulation
-        """
-        simulation = Simulation.get_instance()
-        backend = simulation.get_backend()
-
-        # Get the mode manager
-        mm = ModeManager()
-        # Generate new mode
-        mode = mm.create_new_mode()
-        # How many photons should be created
-        photon_num = self.ports["photon_num"].signal.contents
-
-        # Initialize photon number state in the mode
-        backend.initialize_number_state(photon_num, [mm.get_mode_index(mode)])
-
-        logger.info(
-            "Source - %s - assisning mode %s to signal on port %s",
-            self.name,
-            mm.get_mode_index(mode),
-            self.ports["output"].label,
-        )
-        self.ports["output"].signal.set_contents(timestamp=0, mode_id=mode)
-        self.ports["output"].signal.set_computed()
 
     def set_photon_num(self, photon_num: int):
         """

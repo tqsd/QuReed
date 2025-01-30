@@ -5,14 +5,12 @@ Float Variable
 from qureed.devices import (
     GenericDevice,
     coordinate_gui,
-    ensure_output_compute,
     log_action,
     schedule_next_event,
-    wait_input_compute,
 )
 from qureed.extra.logging import Loggers, get_custom_logger
 from qureed.devices.port import Port
-from qureed.gui.icons import icon_list
+from qureed.assets import icon_list
 from qureed.signals import GenericTimeSignal
 
 logger = get_custom_logger(Loggers.Devices)
@@ -47,13 +45,6 @@ class TimeVariable(GenericDevice):
         super().__init__(name=name, uid=uid)
         self.simulation.schedule_event(-1, self)
         self.values = TimeVariable.values.copy()
-
-    @ensure_output_compute
-    @coordinate_gui
-    @wait_input_compute
-    def compute_outputs(self, *args, **kwargs):
-        self.ports["time"].signal.set_time(self.values["value"])
-        self.ports["time"].signal.set_computed()
 
     def set_value(self, value: str):
         if value == "":
