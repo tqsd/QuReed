@@ -14,6 +14,15 @@ from qureed.extra import Loggers, get_custom_logger
 from qureed.signals.generic_signal import GenericSignal
 from qureed.simulation import DeviceInformation, Simulation
 
+type_mapping = {
+    "int": int,
+    "float": float,
+    "bool": bool,
+    "cmplx": complex,
+    "str": str,
+    "char": lambda v: v if len(v) == 1 else ValueError("Value must be a single character")
+}
+
 
 def log_action(method):
     @functools.wraps(method)
@@ -150,9 +159,11 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         return combined_properties
 
     def set_property(self, property_name, value):
+        print(self.properties[property_name]["type"])
+        print(type(self.properties[property_name]["type"]))
         if not property_name in self.properties.keys():
             raise AttributeError(f"{self.__class__.__name__} has no property {property_name}")
-        if not isinstance(value, self.properties[property_name]["type"]):
+        if not isinstance(value, type_mapping[self.properties[property_name]["type"]]):
             raise TypeError(f"{property_name} Expected {self.properties[property_name]['type']}, got {type(value)}")
         self.properties[property_name]["value"] = value
 
