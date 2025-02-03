@@ -163,7 +163,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         print(type(self.properties[property_name]["type"]))
         if not property_name in self.properties.keys():
             raise AttributeError(f"{self.__class__.__name__} has no property {property_name}")
-        if not isinstance(value, type_mapping[self.properties[property_name]["type"]]):
+        if not isinstance(value, self.properties[property_name]["type"]):
             raise TypeError(f"{property_name} Expected {self.properties[property_name]['type']}, got {type(value)}")
         self.properties[property_name]["value"] = value
 

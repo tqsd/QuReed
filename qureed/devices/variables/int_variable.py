@@ -44,6 +44,11 @@ class IntVariable(GenericDevice):
         self.simulation.schedule_event(time, self)
 
     values = {"value": None}
+    properties = {
+        "value": {
+            "type": int
+            }
+        }
 
     def set_value(self, value: str):
         self.values["value"] = int(value)

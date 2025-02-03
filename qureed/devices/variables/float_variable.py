@@ -38,6 +38,12 @@ class FloatVariable(GenericDevice):
     reference = None
 
     values = {"value": None}
+    properties = {
+        "value": {
+            "type": float
+            }
+        }
+
 
     def __init__(self, name=None, uid=None):
         super().__init__(name=name, uid=uid)
