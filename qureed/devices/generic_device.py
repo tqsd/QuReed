@@ -136,7 +136,6 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         self.ports = deepcopy(self.__class__.ports)
         #self.properties = deepcopy(self.__class__.properties)
         self.properties = deepcopy(self._merge_properties())
-        print("All properties", self.properties)
         for port in self.ports.keys():
             self.ports[port].device = self
 
@@ -152,15 +151,13 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         Merge properties from the base class and the subclass.
         """
         combined_properties = deepcopy(GenericDevice.properties)
-        print(combined_properties)
         subclass_properties = getattr(self.__class__, "properties", {})
-        print(subclass_properties)
         combined_properties.update(subclass_properties)  # Subclass properties override or add to parent
         return combined_properties
 
     def set_property(self, property_name, value):
-        print(self.properties[property_name]["type"])
-        print(type(self.properties[property_name]["type"]))
+        if type(self.properties[property_name]["type"]) == str:
+            self.properties[property_name]["type"] = type_mapping[self.properties[property_name]["type"]]
         if not property_name in self.properties.keys():
             raise AttributeError(f"{self.__class__.__name__} has no property {property_name}")
         if not isinstance(value, self.properties[property_name]["type"]):

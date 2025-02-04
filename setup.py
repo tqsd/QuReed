@@ -14,16 +14,10 @@ setup(
     license="Apache 2.0",
     packages=find_packages(where="."),
     install_requires=[
-        "numpy",
-        "scipy",
+        "numpy>=1.20.0,<2.0.0",
+        "scipy>=1.6.0,<2.0.0",
         "photon_weave==0.1.4",
-        "flet==0.22.0",
-        "matplotlib",
-        "seaborn",
         "jinja2",
-        "mpmath",
-        "toml",
-        "jax"
     ],
     package_data={
         "qureed": ["templates/*.jinja", "assets/*.png"],

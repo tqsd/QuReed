@@ -45,7 +45,7 @@ class {{ class_name }}(GenericDevice):
     }
     
 {% if "custom/icons/" in gui_icon %}
-    gui_icon = "{{ gui_icon }}"
+    gui_icon = r"{{ gui_icon }}"
 {% else %}
     gui_icon = {{ gui_icon }}
 {% endif %}
