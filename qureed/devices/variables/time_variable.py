@@ -41,16 +41,19 @@ class TimeVariable(GenericDevice):
 
     values = {"value": 0}
 
+    properties = {
+        "value": {
+            "type": float
+            }
+        }
+
+    def set_value(self, value: str):
+        self.values["value"] = float(value)        
+
     def __init__(self, name=None, uid=None):
         super().__init__(name=name, uid=uid)
         self.simulation.schedule_event(-1, self)
         self.values = TimeVariable.values.copy()
-
-    def set_value(self, value: str):
-        if value == "":
-            self.values["time"] = float(0)
-        else:
-            self.values["time"] = float(value)
 
     @log_action
     @schedule_next_event
