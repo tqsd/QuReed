@@ -14,8 +14,6 @@ setup(
     license="Apache 2.0",
     packages=find_packages(where="."),
     install_requires=[
-        "numpy>=1.20.0,<2.0.0",
-        "scipy>=1.6.0,<2.0.0",
         "photon_weave==0.1.4",
         "jinja2",
     ],

@@ -1,9 +1,9 @@
 from qureed.devices import (
     GenericDevice,
     wait_input_compute,
-    coordinate_gui,
-    ensure_output_compute,
+    coordinate_gui
 )
+
 from qureed.devices.port import Port
 from qureed.signals import GenericSignal, GenericFloatSignal, GenericQuantumSignal
 from qureed.extra.logging import Loggers, get_custom_logger
@@ -96,7 +96,6 @@ class CustomPhaseShift(GenericDevice):
         self.register_signal(signal=sig_C, port_label="C")
         sig_C.set_computed()
 
-    @ensure_output_compute
     @coordinate_gui
     @wait_input_compute
     def compute_outputs(self, *args, **kwargs):

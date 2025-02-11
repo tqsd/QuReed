@@ -8,8 +8,7 @@ from qureed.devices import (
     wait_input_compute,
     schedule_next_event,
     coordinate_gui,
-    log_action,
-    ensure_output_compute,
+    log_action
 )
 
 from qureed.devices.port import Port
@@ -51,7 +50,6 @@ class CustomFilter(GenericDevice):
 
     reference = None
 
-    @ensure_output_compute
     @coordinate_gui
     @wait_input_compute
     def compute_outputs(self, *args, **kwargs):

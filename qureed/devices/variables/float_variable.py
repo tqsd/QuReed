@@ -45,25 +45,26 @@ class FloatVariable(GenericDevice):
         }
 
 
-    def __init__(self, name=None, uid=None):
+    def __init__(self, name=None, uid=None, trigger=True):
         super().__init__(name=name, uid=uid)
-        self.simulation.schedule_event(-1, self)
+        if trigger:
+            self.simulation.schedule_event(-1, self)
 
 
     def set_value(self, value: str):
-        print(f"Setting Value {value}")
         if value == "":
-            self.values["value"] = float(0)
+            self.properties["value"]["value"]=float(0)
         else:
-            self.values["value"] = float(value)
+            self.properties["value"]["value"]=float(value)
 
     @log_action
     @schedule_next_event
     def des_action(self, time=None, *args, **kwargs):
         signal = GenericFloatSignal()
-        if self.values["value"] is None:
+        if self.properties["value"].get("value", None) is None:
             signal.set_float(0)
         else:
-            signal.set_float(self.values["value"])
+            signal.set_float(float(
+                self.properties["value"]["value"]))
         result = [("float", signal, time)]
         return result

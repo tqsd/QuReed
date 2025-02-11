@@ -72,7 +72,7 @@ class IdealFiber(GenericFiber):
 
     reference = None
 
-    def __init__(self, name=None, frequency=None, time=0, uid=None):
+    def __init__(self, name=None, frequency=None, time=0, uid=None, **kwargs):
         super().__init__(name=name, uid=uid)
         self.length = None
 
@@ -83,6 +83,7 @@ class IdealFiber(GenericFiber):
         signals = kwargs.get("signals")
         if self.length is None:
             if signals and "length" in signals:
+                print("FIBER LENGTH SET", signals["length"].contents)
                 self.length = float(signals["length"].contents)
         elif signals and "input" in signals:
             n = 1.45

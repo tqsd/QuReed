@@ -37,27 +37,25 @@ class IntVariable(GenericDevice):
     power_peak = 0
     reference = None
 
-    def __init__(self, name=None, time=-1, uid=None):
+    def __init__(self, name=None, time=-1, uid=None, trigger=True):
         super().__init__(name=name, uid=uid)
         self.time = time
-        self.simulation = Simulation.get_instance()
-        self.simulation.schedule_event(time, self)
+        if trigger:
+            self.simulation = Simulation.get_instance()
+            self.simulation.schedule_event(time, self)
 
-    values = {"value": None}
     properties = {
         "value": {
             "type": int
             }
         }
 
-    def set_value(self, value: str):
-        self.values["value"] = int(value)
-
     @log_action
     @schedule_next_event
     def des(self, time, *args, **kwargs):
         signal = GenericIntSignal()
-        signal.set_int(int(self.values["value"]))
+        print(self)
+        signal.set_int(int(self.properties["value"]["value"]))
         result = [("int", signal, time + 0)]
         return result
 
@@ -66,6 +64,7 @@ class IntVariable(GenericDevice):
     def des_action(self, time=None, *args, **kwargs):
         next_device, port = self.get_next_device_and_port("int")
         signal = GenericIntSignal()
-        signal.set_int(int(self.values["value"]))
+        print(self.properties)
+        signal.set_int(int(self.properties["value"]["value"]))
         result = [("int", signal, self.time)]
         return result

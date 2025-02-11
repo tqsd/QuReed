@@ -67,7 +67,7 @@ class ClockTrigger(GenericDevice):
     power_peak = 0
     reference = None
 
-    def __init__(self, frequency=None, time=0, uid=None):
+    def __init__(self, frequency=None, time=0, uid=None, **kwargs):
         super().__init__(uid=uid)
         self._triger_count = 0
         self.frequency = frequency

@@ -3,7 +3,6 @@ Ideal Coherent Source Implementation
 """
 
 from math import factorial
-import numpy as np
 
 from qureed.devices import (
     GenericDevice,
@@ -73,7 +72,7 @@ class IdealCoherentSource(GenericDevice):
 
     reference = None
 
-    def __init__(self, name=None, frequency=None, time=0, uid=None):
+    def __init__(self, name=None, frequency=None, time=0, uid=None, **kwargs):
         super().__init__(name=name, uid=uid)
         self.alpha = None
         self.phi = None

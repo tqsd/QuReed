@@ -31,9 +31,10 @@ def log_action(method):
         l = get_custom_logger(Loggers.Devices)
         time_as_float = float(time)
         # Correctly format the string before passing to l.info
-        if self.name is not None:
+        if self.properties["name"].get("value", False):
+            name = self.properties["name"].get("value", "None")
             formatted_message = "[{:-3e}s] *{}* ({}) is computing".format(
-                time_as_float, self.name, self.__class__.__name__
+                time_as_float, name, self.__class__.__name__
             )
         else:
             formatted_message = "[{:.3e}s] {} is computing".format(
@@ -41,7 +42,14 @@ def log_action(method):
             )
 
         # Now, pass the formatted_message to the log
-        l.info(formatted_message)
+        l.info(
+            "is computing",
+            extra={
+                "simulation_time":time,
+                "device_name":self.properties["name"].get("value",self.ref.uuid),
+                "device":self.__class__.__name__
+            }
+               )
         return method(self, time, *args, **kwargs)
 
     return wrapper
@@ -78,42 +86,10 @@ def schedule_next_event(method):
         for output_port, signal, time in results:
             next_device, port = self.get_next_device_and_port(output_port)
             if not next_device is None:
-                time_as_float = float(time)
-                l = get_custom_logger(Loggers.Devices)
-                if self.name is None:
-                    if next_device.name is None:
-                        formatted_message = (
-                            "<{:.3e}s> {} is scheduling new event for {}".format(
-                                time_as_float,
-                                self.__class__.__name__,
-                                next_device.__class__.__name__,
-                                time_as_float,
-                            )
-                        )
-                    else:
-                        formatted_message = (
-                            "<{:.3e}s> {} is scheduling new event for {} ({})".format(
-                                time_as_float,
-                                self.__class__.__name__,
-                                next_device.name,
-                                next_device.__class__.__name__,
-                                time_as_float,
-                            )
-                        )
-                else:
-                    formatted_message = (
-                        "<{:.3e}s> {} ({}) is scheduling new event for {} ({})".format(
-                            time_as_float,
-                            self.name,
-                            self.__class__.__name__,
-                            next_device.name,
-                            next_device.__class__.__name__,
-                            time_as_float,
-                        )
-                    )
-                l.info(formatted_message)
                 signals = {port: signal}
                 self.simulation.schedule_event(time, next_device, signals=signals)
+            else:
+                print("NO NEXT DEVICE")
 
     return wrapper
 
@@ -155,6 +131,10 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         combined_properties.update(subclass_properties)  # Subclass properties override or add to parent
         return combined_properties
 
+    @property
+    def name(self) -> str:
+        return self.properties["name"].get("value", None)
+
     def set_property(self, property_name, value):
         if type(self.properties[property_name]["type"]) == str:
             self.properties[property_name]["type"] = type_mapping[self.properties[property_name]["type"]]
@@ -176,6 +156,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         """
         Register a signal to port
         """
+        print(f"Registering signal {self} -> {signal}")
         port = None
         try:
             port = self.ports[port_label]

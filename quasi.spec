@@ -20,7 +20,7 @@ a = Analysis(
         ('wheels/windows/*.whl', 'wheels/windows') # Windows wheels
     ], 
     hiddenimports=[
-        'numpy', 'numba', 'scipy', 'flet', 'matplotlib', 'qutip', 
+        'scipy', 'flet', 'matplotlib', 'qutip', 
         'seaborn', 'plotly', 'jinja2', 'mpmath', 'toml', 
         'scipy.special._ufuncs', 'scipy.special._cdflib',
         'photon_weave',

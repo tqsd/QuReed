@@ -1,7 +1,6 @@
 """
 Ideal Single Photon Source implementation
 """
-import numpy as np
 from photon_weave.state.envelope import Envelope
 
 from qureed.devices import (
@@ -63,7 +62,7 @@ class IdealNPhotonSource(GenericDevice):
     power_average = 0
     reference = None
 
-    def __init__(self, name=None, time=0, uid=None):
+    def __init__(self, name=None, time=0, uid=None, **kwargs):
         super().__init__(name=name, uid=uid)
         self.photon_num = None
 
@@ -90,6 +89,7 @@ class IdealNPhotonSource(GenericDevice):
         if "photon_num" in kwargs["signals"]:
             self.set_photon_num(float(kwargs["signals"]["photon_num"].contents))
         elif "trigger" in kwargs["signals"] and self.photon_num is not None:
+            print("TRIGGERING")
             n = int(self.photon_num)
             # Creating new envelope
             env = Envelope()

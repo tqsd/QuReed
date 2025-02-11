@@ -1,8 +1,6 @@
 """
 """
 
-import numpy as np
-
 from qureed.devices import (
     GenericDevice,
     coordinate_gui,
@@ -56,12 +54,11 @@ class IdealDetector(GenericDevice):
     @schedule_next_event
     def des(self, time, *args, **kwargs):
         env = kwargs["signals"]["input"].contents
-        ce = env.composite_envelope
-        print(ce.states[0][0])
-        outcome = ce.measure(env)
+        print(env)
+        outcome = env.measure()
         signal = GenericIntSignal()
         print(outcome)
-        signal.set_int(outcome[0])
+        signal.set_int(outcome[env.fock])
 
         results = [("output", signal, time)]
         return results

@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Type
 
 import mpmath
 
-from qureed.extra import Loggers, get_custom_logger
+from qureed.extra import Loggers, get_custom_logger, set_logging_hook
 from qureed.signals.generic_bool_signal import GenericBoolSignal
 from qureed.signals.generic_quantum_signal import GenericQuantumSignal
 
@@ -168,7 +168,15 @@ class Simulation:
             event = heapq.heappop(self.event_queue)
             time_as_float = float(event.event_time)
             logger.info(
-                f"[{time_as_float:.3e}s] Processing Event of type {event.device.__class__.__name__}"
+                f"Processing event for",
+                extra={
+                    "simulation_time":self.current_time,
+                    "device_name":event.device.properties["name"].get(
+                        "value",
+                        event.device.ref.uuid
+                    ),
+                    "device":event.device.__class__.__name__
+                }
             )
             event.device.des(event.event_time, *event.args, **event.kwargs)
             # remove from the event map
@@ -176,9 +184,11 @@ class Simulation:
             key = (self.current_time, event.device)
             if key in self.event_map:
                 del self.event_map[key]
+        print("Simulation finished with time:", self.current_time, self.end_time)
+
 
     def schedule_event(self, time, device, *args, **kwargs):
-        event = SimulationEvent(time, device, *args, **kwargs)
+        event = SimulationEvent(float(time), device, *args, **kwargs)
         key = (time, device)
         if key in self.event_map:
             existing_event = self.event_map[key]
@@ -186,7 +196,18 @@ class Simulation:
         else:
             heapq.heappush(self.event_queue, event)
             self.event_map[key] = event
-
+        logger = get_custom_logger(Loggers.Simulation)
+        logger.info(
+            f"Scheduling an event for",
+            extra={
+                "simulation_time":self.current_time,
+                "device_name":event.device.properties["name"].get(
+                    "value",
+                    event.device.ref.uuid
+                ),
+                "device":event.device.__class__.__name__
+                }
+            )
 
     def register_triggers(self, *devices):
         """

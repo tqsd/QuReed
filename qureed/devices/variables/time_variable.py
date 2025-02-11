@@ -39,8 +39,6 @@ class TimeVariable(GenericDevice):
     power_peak = 0
     reference = None
 
-    values = {"value": 0}
-
     properties = {
         "value": {
             "type": float
@@ -48,22 +46,19 @@ class TimeVariable(GenericDevice):
         }
 
     def set_value(self, value: str):
-        self.values["value"] = float(value)        
+        self.properties["value"]["value"] = float(value)
 
-    def __init__(self, name=None, uid=None):
+    def __init__(self, name=None, uid=None, trigger=True):
         super().__init__(name=name, uid=uid)
-        self.simulation.schedule_event(-1, self)
-        self.values = TimeVariable.values.copy()
+        if trigger:
+            self.simulation.schedule_event(-1, self)
 
     @log_action
     @schedule_next_event
     def des_action(self, time=None, *args, **kwargs):
         logger.info("HERE")
-        print("COMPUTING")
         signal = GenericTimeSignal()
         logger.info("SIGNAL")
-        print(self.values)
-        signal.set_time(self.values["time"])
+        signal.set_time(self.properties["value"]["value"])
         result = [("time", signal, time)]
-        print("OVER")
         return result

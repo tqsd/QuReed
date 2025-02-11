@@ -48,11 +48,9 @@ class SimpleTrigger(GenericDevice):
     power_peak = 0
     reference = None
 
-    def __init__(self, time=0, uid=None):
+    def __init__(self, time=0, uid=None, **kwargs):
         super().__init__(uid=uid)
         self.time = time
-        self.simulation = Simulation.get_instance()
-        self.simulation.schedule_event(0, self)
 
     @log_action
     @schedule_next_event
@@ -68,8 +66,9 @@ class SimpleTrigger(GenericDevice):
     @schedule_next_event
     def des(self, time=None, *args, **kwargs):
         if "time" in kwargs.get("signals"):
-            self.time = kwargs["signals"]["time"].contents
+            self.time = float(kwargs["signals"]["time"].contents)
             self.simulation.schedule_event(self.time, self)
+
         if (self.time is None and time == 0) or time == self.time:
             signal = GenericBoolSignal()
             signal.set_bool(True)

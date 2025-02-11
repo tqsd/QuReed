@@ -4,6 +4,7 @@ Ideal Beam Splitter
 
 import heapq
 import mpmath
+import jax.numpy as jnp
 
 from qureed.devices.generic_device import (
     GenericDevice,
@@ -96,11 +97,10 @@ class IdealBeamSplitter(GenericDevice):
     gui_name = "Ideal Beam Splitter"
     gui_documentation = "ideal_beam_splitter.md"
 
-    def __init__(self, uid=None):
+    def __init__(self, uid=None, **kwargs):
         super().__init__(uid=uid)
         self.incomming_photons = []
         self.scheduled_event_time = None
-        print("again the properties", self.properties)
 
     @schedule_next_event
     @log_action
@@ -119,7 +119,7 @@ class IdealBeamSplitter(GenericDevice):
             envelope_B = Envelope()
 
         operation = Operation(CompositeOperationType.NonPolarizingBeamSplitter,
-            eta = self.properties["transittance"].get("value", jnp.pi/4))
+            eta = float(self.properties["transmittance"].get("value", jnp.pi/4)))
         ce = CompositeEnvelope(envelope_A, envelope_B)
         ce.apply_operation(operation, envelope_A.fock, envelope_B.fock)
         signalC = GenericQuantumSignal()
@@ -128,6 +128,7 @@ class IdealBeamSplitter(GenericDevice):
         signalD.set_contents(content=envelope_B)
         result = [
             ("C", signalC, time+IdealBeamSplitter.processing_time),
-            ("D", signalC, time+IdealBeamSplitter.processing_time)
+            ("D", signalD, time+IdealBeamSplitter.processing_time)
             ]
+        return result
             

@@ -9,7 +9,6 @@ from qureed.devices import (
     schedule_next_event,
     coordinate_gui,
     log_action,
-    ensure_output_compute,
 )
 
 from qureed.devices.port import Port
@@ -51,7 +50,6 @@ class Waveplate(GenericDevice):
 
     reference = None
 
-    @ensure_output_compute
     @coordinate_gui
     @wait_input_compute
     def compute_outputs(self, *args, **kwargs):

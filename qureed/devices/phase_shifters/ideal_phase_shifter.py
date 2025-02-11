@@ -59,7 +59,7 @@ class IdealPhaseShifter(GenericDevice):
     power_average = 0
     reference = None
 
-    def __init__(self, name=None, time=0, uid=None):
+    def __init__(self, name=None, time=0, uid=None, **kwargs):
         super().__init__(name=name, uid=uid)
         self.theta = 0
 
