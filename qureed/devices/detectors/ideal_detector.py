@@ -16,6 +16,10 @@ from qureed.signals import (
     GenericSignal,
 )
 
+from qureed.extra.logging import Loggers, get_custom_logger
+
+logger = get_custom_logger(Loggers.Custom)
+
 
 class IdealDetector(GenericDevice):
     """
@@ -54,11 +58,11 @@ class IdealDetector(GenericDevice):
     @schedule_next_event
     def des(self, time, *args, **kwargs):
         env = kwargs["signals"]["input"].contents
-        print(env)
+        env.fock.expand()
         outcome = env.measure()
         signal = GenericIntSignal()
-        print(outcome)
         signal.set_int(outcome[env.fock])
+        self.log_message(f"Measured: {outcome[env.fock]}")
 
         results = [("output", signal, time)]
         return results

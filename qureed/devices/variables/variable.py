@@ -63,11 +63,12 @@ class Variable(GenericDevice):
              }
         }
 
-    def __init__(self, time=-1, uid=None):
+    def __init__(self, time=-1, uid=None, trigger=True, **kwargs):
         super().__init__(uid=uid)
         self.time = time
-        self.simulation = Simulation.get_instance()
-        self.simulation.schedule_event(time, self)
+        if trigger:
+            self.simulation = Simulation.get_instance()
+            self.simulation.schedule_event(time, self)
 
     def set_variable_type(self, variable_type:VariableTypes):
         signal_type = GenericSignal

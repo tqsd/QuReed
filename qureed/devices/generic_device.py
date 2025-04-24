@@ -43,7 +43,7 @@ def log_action(method):
 
         # Now, pass the formatted_message to the log
         l.info(
-            "is computing",
+            "EXECUTING",
             extra={
                 "simulation_time":time,
                 "device_name":self.properties["name"].get("value",self.ref.uuid),
@@ -121,6 +121,44 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         simulation.register_device(ref)
         self.coordinator = None
         self.simulation = Simulation.get_instance()
+        self.logger = get_custom_logger(Loggers.Custom, device=self)
+
+    
+    def log_message(self, message:str):
+        self.logger.info(
+            message, 
+            extra={
+                "device_name":self.properties["name"].get(
+                    "value",
+                    self.ref.uuid
+                    ),
+                "device":self.__class__.__name__
+                })
+
+    def log_state(self, message:str ,state):
+        self.logger.info(
+            message, 
+            extra={
+                "tensor":state,
+                "device_name":self.properties["name"].get(
+                    "value",
+                    self.ref.uuid
+                    ),
+                "device":self.__class__.__name__
+                })
+    
+    def log_plot(self, message:str, figure, figure_name):
+        self.logger.info(
+            message, 
+            extra={
+                "figure":figure,
+                "figure_name":figure_name,
+                "device_name":self.properties["name"].get(
+                    "value",
+                    self.ref.uuid
+                    ),
+                "device":self.__class__.__name__
+                })
 
     def _merge_properties(self):
         """
@@ -133,7 +171,7 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
 
     @property
     def name(self) -> str:
-        return self.properties["name"].get("value", None)
+        return self.properties["name"].get("value", self.ref.uuid)
 
     def set_property(self, property_name, value):
         if type(self.properties[property_name]["type"]) == str:
@@ -156,7 +194,6 @@ class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
         """
         Register a signal to port
         """
-        print(f"Registering signal {self} -> {signal}")
         port = None
         try:
             port = self.ports[port_label]

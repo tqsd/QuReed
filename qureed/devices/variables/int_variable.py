@@ -1,6 +1,8 @@
 """
 Int Variable
 """
+import inspect
+import traceback
 from qureed.devices import (
     GenericDevice,
     coordinate_gui,
@@ -12,6 +14,12 @@ from qureed.assets import icon_list
 from qureed.signals import GenericIntSignal
 from qureed.simulation import Simulation
 
+def trace_caller():
+    frame = inspect.currentframe().f_back  # Get caller's frame
+    caller = inspect.getframeinfo(frame)
+    
+    print(f"🔹 Called from: {caller.filename}:{caller.lineno}")
+    print(f"🔹 Function: {caller.function}")
 
 class IntVariable(GenericDevice):
     """
@@ -54,7 +62,6 @@ class IntVariable(GenericDevice):
     @schedule_next_event
     def des(self, time, *args, **kwargs):
         signal = GenericIntSignal()
-        print(self)
         signal.set_int(int(self.properties["value"]["value"]))
         result = [("int", signal, time + 0)]
         return result
@@ -64,7 +71,6 @@ class IntVariable(GenericDevice):
     def des_action(self, time=None, *args, **kwargs):
         next_device, port = self.get_next_device_and_port("int")
         signal = GenericIntSignal()
-        print(self.properties)
         signal.set_int(int(self.properties["value"]["value"]))
         result = [("int", signal, self.time)]
         return result

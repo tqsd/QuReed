@@ -12,7 +12,6 @@ from qureed.devices import (
     log_action,
     schedule_next_event,
 )
-from qureed.devices.fiber.generic_fiber import GenericFiber
 from qureed.devices.port import Port
 from qureed.assets import icon_list
 from qureed.signals.generic_float_signal import GenericFloatSignal
@@ -21,7 +20,7 @@ from qureed.signals.generic_quantum_signal import GenericQuantumSignal
 from qureed.simulation.constants import C
 
 
-class IdealFiber(GenericFiber):
+class IdealFiber(GenericDevice):
     """
     Ideal Fiber
      - no attenuation
@@ -83,15 +82,14 @@ class IdealFiber(GenericFiber):
         signals = kwargs.get("signals")
         if self.length is None:
             if signals and "length" in signals:
-                print("FIBER LENGTH SET", signals["length"].contents)
                 self.length = float(signals["length"].contents)
         elif signals and "input" in signals:
             n = 1.45
             # Speed of light in fiber
             v = C / n
             t = self.length / v
-            env = kwargs["signals"]["input"].contents
-            signal = GenericQuantumSignal()
-            signal.set_contents(content=env)
+            #env = kwargs["signals"]["input"].contents
+            signal = kwargs["signals"]["input"]
+            
             result = [("output", signal, time + t)]
             return result

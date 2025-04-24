@@ -54,16 +54,6 @@ class SimpleTrigger(GenericDevice):
 
     @log_action
     @schedule_next_event
-    def des_action(self, time=None, *args, **kwargs):
-        if self.time is None:
-            next_device, port = self.get_next_device_and_port("trigger")
-            signal = GenericBoolSignal()
-            signal.set_bool(True)
-            result = [("trigger", signal, self.time)]
-            return result
-
-    @log_action
-    @schedule_next_event
     def des(self, time=None, *args, **kwargs):
         if "time" in kwargs.get("signals"):
             self.time = float(kwargs["signals"]["time"].contents)

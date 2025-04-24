@@ -7,10 +7,15 @@ import logging
 from enum import Enum
 
 _global_logging_hook = None
+_simulation = None
 
 def set_logging_hook(hook: callable) -> None:
     global _global_logging_hook
     _global_logging_hook = hook
+
+def set_simulation(simulation) -> None:
+    global _simulation
+    _simulation = simulation
 
 class HookHandler(logging.Handler):
     def emit(self, record):
@@ -23,10 +28,21 @@ class HookHandler(logging.Handler):
             }
             if hasattr(record, "simulation_time"):
                 log_entry["simulation_time"]=record.simulation_time
+            elif _simulation is not None:
+                log_entry["simulation_time"]=float(_simulation.current_time)
             if hasattr(record, "device_name"):
                 log_entry["device_name"]=record.device_name
             if hasattr(record, "device"):
                 log_entry["device"]=record.device
+            if hasattr(record, "end"):
+                log_entry["end"] = bool(record.end)
+            if hasattr(record, "tensor"):
+                log_entry["tensor"]=record.tensor
+            if hasattr(record, "figure"):
+                log_entry["figure"]=record.figure
+            if hasattr(record, "figure_name"):
+                log_entry["figure_name"]=record.figure_name
+
 
             _global_logging_hook(log_entry, record)
 
@@ -42,12 +58,21 @@ class CustomFormatter(logging.Formatter):
 
 
 class Loggers(Enum):
-    Signals = " signals  "
-    Devices = " devices  "
-    Simulation = "simulation"
+    Signals = "SIG"
+    Devices = "DEV"
+    Simulation = "SIM"
+    Custom = "CUS"
+    Scheduling = "SCH"
+    Error = "ERR"
+
+class DeviceLoggingAdapter(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        if self.extra:
+            kwargs.setdefault("extra", {}).update(self.extra)
+        return msg, kwargs
 
 
-def get_custom_logger(name: Loggers, level=logging.DEBUG):
+def get_custom_logger(name: Loggers, level=logging.DEBUG, device=None):
     """
     Returns a logger instance with specified name and level.
     """
@@ -56,25 +81,27 @@ def get_custom_logger(name: Loggers, level=logging.DEBUG):
     logger.setLevel(level)
 
     # Check if handlers are already configured for this logger
-    if not logger.handlers:
+    if not any(isinstance(h, HookHandler) for h in logger.handlers):
         # Create a console handler
-        ch = logging.StreamHandler()
-        ch.setLevel(level)
 
         # Create a formatter and set it for the handler
         formatter = CustomFormatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
             datefmt="%H:%M:%S.%f",
         )
-        ch.setFormatter(formatter)
 
         # Add the handler to the logger
-        logger.addHandler(ch)
-
         if _global_logging_hook:
             hook_handler = HookHandler()
             hook_handler.setLevel(level)
             hook_handler.setFormatter(formatter)
             logger.addHandler(hook_handler)
 
+    extra = {}
+    if device:
+        extra["device_name"]=device.properties["name"].get(
+            "value", device.ref.uuid
+        )
+        extra["device_type"]=device.__class__.__name__
     return logger
+    return DeviceLoggingAdapter(logger, extra)

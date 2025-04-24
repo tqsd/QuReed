@@ -36,7 +36,6 @@ def list_icons():
     icons = [None]
     module = sys.modules["qureed.gui.icons.icon_list"]
     for name, obj in inspect.getmembers(module):
-        print(name, obj)
         if isinstance(obj, str) and name.isupper():
             icons.append(name)
     return icons

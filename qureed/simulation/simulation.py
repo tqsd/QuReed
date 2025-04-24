@@ -3,6 +3,8 @@ Simulation Module
 """
 
 # pylint: skip-file
+import traceback
+import sys
 import heapq
 import uuid
 from dataclasses import dataclass
@@ -12,7 +14,7 @@ from typing import TYPE_CHECKING, Type
 
 import mpmath
 
-from qureed.extra import Loggers, get_custom_logger, set_logging_hook
+from qureed.extra import Loggers, get_custom_logger, set_logging_hook, set_simulation
 from qureed.signals.generic_bool_signal import GenericBoolSignal
 from qureed.signals.generic_quantum_signal import GenericQuantumSignal
 
@@ -139,6 +141,7 @@ class Simulation:
             mpmath.mp.prec = 256
             self.current_time = mpmath.mpf("0")
             self.end_time = mpmath.mpf("0")
+            set_simulation(self)
         else:
             raise Exception("Simulation is a singleton class")
 
@@ -162,29 +165,44 @@ class Simulation:
 
     def run_des(self, simulation_time):
         logger = get_custom_logger(Loggers.Simulation)
-        logger.info("Starting Simulation")
+        logger.info(
+            "Starting Simulation",
+            extra={"simulation_time":-2.0}
+            )
         self.end_time += simulation_time
-        while self.event_queue and self.current_time <= self.end_time:
-            event = heapq.heappop(self.event_queue)
-            time_as_float = float(event.event_time)
+        try:
+            while self.event_queue and self.current_time <= self.end_time:
+                event = heapq.heappop(self.event_queue)
+                time_as_float = float(event.event_time)
+                event.device.des(event.event_time, *event.args, **event.kwargs)
+                # remove from the event map
+                self.current_time = event.event_time
+                key = (self.current_time, event.device)
+                if key in self.event_map:
+                    del self.event_map[key]
+                logger.info(
+                    f"Processing event at {self.current_time}, {len(self.event_queue)} events remaining in queue.",
+                    extra={
+                        "device_name": event.device.name,
+                        "device": event.device.__class__.__name__
+                    }
+                    )
+                sys.stdout.flush()
+        except Exception as e:
             logger.info(
-                f"Processing event for",
+                f"Error in simulation: {traceback.format_exc()}",
                 extra={
                     "simulation_time":self.current_time,
-                    "device_name":event.device.properties["name"].get(
-                        "value",
-                        event.device.ref.uuid
-                    ),
-                    "device":event.device.__class__.__name__
+                    "end":True
                 }
             )
-            event.device.des(event.event_time, *event.args, **event.kwargs)
-            # remove from the event map
-            self.current_time = event.event_time
-            key = (self.current_time, event.device)
-            if key in self.event_map:
-                del self.event_map[key]
-        print("Simulation finished with time:", self.current_time, self.end_time)
+        logger.info(
+            f"Simulation Finished.",
+            extra={
+                "simulation_time":self.current_time,
+                "end":True
+            }
+        )
 
 
     def schedule_event(self, time, device, *args, **kwargs):
@@ -196,9 +214,9 @@ class Simulation:
         else:
             heapq.heappush(self.event_queue, event)
             self.event_map[key] = event
-        logger = get_custom_logger(Loggers.Simulation)
+        logger = get_custom_logger(Loggers.Scheduling)
         logger.info(
-            f"Scheduling an event for",
+            f"Scheduled at {time}",
             extra={
                 "simulation_time":self.current_time,
                 "device_name":event.device.properties["name"].get(

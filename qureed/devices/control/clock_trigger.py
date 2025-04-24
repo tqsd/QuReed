@@ -94,13 +94,13 @@ class ClockTrigger(GenericDevice):
     def des(self, time, *args, **kwargs):
         signals = kwargs.get("signals")
         if "frequency" in signals:
-            self.frequency = signals["frequency"].contents
+            self.frequency = float(signals["frequency"].contents)
         if "pulse_num" in signals:
             self.pulse_num = signals["pulse_num"].contents
             if not self.pulse_num == 0:
                 self.pulse_num -= 1
         if "delay" in signals:
-            self.delay = signals["delay"].contents
+            self.delay = float(signals["delay"].contents)
             self.simulation.schedule_event(self.delay, self)
         if self._should_trigger(time):
             if self.frequency is None:
@@ -119,7 +119,7 @@ class ClockTrigger(GenericDevice):
         if self.frequency is None:
             return False
 
-        if time < self.delay:
+        if time < float(self.delay):
             return False
 
         # Define a tolerance value to account for floating-point inaccuracies

@@ -13,7 +13,7 @@ from qureed.devices.port import Port
 from qureed.assets import icon_list
 from qureed.signals import GenericTimeSignal
 
-logger = get_custom_logger(Loggers.Devices)
+logger = get_custom_logger(Loggers.Custom)
 
 class TimeVariable(GenericDevice):
     """
@@ -56,9 +56,7 @@ class TimeVariable(GenericDevice):
     @log_action
     @schedule_next_event
     def des_action(self, time=None, *args, **kwargs):
-        logger.info("HERE")
         signal = GenericTimeSignal()
-        logger.info("SIGNAL")
         signal.set_time(self.properties["value"]["value"])
         result = [("time", signal, time)]
         return result
