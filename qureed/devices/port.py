@@ -6,6 +6,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, Optional, Type
 
+from .exceptions import *
+
 if TYPE_CHECKING:
     from qureed.devices.generic_device import GenericDevice
     from qureed.signals.generic_signal import GenericSignal
@@ -17,15 +19,12 @@ class Port:
     Port Dataclass
     """
 
-    label: str
     direction: Literal["input", "output"]
-    signal: Optional["GenericSignal"]
     signal_type: Type["GenericSignal"]
-    device: "GenericDevice"
     allow_multiple: bool = False
 
     def __post_init__(self):
-        if None in [self.label, self.direction, self.signal_type]:
+        if None in [self.direction, self.signal_type]:
             raise PortMissingAttributesException(
                 "label, direction and signal_type must be specified"
             )
@@ -44,7 +43,3 @@ class Port:
                 p.signal = None
 
 
-class PortMissingAttributesException(Exception):
-    """
-    Raised when Attributes are not specified
-    """

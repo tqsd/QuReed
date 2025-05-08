@@ -1,301 +1,486 @@
-"""
-Generic Device definition
-"""
-
 from __future__ import annotations
 
-import functools
-from abc import ABC, abstractmethod
-from copy import deepcopy
-from typing import Dict, Type
+"""
+Defines the abstract base class `GenericDevice`, which provides a reusable
+template for all SimPy-based quantum or classical devices.
 
-from qureed.devices.port import Port
+This class includes:
+- Port definition handling via a metaclass
+- Connection validation and management
+- Signal routing via `send`, `receive`, and `deliver`
+- Property handling and simulation environment registration
+
+To implement a custom device, inherit from `GenericDevice` and define:
+- `port_definitions`: A dictionary of labeled ports
+- `gui_name` and `gui_icon`: GUI metadata
+- (Optionally) `reference`: For documentation or citation
+"""
+
+import inspect
+import types
+import uuid
+from abc import ABC, ABCMeta, abstractmethod
+from copy import deepcopy
+from enum import Enum
+from typing import Any, Dict, Mapping, Union
+import warnings
+
+import simpy
+
 from qureed.extra import Loggers, get_custom_logger
 from qureed.signals.generic_signal import GenericSignal
-from qureed.simulation import DeviceInformation, Simulation
+from qureed.simulation import Simulation
+from qureed.utils import type_mapping
 
-type_mapping = {
-    "int": int,
-    "float": float,
-    "bool": bool,
-    "cmplx": complex,
-    "str": str,
-    "char": lambda v: v if len(v) == 1 else ValueError("Value must be a single character")
-}
+from .connection import Connection, resolve_connection_direction
+from .exceptions import PortDirectionException
+from .helpers import common_signal_type, normalize_port
+from .logging_mixin import DeviceLoggingMixin
+from .port import Port
 
 
-def log_action(method):
-    @functools.wraps(method)
-    def wrapper(self, time, *args, **kwargs):
-        # Convert mpf to float for formatting
-        l = get_custom_logger(Loggers.Devices)
-        time_as_float = float(time)
-        # Correctly format the string before passing to l.info
-        if self.properties["name"].get("value", False):
-            name = self.properties["name"].get("value", "None")
-            formatted_message = "[{:-3e}s] *{}* ({}) is computing".format(
-                time_as_float, name, self.__class__.__name__
-            )
-        else:
-            formatted_message = "[{:.3e}s] {} is computing".format(
-                time_as_float, self.__class__.__name__
-            )
-
-        # Now, pass the formatted_message to the log
-        l.info(
-            "EXECUTING",
-            extra={
-                "simulation_time":time,
-                "device_name":self.properties["name"].get("value",self.ref.uuid),
-                "device":self.__class__.__name__
-            }
-               )
-        return method(self, time, *args, **kwargs)
-
-    return wrapper
-
-
-def coordinate_gui(method):
+class DeviceMeta(ABCMeta):
     """
-    Wrapper funciton, informs the gui about the
-    status of the simulation
+    Metaclass for all devices inheriting from `GenericDevice`.
+
+    This metaclass inspects the `port_definitions` class attribute and
+    dynamically generates a `Ports` enum for convenient, type-safe port access.
+
+    Example:
+    --------
+    >>>class MyDevice(GenericDevice):
+    >>>    port_definitions = {
+    >>>        "input": Port(...),
+    >>>        "output": Port(...)
+    >>>    }
+    >>>
+    >>> MyDevice.Ports.input  # Enum member with value "input"
+
+    This helps improve clarity and consistency when referring to port labels.
     """
 
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        if self.coordinator is not None:
-            self.coordinator.start_processing()
-        x = method(self, *args, **kwargs)
-        if self.coordinator is not None:
-            self.coordinator.processing_finished()
-        return x
+    def __new__(
+        cls,
+        name: str,
+        bases: tuple[type, ...],
+        dct: dict[str, Any]
+    ) -> type:
+        klass = super().__new__(cls, name, bases, dct)
 
-    return wrapper
+        port_defs = getattr(klass, "port_definitions", None)
+        if isinstance(port_defs, dict):
+            PortsEnum = Enum("Ports", {k: k for k in port_defs})
+            setattr(klass, "Ports", PortsEnum)
+
+        return klass
 
 
-def schedule_next_event(method):
+class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
     """
-    Schedules the next device event, if it exists
+    GenericDevice defines an abstract base class for all devices in the
+    QuReed framework.
+
+    Notes:
+    ------
+    This class handles:
+    - Port management and dynamic Enum creation
+    - Property setting and validation
+    - Signal transmission and delivery between devices
+    - SimPy-based generator process registration
+
+    Subclasses must define:
+    - `port_definitions` (as a class attribute)
+    - `gui_name` and `gui_icon` (as properties)
+
+    Usage Example:
+    --------------
+    >>> from qureed.devices.generic_device import GenericDevice
+    >>> from qureed.devices.port import Port
+    >>> from qureed.signals.generic_signal import GenericSignal
+    >>> from qureed.devices.decorators import des_proc
+    >>>
+    >>> class MyDevice(GenericDevice):
+    ...     port_definitions = {
+    ...         "in":  Port(direction="input",  signal_type=GenericSignal),
+    ...         "out": Port(direction="output", signal_type=GenericSignal),
+    ...     }
+    ...
+    ...     @property
+    ...     def gui_name(self) -> str:
+    ...         return "MyDevice"
+    ...
+    ...     @property
+    ...     def gui_icon(self) -> str:
+    ...         return "my_icon.svg"
+    ...
+    ...     @des_proc
+    ...     def proc(self):
+    ...         while True:
+    ...             sig = yield self.receive("in")
+    ...             yield self.sim_env.timeout(1)
+    ...             self.send(self.Ports.out, sig)
+    >>>
+    >>> dev = MyDevice()
+    >>> # Ports enum was injected:
+    >>> assert MyDevice.Ports.in.value == "in"
+    >>> assert MyDevice.Ports.out.value == "out"
+    >>> # You can now connect dev, run the sim, etc.
     """
 
-    @functools.wraps(method)
-    def wrapper(self, time, *args, **kwargs):
-        results = method(self, time, *args, **kwargs)
-        if results is None:
-            return
-        for output_port, signal, time in results:
-            next_device, port = self.get_next_device_and_port(output_port)
-            if not next_device is None:
-                signals = {port: signal}
-                self.simulation.schedule_event(time, next_device, signals=signals)
-            else:
-                print("NO NEXT DEVICE")
-
-    return wrapper
-
-
-class GenericDevice(ABC):  # pylint: disable=too-few-public-methods
-    """
-    Generic Device class used to implement every device
-    """
-
-    properties = {
-        "name":{
+    # --- Class attributes and port setup ---
+    reference: str | None = None
+    port_definitions: Mapping[str, Port]
+    Ports: type[Enum]
+    properties: Dict[str, Dict[str, Any]] = {
+        "name": {
             "type": str,
              }
         }
 
+    # --- Initialization ---
     def __init__(self, uid=None, **kwargs):
         """
-        Initialization method
-        """
-        self.ports = deepcopy(self.__class__.ports)
-        #self.properties = deepcopy(self.__class__.properties)
-        self.properties = deepcopy(self._merge_properties())
-        for port in self.ports.keys():
-            self.ports[port].device = self
+        Initializes the device and sets up simulation context
 
-        simulation = Simulation.get_instance()
-        ref = DeviceInformation(obj_ref=self, uid=uid)
-        self.ref = ref
-        simulation.register_device(ref)
-        self.coordinator = None
-        self.simulation = Simulation.get_instance()
+        Arguments:
+        ----------
+        uid: Optional(str)
+            Optional unique identifier. Auto-generated if not provided.
+        **kwargs: Any
+            Additional arguments for extension/customization
+        """
+        self.uid = uid if uid else uuid.uuid4()
+        self.properties = deepcopy(self._merge_properties())
+
+        self.simulation = Simulation()
+        self.sim_env = self.simulation.simpy_env
         self.logger = get_custom_logger(Loggers.Custom, device=self)
 
-    
-    def log_message(self, message:str):
-        self.logger.info(
-            message, 
-            extra={
-                "device_name":self.properties["name"].get(
-                    "value",
-                    self.ref.uuid
-                    ),
-                "device":self.__class__.__name__
-                })
+        self._inboxes: Dict[str, simpy.Store] = {
+            port: simpy.Store(self.sim_env) for port in self.ports
+        }
 
-    def log_state(self, message:str ,state):
-        self.logger.info(
-            message, 
-            extra={
-                "tensor":state,
-                "device_name":self.properties["name"].get(
-                    "value",
-                    self.ref.uuid
-                    ),
-                "device":self.__class__.__name__
-                })
-    
-    def log_plot(self, message:str, figure, figure_name):
-        self.logger.info(
-            message, 
-            extra={
-                "figure":figure,
-                "figure_name":figure_name,
-                "device_name":self.properties["name"].get(
-                    "value",
-                    self.ref.uuid
-                    ),
-                "device":self.__class__.__name__
-                })
+        self._connected_ports = {
+            normalize_port(port): None for port in self.ports
+        }
+        self._register_processes()
 
+    # --- Classmethod/metaclass helpers ---
     def _merge_properties(self):
         """
         Merge properties from the base class and the subclass.
+        Merges default and subclass-defined properties
+
+        Returns:
+        --------
+        Dict:
+            A dictionary containing merged property metadata.
         """
         combined_properties = deepcopy(GenericDevice.properties)
         subclass_properties = getattr(self.__class__, "properties", {})
-        combined_properties.update(subclass_properties)  # Subclass properties override or add to parent
+        combined_properties.update(subclass_properties)
         return combined_properties
+
+    # --- Public Propersies ---
+    @property
+    def ports(self) -> Dict[str, Port]:
+        """
+        Returns:
+        --------
+        Dict:
+            A dictionary of port definitions for this device.
+        """
+        return self.__class__.port_definitions
 
     @property
     def name(self) -> str:
-        return self.properties["name"].get("value", self.ref.uuid)
-
-    def set_property(self, property_name, value):
-        if type(self.properties[property_name]["type"]) == str:
-            self.properties[property_name]["type"] = type_mapping[self.properties[property_name]["type"]]
-        if not property_name in self.properties.keys():
-            raise AttributeError(f"{self.__class__.__name__} has no property {property_name}")
-        if not isinstance(value, self.properties[property_name]["type"]):
-            raise TypeError(f"{property_name} Expected {self.properties[property_name]['type']}, got {type(value)}")
-        self.properties[property_name]["value"] = value
-
-    def get_property(self, property_name):
-        if not property_name in self.properties.keys():
-            raise AttributeError(f"{self.__class__.__name__} has no property {property_name}")
-        return self.properties[property_name].get("value",None)
-        
-
-    def register_signal(
-        self, signal: GenericSignal, port_label: str, override: bool = False
-    ):
         """
-        Register a signal to port
+        Returns:
+        --------
+        str:
+            Device name if set, UID otherwise.
         """
-        port = None
-        try:
-            port = self.ports[port_label]
-        except KeyError as exc:
-            raise NoPortException(
-                f"Port with label {port_label} does not exist."
-            ) from exc
-
-        if port.signal is not None:
-            if not override:
-                raise PortConnectedException(
-                    f"Signal was already registered for the port\n"
-                    + "If this is intended, set override to True\n"
-                    + f"Device: {type(self)}, {self.properties['name']['value']}, {self.ref.uuid}\n"
-                    + f"Port: {type(port.signal)}, {port_label}"
-                )
-
-        if not (
-            isinstance(signal, port.signal_type)
-            or issubclass(type(signal), port.signal_type)
-        ):
-            raise PortSignalMismatchException(
-                "This port does not support selected signal"
-            )
-
-        signal.register_port(port, self)
-        port.signal = signal
+        return self.properties["name"].get("value", self.uid)
 
     @property
     @abstractmethod
-    def ports(self) -> Dict[str, Type["Port"]]:
-        """Average Power Draw"""
-        raise NotImplementedError("power must be defined")
+    def gui_name(self) -> str:
+        """
+        Returns:
+        --------
+        str:
+            The user-facing name for the GUI
 
-    @property
-    @abstractmethod
-    def gui_name(self):
-        """Gui name"""
+        Raises
+        ------
+            NotImplementedError: If not defined in the subclass
+        """
         raise NotImplementedError("gui_name must be defined")
 
     @property
     @abstractmethod
-    def gui_icon(self):
-        """Gui name"""
+    def gui_icon(self) -> str:
+        """
+        Returns:
+        --------
+        str:
+            Path or key to the icon used in GUI.
+        """
         raise NotImplementedError("gui_icon must be defined")
 
-    @property
-    @abstractmethod
-    def reference(self):
+    # --- Public Configuration
+    def set_property(self, property_name: str, value: Any) -> None:
         """
-        Reference is used to compile references for specific
-        experiment.
+        Sets a device property.
+
+        Arguments:
+        ----------
+        property_name: str
+            The property key to update
+        value: Any
+            The value to assign
+
+        Raises:
+        -------
+            AttributeError: If the property doesn't exist
+            TypeError: If value has wrong type.
         """
-        raise NotImplementedError(
-            "reference can be set to None, but must be implemented"
+        if property_name not in self.properties.keys():
+            raise AttributeError(
+                f"{self.__class__.__name__} has no property {property_name}"
+            )
+        if type(self.properties[property_name]["type"]) is str:
+            tm = type_mapping[self.properties[property_name]["type"]]
+            self.properties[property_name]["type"] = tm
+        if not isinstance(value, self.properties[property_name]["type"]):
+            raise TypeError(
+                f"{property_name} Expected ",
+                f"{self.properties[property_name]['type']}, got {type(value)}")
+        self.properties[property_name]["value"] = value
+
+    def get_property(self, property_name: str) -> Any:
+        """
+        Retrieves a property value.
+
+        Arguments:
+        ----------
+        property_name: str
+            The property to retrieve
+
+        Returns:
+        --------
+        Any:
+            The stored value, or None if unset
+
+        Raises:
+        -------
+        AttributeError: If the property is not defined
+        """
+        if property_name not in self.properties.keys():
+            raise AttributeError(
+                f"{self.__class__.__name__} has no property {property_name}"
+            )
+        return self.properties[property_name].get("value", None)
+
+    # --- Simulation Registration
+    def _register_processes(self) -> None:
+        """
+        Registers generator-based simulation processes.
+
+        Processes are decorated with des_proc decorator.
+        """
+        found_any = False
+        for attr_name in dir(self):
+            attr = getattr(self, attr_name)
+            if inspect.ismethod(attr) and getattr(
+                    attr, "_is_des_process", False):
+                backend = getattr(attr,"_supported_backend", False)
+                if not backend:
+                    continue
+                if self.simulation.backend != backend:
+                    continue
+                    
+                gen = attr()
+                if not isinstance(gen, types.GeneratorType):
+                    raise TypeError(
+                        f"{self.__class__.__name__}.{gen.__name__}",
+                        "is not a Generator!"
+                    )
+                found_any = True
+                self.sim_env.process(gen)
+        if not found_any:
+            warnings.warn(
+                f"<{self.__class__.__name__}> registered *no* @des_proc methods for"
+                f" backend <{self.simulation.backend}>"
+            )
+
+    # --- Connection Logic
+    def connect(
+            self,
+            local_port: Enum,
+            remote_device: GenericDevice,
+            remote_port: Enum) -> None:
+        """
+        Connects this device to another via compatible ports.
+
+        Arguments:
+        ----------
+        local_port: Enum
+            This device's port
+        remote_device: GenericDevice
+            The other device instance
+        remote_port: Enum
+            The other device's port
+
+        Raises:
+        -------
+            PortDirectionException: If the directions are incompatible
+            TypeError: If signal types cannot be reconciled.
+        """
+        local_port = normalize_port(local_port)
+        remote_port = normalize_port(remote_port)
+        local_type = self.ports[local_port].signal_type
+        remote_type = remote_device.ports[remote_port].signal_type
+
+        local_direction = self.ports[local_port].direction
+        remote_direction = remote_device.ports[remote_port].direction
+
+        if local_direction == remote_direction:
+            raise PortDirectionException(
+                f"Cannot connect {local_direction} to {remote_direction}"
+            )
+        selected_type = common_signal_type(local_type, remote_type)
+
+        source_device, source_port, sink_device, sink_port = (
+            resolve_connection_direction(
+                self, local_port, local_direction,
+                remote_device, remote_port, remote_direction
+            )
         )
 
-    def set_coordinator(self, coordinator):
+        connection = Connection(
+            source_device=source_device,
+            source_port=source_port,
+            sink_device=sink_device,
+            sink_port=sink_port,
+            signal_type=selected_type
+        )
+
+        self._connected_ports[local_port] = connection
+        remote_device._connected_ports[remote_port] = connection
+
+    # --- Signal Routing ---
+    def send(self, local_port: str | Enum, signal: GenericSignal):
         """
-        Sets the coordinator
-        this is required to have feedback in the gui
+        Sends a signal through the specified port.
+
+        Arguments:
+        ----------
+        local_port: str | Enum
+            Port to send from
+        signal: GenericSignal
+            Signal instance to transmit
+
+        Raises:
+        -------
+        `KeyError`: if port does not exist.
+        `TypeError`: if Signal does not match the defined port.
         """
-        self.coordinator = coordinator
+        local_port = normalize_port(local_port)
+        if local_port not in self._connected_ports.keys():
+            raise KeyError(
+                f"{self.__class__.__name__} does not have port: {local_port}"
+            )
+        expected_type = self.ports[local_port].signal_type
+        if not isinstance(signal, expected_type):
+            raise TypeError(
+                f"Signal type mismatch on port '{local_port}': "
+                f"expected {expected_type.__name__}, got",
+                f"{type(signal).__name__}"
+            )
+        if self._connected_ports[local_port] is None:
+            return
+        connection = self._connected_ports[local_port]
+        target_device, remote_port = connection.get_next_device_and_port()
+        signal.timestamp = self.sim_env.now
+        signal.sender = self
 
-    @log_action
-    def des(self, time, *args, **kwargs):
-        if hasattr(self, "envelope_backend"):
-            self.envelope_backend(*args, **kwargs)
-        elif hasattr(self, "des_action"):
-            self.des_action(time, *args, **kwargs)
-        else:
-            raise DESActionNotDefined("Either des or des_action method must be defined")
+        target_device.deliver(remote_port, signal)
 
-    def get_next_device_and_port(self, port: str):
-        port = self.ports[port]
-        if port.signal:
-            for connected_port in port.signal.ports:
-                if connected_port != port:
-                    return connected_port.device, connected_port.label
-        return None, None
+    def receive(self, local_port: str | Enum) -> None:
+        """
+        Waits for a signal on the given port.
 
+        Arguments:
+        ----------
+        local_port: str | Enum
+            The port to listen on
 
-class DESActionNotDefined(Exception):
-    """
-    Raised when device should be called with des simulation,
-    but des methods are not defined
-    """
+        Returns:
+        --------
+            SimPy event representing the incoming signal.
+        """
+        local_port = normalize_port(local_port)
+        return self._inboxes[local_port].get()
 
+    def any_receive(
+            self,
+            *ports: Union[str, Enum]):
+        """
+        Waits for a signal to arrive on any of the specified ports.
 
-class NoPortException(Exception):
-    """
-    Raised when port, which should be accessed doesn't exist
-    """
+        Arguments:
+        ----------
+        *ports: (str | Enum)
+            One or more ports (as strings or Enum members) to listen on.
 
+        Returns:
+        --------
+        list[tuple[GenericSignal, str]]:
+            A list of (signal, port) tuples for signals
+            received during this simulation tick.
 
-class PortConnectedException(Exception):
-    """
-    Raised when Signal is already registered for the port.
-    """
+        Raises:
+        -------
+            `KeyError`: If any of the ports is not valid.
+        """
+        normalized_ports = [normalize_port(p) for p in ports]
 
+        for port in normalized_ports:
+            if port not in self._inboxes:
+                raise KeyError(
+                    f"{self.__class__.__name__} has no port: {port}"
+                )
 
-class PortSignalMismatchException(Exception):
-    """
-    Raised when signal doesn't match the port description
-    """
+        named_gets = {
+            port: self._inboxes[port].get() for port in normalized_ports
+        }
+        event_to_port = {evt: port for port, evt in named_gets.items()}
+
+        event = simpy.events.AnyOf(self.sim_env, list(named_gets.values()))
+        result = yield event
+
+        signals = []
+        for triggered_event, signal in result.items():
+            port = event_to_port[triggered_event]
+            signals.append((signal, port))
+
+        return signals
+
+    def deliver(self, local_port: str | Enum, signal: GenericSignal) -> None:
+        """
+        Delivers a signal to the internal queue for the given port.
+
+        Arguments:
+        ----------
+        local_port: str | Enum
+            Target port.
+        signal: GenericSignal
+            Signal instance to enqueue
+        """
+        local_port = normalize_port(local_port)
+        self._inboxes[local_port].put(signal)
+
+    # --- Dunder methods
+    def __repr__(self):
+        return f"<{self.__class__.__name__} name={self.name} uid={self.uid}>"

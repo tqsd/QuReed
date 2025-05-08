@@ -100,7 +100,7 @@ def get_custom_logger(name: Loggers, level=logging.DEBUG, device=None):
     extra = {}
     if device:
         extra["device_name"]=device.properties["name"].get(
-            "value", device.ref.uuid
+            "value", device.uid
         )
         extra["device_type"]=device.__class__.__name__
     return logger

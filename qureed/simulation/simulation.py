@@ -13,6 +13,10 @@ from threading import Thread
 from typing import TYPE_CHECKING, Type
 
 import mpmath
+import simpy
+
+from .backends import _BACKENDS
+from .exceptions import UnknownBackendException
 
 from qureed.extra import Loggers, get_custom_logger, set_logging_hook, set_simulation
 from qureed.signals.generic_bool_signal import GenericBoolSignal
@@ -22,226 +26,29 @@ if TYPE_CHECKING:
     from qureed.devices import GenericDevice
 
 
-@dataclass
-class DeviceInformation:
-    """
-    Device representation, used for registering the device with
-    the Simulation singleton class
-    """
-
-    uuid: str
-    name: str
-    obj_ref: object
-
-    def __init__(self, obj_ref: Type["GenericDevice"], uid=None):
-        self.obj_ref = obj_ref
-        if uid is not None:
-            self.uuid = uid
-        else:
-            self.uuid = str(uuid.uuid4())
-
-    @property
-    def device_type(self):
-        return self.obj_ref.__class__.__name__
-
-    @property
-    def new_modes(self) -> int:
-        """
-        Computes number of new modes, the simulation
-        would require
-        """
-        modes = 0
-        quantum_outputs = [
-            port
-            for port in self.obj_ref.ports.values()
-            if (port.direction == "output" and port.signal_type is GenericQuantumSignal)
-        ]
-        quantum_inputs = [
-            port
-            for port in self.obj_ref.ports.values()
-            if (port.direction == "input" and port.signal_type is GenericQuantumSignal)
-        ]
-        # We create the modes for the outputs,
-        # that can't be mapped to inputs
-        if len(quantum_outputs) > len(quantum_inputs):
-            modes += len(quantum_outputs) - len(quantum_inputs)
-
-        # We create the modes for the empty inputs
-        modes += len([port for port in quantum_inputs if port.signal is None])
-        return modes
-
-
-class SimulationType(Enum):
-    FOCK = auto()
-    GAUSSIAN = auto()
-
-
-class SimulationEvent:
-    """
-    Simulation Event
-
-    actions are scheduled using simulation events
-    """
-
-    def __init__(self, event_time, device, *args, **kwargs):
-        if kwargs.get("signals") is None:
-            kwargs["signals"] = {}
-        self.event_time = event_time
-        self.device = device
-        self.args = args
-        self.kwargs = kwargs
-
-    def __lt__(self, other):
-        return self.event_time < other.event_time
-
-    def merge_event(self, new_event):
-        if "signals" in new_event.kwargs:
-            if "signals" in self.kwargs:
-                # Merge the signals dictionaries
-                for port, signal in new_event.kwargs["signals"].items():
-                    self.kwargs["signals"][port] = signal
-            else:
-                # No signals in existing event, just add all from new_event
-                self.kwargs["signals"] = new_event.kwargs["signals"]
-        # Optionally merge args if needed
-        self.args += new_event.args
-
-
 class Simulation:
-    """Singleton object"""
-
-    __instance = None
-
     """
-    Simulation parameters
-      + can be changed using setters and getters
+    Simulation (Singleton)
+
+    Handles the simulation process.
     """
-    dimensions = 10
 
-    @staticmethod
-    def get_instance():
-        """
-        Method that returns a single Simulation object
-        """
-        if Simulation.__instance is None:
-            Simulation()
-        return Simulation.__instance
+    _instance = None
 
-    def __init__(self):
-        """
-        Initialization method
-        """
-        if Simulation.__instance is None:
-            Simulation.__instance = self
-            self.devices = []
-            self.initial_trigger_devices = []
-            self.simulation_type = SimulationType.FOCK
-            self.event_queue = []
-            self.event_map = {}
-            mpmath.mp.prec = 256
-            self.current_time = mpmath.mpf("0")
-            self.end_time = mpmath.mpf("0")
-            set_simulation(self)
-        else:
-            raise Exception("Simulation is a singleton class")
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(Simulation, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
 
-    def register_device(self, device_information: DeviceInformation):
-        """
-        Component registration in the simulation singleton object
-        Should be called by initiation method of any device class.
-        """
-        self.devices.append(device_information)
-
-    def set_simulation_type(self, simulation_type: SimulationType):
-        self.simulation_type = simulation_type
-
-    @classmethod
-    def set_dimensions(cls, dimensions):
-        cls.dimensions = dimensions
-
-    @classmethod
-    def get_dimensions(cls):
-        return cls.dimensions
-
-    def run_des(self, simulation_time):
-        logger = get_custom_logger(Loggers.Simulation)
-        logger.info(
-            "Starting Simulation",
-            extra={"simulation_time":-2.0}
-            )
-        self.end_time += simulation_time
-        try:
-            while self.event_queue and self.current_time <= self.end_time:
-                event = heapq.heappop(self.event_queue)
-                time_as_float = float(event.event_time)
-                event.device.des(event.event_time, *event.args, **event.kwargs)
-                # remove from the event map
-                self.current_time = event.event_time
-                key = (self.current_time, event.device)
-                if key in self.event_map:
-                    del self.event_map[key]
-                logger.info(
-                    f"Processing event at {self.current_time}, {len(self.event_queue)} events remaining in queue.",
-                    extra={
-                        "device_name": event.device.name,
-                        "device": event.device.__class__.__name__
-                    }
+    def __init__(self, backend="photon_weave"):
+        if not hasattr(self, "initialized"):
+            self.simpy_env = simpy.Environment()
+            if backend not in _BACKENDS:
+                raise UnknownBackendException(
+                    f"Backend is not known. Registered backends: {_BACKENDS}"
                     )
-                sys.stdout.flush()
-        except Exception as e:
-            logger.info(
-                f"Error in simulation: {traceback.format_exc()}",
-                extra={
-                    "simulation_time":self.current_time,
-                    "end":True
-                }
-            )
-        logger.info(
-            f"Simulation Finished.",
-            extra={
-                "simulation_time":self.current_time,
-                "end":True
-            }
-        )
+            self.backend=backend
+            self.initialized = True
 
-
-    def schedule_event(self, time, device, *args, **kwargs):
-        event = SimulationEvent(float(time), device, *args, **kwargs)
-        key = (time, device)
-        if key in self.event_map:
-            existing_event = self.event_map[key]
-            existing_event.merge_event(event)
-        else:
-            heapq.heappush(self.event_queue, event)
-            self.event_map[key] = event
-        logger = get_custom_logger(Loggers.Scheduling)
-        logger.info(
-            f"Scheduled at {time}",
-            extra={
-                "simulation_time":self.current_time,
-                "device_name":event.device.properties["name"].get(
-                    "value",
-                    event.device.ref.uuid
-                ),
-                "device":event.device.__class__.__name__
-                }
-            )
-
-    def register_triggers(self, *devices):
-        """
-        Given devices will be triggered in when
-        simulation starts using classical signals
-        """
-        for d in devices:
-            sig = GenericBoolSignal()
-            d.register_signal(signal=sig, port_label="TRIGGER")
-            d = [x for x in self.devices if x.obj_ref == d][0]
-            if d not in self.initial_trigger_devices:
-                self.initial_trigger_devices.append(d)
-
-    def list_devices(self):
-        self._list_devices(self.devices, "DEVICES")
-
-    def list_triggered_devices(self):
-        self._list_devices(self.initial_trigger_devices, "TRIGGERED DEVICES")
-
+    def run(self, *args, **kwargs):
+        self.simpy_env.run(*args, **kwargs)

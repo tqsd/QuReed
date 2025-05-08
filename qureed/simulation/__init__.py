@@ -1,5 +1,3 @@
-"""
-Module __init__ file
-"""
-# pylint: disable=unused-import
-from .simulation import DeviceInformation, Simulation, SimulationType
+from .simulation import Simulation
+from .backends import _BACKENDS
+from .exceptions import UnknownBackendException

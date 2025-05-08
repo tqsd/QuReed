@@ -1,1 +1,0 @@
-from .photon_distribution import PhotonDistribution

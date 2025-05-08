@@ -16,6 +16,8 @@ setup(
     install_requires=[
         "photon_weave==0.1.7",
         "jinja2",
+        "simpy",
+        "mpmath"
     ],
     package_data={
         "qureed": ["templates/*.jinja", "assets/*.png"],
