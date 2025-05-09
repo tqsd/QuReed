@@ -17,6 +17,7 @@ def des_proc(method):
     Example
     -------
     >>> class MyDevice(GenericDevice):
+    >>>     @backend("photon_weave")
     >>>     @des_proc
     >>>     def proc(self):
     ...         # This must be a generator yielding SimPy events
