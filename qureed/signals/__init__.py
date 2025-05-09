@@ -8,3 +8,4 @@ from .value_signals import (
     ComplexSignal,
     StringSignal
 )
+from .trigger_signal import TriggerSignal

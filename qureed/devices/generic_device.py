@@ -384,6 +384,8 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
         `KeyError`: if port does not exist.
         `TypeError`: if Signal does not match the defined port.
         """
+        signal.timestamp = self.sim_env.now
+        signal.sender = self
         local_port = normalize_port(local_port)
         if local_port not in self._connected_ports.keys():
             raise KeyError(
@@ -400,8 +402,6 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
             return
         connection = self._connected_ports[local_port]
         target_device, remote_port = connection.get_next_device_and_port()
-        signal.timestamp = self.sim_env.now
-        signal.sender = self
 
         target_device.deliver(remote_port, signal)
 
