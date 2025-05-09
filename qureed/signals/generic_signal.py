@@ -1,41 +1,27 @@
-"""
-Generic Signal implementation,
-used for defining inputs and outputs
-"""
-
-
 from abc import ABC
-from threading import Event
-from typing import Type
+from dataclasses import dataclass, field
+from typing import Any, Dict, Optional
 
-
-class GenericSignal(ABC):  # pylint: disable=too-few-public-methods
+@dataclass(kw_only=True)
+class GenericSignal(ABC):
     """
-    Generic Signal class used to implement any other signal class
+    Base class for all signal types in QuReed
+
+    This class can be extended to create specific signal types,
+    such as optical, quantum, or classical signals
+
+    Attributes:
+    -----------
+    timestamp: Optional(float)
+        The time (in simulation units) when the signal is created or sent.
+    sender: Any
+        The device or process that generated this signal
+    metadata : Dict[str, Any]
+        Arbitrary extra data attached to the signal
     """
+    timestamp: Optional[float] = None
+    sender: Optional[Any] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
-    def __init__(self):
-        """
-        Initialization method
-        """
-        self.computed = Event()
-        self.ports = []
-
-    def set_computed(self):
-        """
-        After signal is computed the computed flag should be set
-        """
-        self.computed.set()
-
-    def wait_till_compute(self, timeout=None):
-        """
-        Blocking call, waits until the signal is computed
-        """
-        self.computed.wait(timeout)
-
-    def register_port(self, port: Type["Port"], device):
-        """
-        Registers the port to the signal,
-        TODO: disconnecting
-        """
-        self.ports.append(port)
+    def __repr__(self):
+        return f"<{self.__class__.__name__} ts={self.timestamp} metadata={self.metadata}>"

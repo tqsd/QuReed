@@ -1,24 +1,16 @@
-"""
-Generic Quantum Signal implementation
-"""
+from dataclasses import dataclass
+from typing import Optional, Any
 
-from enum import Enum, auto
+from .generic_signal import GenericSignal
 
-from qureed.signals.generic_signal import GenericSignal
-
-
+@dataclass
 class GenericQuantumSignal(GenericSignal):
     """
-    All Quantum Signals should extend this class
+    Quantum signal container that can hold any backend-specific state
+    (Fock, Gaussian, etc.).
+    Attributes:
+    -----------
+    payload: Any
+         Backend-specific quantum state container
     """
-
-    def __init__(self):
-        super().__init__()
-        self.contents = None
-        self.mode_id = None
-        self.timestamp = None
-
-    def set_contents(self, content=None, timestamp=None, mode_id=None):
-        self.timestamp = timestamp
-        self.mode_id = mode_id
-        self.contents = content
+    payload: Optional[Any] = None

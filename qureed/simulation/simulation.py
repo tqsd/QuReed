@@ -17,9 +17,12 @@ import simpy
 
 
 from qureed.backends import _BACKENDS, UnknownBackendException
-from qureed.extra import Loggers, get_custom_logger, set_logging_hook, set_simulation
-from qureed.signals.generic_bool_signal import GenericBoolSignal
-from qureed.signals.generic_quantum_signal import GenericQuantumSignal
+from qureed.extra import (
+    Loggers,
+    get_custom_logger,
+    set_logging_hook,
+    set_simulation
+    )
 
 if TYPE_CHECKING:
     from qureed.devices import GenericDevice
