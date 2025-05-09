@@ -3,7 +3,7 @@ import unittest
 from simpy import Store
 
 from qureed.simulation import Simulation
-from qureed.devices import GenericDevice, des_proc, Port, backend
+from qureed.devices import GenericDevice, des_proc, Port
 from qureed.signals import GenericQuantumSignal
 from qureed.devices.exceptions import PortDirectionException
 
@@ -38,8 +38,7 @@ class DummyDevice(GenericDevice):
     gui_icon = None
     
 
-    @backend("photon_weave")
-    @des_proc
+    @des_proc(backend="photon_weave")
     def proc(self):
         while True:
             signal = yield self.receive("input")
@@ -68,8 +67,7 @@ class DummySource(GenericDevice):
     gui_icon = None
     
 
-    @backend("photon_weave")
-    @des_proc
+    @des_proc(backend="photon_weave")
     def proc(self):
         while True:
             yield self.sim_env.timeout(1)
@@ -86,8 +84,7 @@ class MultiPortDevice(GenericDevice):
     gui_icon = None
     reference = None
 
-    @backend("photon_weave")
-    @des_proc
+    @des_proc(backend="photon_weave")
     def proc(self):
         while True:
             yield self.sim_env.timeout(10)

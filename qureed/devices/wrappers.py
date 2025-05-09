@@ -4,7 +4,7 @@ from typing import Callable
 
 from qureed.backends import _BACKENDS, UnknownBackendException
 
-def des_proc(method):
+def des_proc(method=None, *, backend=None):
     """
     Decorator for registering a SimPy generator method as a DES process.
 
@@ -17,8 +17,7 @@ def des_proc(method):
     Example
     -------
     >>> class MyDevice(GenericDevice):
-    >>>     @backend("photon_weave")
-    >>>     @des_proc
+    >>>     @des_proc(backend="photon_weave")
     >>>     def proc(self):
     ...         # This must be a generator yielding SimPy events
     ...         while True:
@@ -48,41 +47,22 @@ def des_proc(method):
     TypeError
         If the decorated method does not return a generator.
     """
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        gen = method(self, *args, *kwargs)
-        if not isinstance(gen, types.GeneratorType):
-            raise TypeError(
-                f"{self.__class__.__name__}.{method.__name__} is not a generator. Generator Required"
-            )
-        return gen
-    wrapper._is_des_process = True
-    return wrapper
-
-def backend(backend_name: str) -> Callable[[Callable],Callable]:
-    """
-    Mark a method as implemented for a specific backend
-
-    Parameters:
-    -----------
-    name : str
-        The key of the backend this method supports.
-        
-    Example:
-    --------
-    >>> class MyDevice(GenericDevice):
-    ...     @des_proc
-    ...     @backend("photon_weave")
-    ...     def photon_proc(self):
-    ...         yield self.sim_env.timeout(1)
-    ...
-    ...     @des_proc
-    ...     @backend("another_backend")
-    ...     def collider_proc(self):
-    ...         yield self.sim_env.timeout(1)
-    """
-    def decorator(fn: Callable) -> Callable:
-        setattr(fn, "_supported_backend", backend_name)
-        return fn
-    return decorator
-
+    def decorate(func):
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            gen = func(self, *args, *kwargs)
+            if not isinstance(gen, types.GeneratorType):
+                raise TypeError(
+                    f"{self.__class__.__name__}.{method.__name__} "
+                    "is not a generator. Generator Required"
+                )
+            return gen
+        wrapper._is_des_process = True
+        wrapper._supported_backend = backend
+        return wrapper
+    
+    if method is None:
+        # Called as @des_proc(backend=...)
+        return decorate
+    else:
+        return decorate(method)

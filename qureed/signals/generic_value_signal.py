@@ -13,4 +13,7 @@ class GenericValueSignal(GenericSignal):
     value: Any
         The value this signal carries.
     """
-    value: Any
+    value: Any = None
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} ts={self.timestamp} val={self.value} metadata={self.metadata}>"

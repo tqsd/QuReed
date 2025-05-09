@@ -3,7 +3,7 @@ from typing import Optional, Any
 
 from .generic_signal import GenericSignal
 
-@dataclass
+@dataclass(repr=False)
 class GenericQuantumSignal(GenericSignal):
     """
     Quantum signal container that can hold any backend-specific state

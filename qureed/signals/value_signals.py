@@ -6,7 +6,7 @@ from mpmath import mpf, mpc
 from .generic_value_signal import GenericValueSignal
 
 
-@dataclass
+@dataclass(repr=False)
 class BoolSignal(GenericValueSignal):
     """
     Boolean value carying signal
@@ -19,7 +19,7 @@ class BoolSignal(GenericValueSignal):
     value: bool
 
 
-@dataclass
+@dataclass(repr=False)
 class IntSignal(GenericValueSignal):
     """
     Integer value carying signal
@@ -32,7 +32,7 @@ class IntSignal(GenericValueSignal):
     value: int
 
 
-@dataclass
+@dataclass(repr=False)
 class FloatSignal(GenericValueSignal):
     """
     Float value carying signal
@@ -46,7 +46,7 @@ class FloatSignal(GenericValueSignal):
     value: Union[float, mpf]
 
 
-@dataclass
+@dataclass(repr=False)
 class ComplexSignal(GenericValueSignal):
     """
     Complex value carying signal
@@ -60,7 +60,7 @@ class ComplexSignal(GenericValueSignal):
     value: Union[complex, mpc]
 
 
-@dataclass
+@dataclass(repr=False)
 class StringSignal(GenericValueSignal):
     """
     String value carying signal

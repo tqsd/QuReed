@@ -295,9 +295,7 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
             if inspect.ismethod(attr) and getattr(
                     attr, "_is_des_process", False):
                 backend = getattr(attr,"_supported_backend", False)
-                if not backend:
-                    continue
-                if self.simulation.backend != backend:
+                if backend is not None and self.simulation.backend != backend:
                     continue
                     
                 gen = attr()
