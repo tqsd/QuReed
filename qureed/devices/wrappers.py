@@ -2,7 +2,7 @@ import functools
 import types
 from typing import Callable
 
-from qureed.simulation import _BACKENDS, UnknownBackendException
+from qureed.backends import _BACKENDS, UnknownBackendException
 
 def des_proc(method):
     """

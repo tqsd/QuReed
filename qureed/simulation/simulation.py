@@ -15,9 +15,8 @@ from typing import TYPE_CHECKING, Type
 import mpmath
 import simpy
 
-from .backends import _BACKENDS
-from .exceptions import UnknownBackendException
 
+from qureed.backends import _BACKENDS, UnknownBackendException
 from qureed.extra import Loggers, get_custom_logger, set_logging_hook, set_simulation
 from qureed.signals.generic_bool_signal import GenericBoolSignal
 from qureed.signals.generic_quantum_signal import GenericQuantumSignal
