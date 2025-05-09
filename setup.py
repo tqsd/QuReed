@@ -14,7 +14,7 @@ setup(
     license="Apache 2.0",
     packages=find_packages(where="."),
     install_requires=[
-        "photon_weave==0.1.4",
+        "photon_weave",
         "jinja2",
     ],
     package_data={
