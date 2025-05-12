@@ -3,6 +3,7 @@ from typing import Optional, Any
 
 from .generic_signal import GenericSignal
 
+
 @dataclass(repr=False)
 class GenericQuantumSignal(GenericSignal):
     """
@@ -13,4 +14,5 @@ class GenericQuantumSignal(GenericSignal):
     payload: Any
          Backend-specific quantum state container
     """
+
     payload: Optional[Any] = None

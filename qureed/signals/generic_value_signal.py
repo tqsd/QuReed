@@ -3,6 +3,7 @@ from typing import Any
 
 from .generic_signal import GenericSignal
 
+
 @dataclass
 class GenericValueSignal(GenericSignal):
     """
@@ -13,7 +14,13 @@ class GenericValueSignal(GenericSignal):
     value: Any
         The value this signal carries.
     """
+
     value: Any = None
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} ts={self.timestamp} val={self.value} metadata={self.metadata}>"
+        return (
+            f"<{self.__class__.__name__} "
+            f"ts={self.timestamp} "
+            f"val={self.value}"
+            f"metadata={self.metadata}>"
+        )

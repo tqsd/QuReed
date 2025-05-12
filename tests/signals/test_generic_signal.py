@@ -1,8 +1,10 @@
 import unittest
 from qureed.signals import GenericSignal
 
+
 class MockSignal(GenericSignal):
     pass
+
 
 class TestGenericSignal(unittest.TestCase):
 

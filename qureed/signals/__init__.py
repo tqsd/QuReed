@@ -6,6 +6,24 @@ from .value_signals import (
     IntSignal,
     FloatSignal,
     ComplexSignal,
-    StringSignal
+    StringSignal,
 )
 from .trigger_signal import TriggerSignal
+from .quantum_optical_pulse_signal import (
+    QuantumOpticalPulseSignal,
+    QOPSignalType,
+)
+
+__all__ = [
+    "GenericSignal",
+    "GenericQuantumSignal",
+    "GenericValueSignal",
+    "BoolSignal",
+    "IntSignal",
+    "FloatSignal",
+    "ComplexSignal",
+    "StringSignal",
+    "TriggerSignal",
+    "QuantumOpticalPulseSignal",
+    "QOPSignalType",
+]

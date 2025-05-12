@@ -1,30 +1,34 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any
+from enum import Enum
+from typing import Dict, Any, Generator
 
 from qureed.devices.generic_device import GenericDevice
 from qureed.devices.port import Port
 from qureed.signals import TriggerSignal
 from qureed.assets import icon_list
 
+
 class GenericClockDevice(GenericDevice, ABC):
     """
-    Abstract base class for all clock-like devices in the QuReed simulation framework.
+    Abstract base class for all clock-like devices in the QuReed simulation
+    framework.
 
-    Clock devices are responsible for emitting periodic or event-based `TriggerSignal`s
-    on their output port named `"tick"`. These signals are typically used to activate
-    or synchronize other components in the simulation (e.g., triggering detectors,
-    launching pulses, or synchronizing computation steps).
-
+    Clock devices are responsible for emitting periodic or event-based
+    `TriggerSignal` on their output port named `"tick"`. These signals are
+    typically used to activate or synchronize other components in the
+    simulation (e.g., triggering detectors, launching pulses, or synchronizing
+    computation steps).
     This base class defines:
     - A common `"tick"` output port that emits `TriggerSignal`s
     - Standard time-related properties (`frequency`, `start_time`, `end_time`)
-    - A required abstract `proc()` method that subclasses must implement to define
-      the ticking behavior using the SimPy event loop
+    - A required abstract `proc()` method that subclasses must implement to
+      define the ticking behavior using the SimPy event loop
 
     Subclass Responsibilities:
     --------------------------
-    Subclasses must implement the `proc()` method decorated with `@des_proc`, and
-    override the `gui_name` property to provide a user-facing label for the device.
+    Subclasses must implement the `proc()` method decorated with `@des_proc`,
+    and override the `gui_name` property to provide a user-facing label for
+    the device.
 
     Properties:
     -----------
@@ -56,17 +60,22 @@ class GenericClockDevice(GenericDevice, ABC):
     ...     @des_proc
     ...     def proc(self):
     ...         while self.sim_env.now < self.get_property("end_time"):
-    ...             yield self.sim_env.timeout(1 / self.get_property("frequency"))
+    ...             yield self.sim_env.timeout(
+    ...                 1 / self.get_property("frequency")
+    ...             )
     ...             self.send(self.Ports.tick, TriggerSignal(sender=self))
-
     """
 
     properties: Dict[str, Dict[str, Any]] = {
-        "frequency": {
-            "type": float
-            },
-        }
-    
+        "frequency": {"type": float},
+    }
+
+    # <<< static hint for LSP autocomplete >>>
+    class Ports(Enum):
+        tick = "tick"
+
+    # <<< end of type hint >>>
+
     port_definitions = {
         "tick": Port(direction="output", signal_type=TriggerSignal)
     }
@@ -76,7 +85,7 @@ class GenericClockDevice(GenericDevice, ABC):
         return icon_list.CLOCK_TRIGGER
 
     @abstractmethod
-    def proc(self):
+    def proc(self) -> Generator[Any, Any, None]:
         """
         Simulation process that emits a clock tick signal.
 
@@ -88,5 +97,3 @@ class GenericClockDevice(GenericDevice, ABC):
         ticks, and emits `TriggerSignal`s using `self.send(...)`.
         """
         pass
-
-    

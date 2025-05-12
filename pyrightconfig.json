@@ -1,0 +1,7 @@
+{
+	"venvPath": "~/.virtualenvs",
+	"venv": "qr_simpy",
+	"include": ["qureed"],
+	"reportMissingImports": true,
+	"reportMissingModuleSource": false
+}

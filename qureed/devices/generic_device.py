@@ -22,7 +22,7 @@ import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from copy import deepcopy
 from enum import Enum
-from typing import Any, Dict, Mapping, Union
+from typing import Any, Dict, Mapping, Optional, Union
 import warnings
 
 import simpy
@@ -60,10 +60,7 @@ class DeviceMeta(ABCMeta):
     """
 
     def __new__(
-        cls,
-        name: str,
-        bases: tuple[type, ...],
-        dct: dict[str, Any]
+        cls, name: str, bases: tuple[type, ...], dct: dict[str, Any]
     ) -> type:
         klass = super().__new__(cls, name, bases, dct)
 
@@ -105,6 +102,14 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
     ...         "out": Port(direction="output", signal_type=GenericSignal),
     ...     }
     ...
+    ...     # This is overriden at the object creation, but usefull for
+    ...     # the lsp to give the user type hints.
+    ...     # <<< static hint for LSP autocomplete >>>
+    ...     class Ports(Enum):
+    ...         in = "in"
+    ...         out = "out"
+    ...     # <<< end of hint >>>
+    ...
     ...     @property
     ...     def gui_name(self) -> str:
     ...         return "MyDevice"
@@ -134,8 +139,8 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
     properties: Dict[str, Dict[str, Any]] = {
         "name": {
             "type": str,
-             }
         }
+    }
 
     # --- Initialization ---
     def __init__(self, uid=None, **kwargs):
@@ -160,7 +165,7 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
             port: simpy.Store(self.sim_env) for port in self.ports
         }
 
-        self._connected_ports = {
+        self._connected_ports: Dict[str, Optional[Connection]] = {
             normalize_port(port): None for port in self.ports
         }
         self._register_processes()
@@ -181,9 +186,9 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
         combined_properties.update(subclass_properties)
         return combined_properties
 
-    # --- Public Propersies ---
+    # --- Public Properties ---
     @property
-    def ports(self) -> Dict[str, Port]:
+    def ports(self) -> Mapping[str, Port]:
         """
         Returns:
         --------
@@ -255,7 +260,8 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
         if not isinstance(value, self.properties[property_name]["type"]):
             raise TypeError(
                 f"{property_name} Expected ",
-                f"{self.properties[property_name]['type']}, got {type(value)}")
+                f"{self.properties[property_name]['type']}, got {type(value)}",
+            )
         self.properties[property_name]["value"] = value
 
     def get_property(self, property_name: str) -> Any:
@@ -293,31 +299,33 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
             if inspect.ismethod(attr) and getattr(
-                    attr, "_is_des_process", False):
-                backend = getattr(attr,"_supported_backend", False)
+                attr, "_is_des_process", False
+            ):
+                backend = getattr(attr, "_supported_backend", False)
                 if backend is not None and self.simulation.backend != backend:
                     continue
-                    
+
                 gen = attr()
                 if not isinstance(gen, types.GeneratorType):
                     raise TypeError(
                         f"{self.__class__.__name__}.{gen.__name__}",
-                        "is not a Generator!"
+                        "is not a Generator!",
                     )
                 found_any = True
                 self.sim_env.process(gen)
         if not found_any:
             warnings.warn(
-                f"<{self.__class__.__name__}> registered *no* @des_proc methods for"
-                f" backend <{self.simulation.backend}>"
+                f"<{self.__class__.__name__}> registered *no* @des_proc"
+                f" methods for backend <{self.simulation.backend}>"
             )
 
     # --- Connection Logic
     def connect(
-            self,
-            local_port: Enum,
-            remote_device: GenericDevice,
-            remote_port: Enum) -> None:
+        self,
+        local_port: Union[Enum, str],
+        remote_device: GenericDevice,
+        remote_port: Union[Enum, str],
+    ) -> None:
         """
         Connects this device to another via compatible ports.
 
@@ -351,8 +359,12 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
 
         source_device, source_port, sink_device, sink_port = (
             resolve_connection_direction(
-                self, local_port, local_direction,
-                remote_device, remote_port, remote_direction
+                self,
+                local_port,
+                local_direction,
+                remote_device,
+                remote_port,
+                remote_direction,
             )
         )
 
@@ -361,7 +373,7 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
             source_port=source_port,
             sink_device=sink_device,
             sink_port=sink_port,
-            signal_type=selected_type
+            signal_type=selected_type,
         )
 
         self._connected_ports[local_port] = connection
@@ -396,16 +408,18 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
             raise TypeError(
                 f"Signal type mismatch on port '{local_port}': "
                 f"expected {expected_type.__name__}, got",
-                f"{type(signal).__name__}"
+                f"{type(signal).__name__}",
             )
+
         if self._connected_ports[local_port] is None:
             return
+
         connection = self._connected_ports[local_port]
-        target_device, remote_port = connection.get_next_device_and_port()
+        if connection is not None:
+            target_device, remote_port = connection.get_next_device_and_port()
+            target_device.deliver(remote_port, signal)
 
-        target_device.deliver(remote_port, signal)
-
-    def receive(self, local_port: str | Enum) -> None:
+    def receive(self, local_port: str | Enum) -> Any:
         """
         Waits for a signal on the given port.
 
@@ -421,9 +435,7 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
         local_port = normalize_port(local_port)
         return self._inboxes[local_port].get()
 
-    def any_receive(
-            self,
-            *ports: Union[str, Enum]):
+    def any_receive(self, *ports: Union[str, Enum]):
         """
         Waits for a signal to arrive on any of the specified ports.
 
