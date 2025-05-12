@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Dict
 from enum import StrEnum
 
 from .generic_quantum_signal import GenericQuantumSignal
@@ -49,7 +49,7 @@ class QuantumOpticalPulseSignal(GenericQuantumSignal):
 
     @classmethod
     def create_pair(
-        cls, payload: Any
+        cls, payload: Any, metadata: Optional[Dict[str, Any]]
     ) -> Tuple["QuantumOpticalPulseSignal", "QuantumOpticalPulseSignal"]:
         """
         Create a pair of QuantumOpticalPulseSignal instances with matching
@@ -64,6 +64,8 @@ class QuantumOpticalPulseSignal(GenericQuantumSignal):
         payload: Any
             The backend-specific quantum state or data to attach to both
             signals.
+        metadata: Optional[Dict[str, Any]]
+            Optional metadata.
 
         Returns:
         --------
@@ -72,6 +74,9 @@ class QuantumOpticalPulseSignal(GenericQuantumSignal):
         """
         start = cls(type=QOPSignalType.START, payload=payload)
         end = cls(type=QOPSignalType.END, payload=payload)
+        if metadata:
+            start.metadata = metadata
+            end.metadata = metadata
         start.pair = end
         end.pair = start
         return start, end
