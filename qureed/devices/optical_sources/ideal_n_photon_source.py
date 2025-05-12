@@ -6,9 +6,8 @@ from qureed.signals.trigger_signal import TriggerSignal
 
 from .generic_optical_source import GenericOpticalSourceDevice
 from qureed.devices.wrappers import des_proc
-from qureed.signals import QuantumOpticalPulseSignal
+from qureed.signals import QuantumOpticalPulseSignal, IntSignal
 from qureed.devices import Port
-from qureed.signals.value_signals import IntSignal
 
 
 class IdealNPhotonSource(GenericOpticalSourceDevice):
@@ -58,6 +57,7 @@ class IdealNPhotonSource(GenericOpticalSourceDevice):
     >>> source = IdealNPhotonSource()
     >>> source.set_property("photonNum", 2)
     >>> source.set_property("centralWavelength", 1310e-9)
+    >>> source.set_property("pulseDuration", 1e-9)
     """
 
     properties: Dict[str, Dict[str, Any]] = {
