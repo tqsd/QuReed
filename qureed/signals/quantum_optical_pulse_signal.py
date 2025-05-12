@@ -49,7 +49,7 @@ class QuantumOpticalPulseSignal(GenericQuantumSignal):
 
     @classmethod
     def create_pair(
-        cls, payload: Any, metadata: Optional[Dict[str, Any]]
+        cls, payload: Any, metadata: Optional[Dict[str, Any]] = None
     ) -> Tuple["QuantumOpticalPulseSignal", "QuantumOpticalPulseSignal"]:
         """
         Create a pair of QuantumOpticalPulseSignal instances with matching
