@@ -1,5 +1,4 @@
 import unittest
-import simpy
 
 from qureed.devices import IdealNPhotonSource
 from qureed.signals import IntSignal, TriggerSignal, QuantumOpticalPulseSignal
@@ -29,6 +28,7 @@ class TestIdealNPhotonSource(unittest.TestCase):
         self.assertEqual(
             self.device.get_property("centralWavelength"), 1550e-9
         )
+        self.assertEqual(self.device.get_property("pulseDuration"), 1e-9)
 
     def test_photon_num_proc_updates_property(self):
         new_signal = IntSignal(value=5)
@@ -54,7 +54,6 @@ class TestIdealNPhotonSource(unittest.TestCase):
         # Send a trigger
         self.device._inboxes["trigger"].put(TriggerSignal())
         self.env.process(self.device.proc_pw())
-        print("Current time", self.env.now)
         self.env.run(until=self.env.now + 1e-8)
 
         self.assertEqual(len(start_end_signals), 2)
