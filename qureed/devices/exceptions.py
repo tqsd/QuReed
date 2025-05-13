@@ -21,12 +21,20 @@ class NoReferenceException(Exception):
     Raised when accessing non existent reference
     """
 
+
 class PortMissingAttributesException(Exception):
     """
     Raised when Attributes are not specified
     """
 
+
 class PortSignalMismatchException(Exception):
     """
     Raised when signal doesn't match the port description
+    """
+
+
+class SimulationException(Exception):
+    """
+    Raised during simulation
     """
