@@ -11,6 +11,7 @@ from .port import Port
 from .clocks import GenericClockDevice, ConstantClock
 from .optical_sources import GenericOpticalSourceDevice, IdealNPhotonSource
 from .detectors import GenericDetectorDevice, IdealDetector
+from .phase_shifters import GenericPhaseShifter
 
 
 __all__ = [
@@ -23,4 +24,5 @@ __all__ = [
     "IdealNPhotonSource",
     "GenericDetectorDevice",
     "IdealDetector",
+    "GenericPhaseShifter",
 ]
