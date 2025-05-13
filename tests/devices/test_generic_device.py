@@ -7,36 +7,28 @@ from qureed.devices import GenericDevice, des_proc, Port
 from qureed.signals import GenericQuantumSignal
 from qureed.devices.exceptions import PortDirectionException
 
+
 class DummySignal(GenericQuantumSignal):
     pass
+
 
 class DummyDevice(GenericDevice):
 
     properties = {
         "dummy_property": {
             "type": int,
-            }
         }
+    }
 
     port_definitions = {
-        "input": Port(
-            direction="input",
-            signal_type=GenericQuantumSignal
-            ),
-        "output": Port(
-            direction="output",
-            signal_type=GenericQuantumSignal
-            ),
-        "in": Port(
-            direction="input",
-            signal_type=DummySignal
-            )
-        }
+        "input": Port(direction="input", signal_type=GenericQuantumSignal),
+        "output": Port(direction="output", signal_type=GenericQuantumSignal),
+        "in": Port(direction="input", signal_type=DummySignal),
+    }
 
     reference = None
     gui_name = "DummyDevice"
     gui_icon = None
-    
 
     @des_proc(backend="photon_weave")
     def proc(self):
@@ -51,21 +43,16 @@ class DummySource(GenericDevice):
     properties = {
         "dummy_property": {
             "type": int,
-            }
         }
-
+    }
 
     port_definitions = {
-        "output": Port(
-            direction="output",
-            signal_type=GenericQuantumSignal
-            )
-        }
+        "output": Port(direction="output", signal_type=GenericQuantumSignal)
+    }
 
     reference = None
     gui_name = "DummySource"
     gui_icon = None
-    
 
     @des_proc(backend="photon_weave")
     def proc(self):
@@ -73,6 +60,7 @@ class DummySource(GenericDevice):
             yield self.sim_env.timeout(1)
             signal = GenericQuantumSignal()
             self.send(self.Ports.output, signal)
+
 
 class MultiPortDevice(GenericDevice):
     port_definitions = {
@@ -93,7 +81,7 @@ class MultiPortDevice(GenericDevice):
 class TestDeviceInitialization(unittest.TestCase):
     def test_initialization(self):
         device = DummySource()
-        
+
         self.assertIsNotNone(device.uid)
         self.assertTrue(hasattr(device, "sim_env"))
         self.assertTrue(hasattr(device, "logger"))
@@ -101,7 +89,7 @@ class TestDeviceInitialization(unittest.TestCase):
         self.assertIsNone(device.get_property("name"))
 
         device.set_property("name", "TestDevice")
-    
+
         self.assertEqual(device.properties["name"]["value"], "TestDevice")
         self.assertEqual(device.get_property("name"), "TestDevice")
 
@@ -126,10 +114,8 @@ class TestDeviceInitialization(unittest.TestCase):
         for port in ["input", "output", "in"]:
             self.assertIn(port, device._connected_ports)
             self.assertIsNone(device._connected_ports[port])
-            self.assertTrue(isinstance(
-                device._inboxes[port],
-                Store
-                ))
+            self.assertTrue(isinstance(device._inboxes[port], Store))
+
 
 class TestPropertyHandling(unittest.TestCase):
     def test_get_property(self):
@@ -143,14 +129,8 @@ class TestPropertyHandling(unittest.TestCase):
         self.assertIsNone(device.get_property("dummy_property"))
         device.set_property("name", "test_property")
         device.set_property("dummy_property", 42)
-        self.assertEqual(
-            device.get_property("name"),
-            "test_property"
-            )
-        self.assertEqual(
-            device.get_property("dummy_property"),
-            42
-            )
+        self.assertEqual(device.get_property("name"), "test_property")
+        self.assertEqual(device.get_property("dummy_property"), 42)
 
     def test_wrong_property_type(self):
         device = DummySource()
@@ -162,6 +142,7 @@ class TestPropertyHandling(unittest.TestCase):
         with self.assertRaises(AttributeError):
             device.set_property("wrong_property", "str_type")
 
+
 class TestConnectionLogic(unittest.TestCase):
     def test_connect_connection(self):
         device1 = DummyDevice()
@@ -170,9 +151,8 @@ class TestConnectionLogic(unittest.TestCase):
         connection = device1._connected_ports[device1.Ports.output.value]
         self.assertIsNotNone(connection)
         self.assertIs(
-            connection,
-            device2._connected_ports[device1.Ports.input.value]
-            )
+            connection, device2._connected_ports[device1.Ports.input.value]
+        )
         self.assertIs(connection.source_device, device1)
         self.assertEqual(connection.source_port, device1.Ports.output.value)
         self.assertIs(connection.sink_device, device2)
@@ -182,7 +162,9 @@ class TestConnectionLogic(unittest.TestCase):
         device1 = DummyDevice()
         device2 = DummyDevice()
         with self.assertRaises(PortDirectionException):
-            device1.connect(device1.Ports.output, device2, device2.Ports.output)
+            device1.connect(
+                device1.Ports.output, device2, device2.Ports.output
+            )
 
     def test_correct_signal_type(self):
         device1 = DummyDevice()
@@ -190,6 +172,7 @@ class TestConnectionLogic(unittest.TestCase):
         device1.connect(device1.Ports.output, device2, device2.Ports["in"])
         connection = device1._connected_ports[device1.Ports.output.value]
         self.assertIs(connection.signal_type, GenericQuantumSignal)
+
 
 class TestSendReceive(unittest.TestCase):
     def test_deliver_and_receive(self):
@@ -209,7 +192,9 @@ class TestSendReceive(unittest.TestCase):
 
         sender.send(sender.Ports.output, signal)
 
-        received_signal = receiver.sim_env.run(until=receiver.receive(receiver.Ports.input))
+        received_signal = receiver.sim_env.run(
+            until=receiver.receive(receiver.Ports.input)
+        )
         self.assertIs(received_signal, signal)
 
 

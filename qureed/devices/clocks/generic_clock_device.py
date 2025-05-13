@@ -85,7 +85,7 @@ class GenericClockDevice(GenericDevice, ABC):
         return icon_list.CLOCK_TRIGGER
 
     @abstractmethod
-    def proc(self) -> Generator[Any, Any, None]:
+    def proc(self) -> Generator[Any, Any, None]:  # pragma: no cover
         """
         Simulation process that emits a clock tick signal.
 

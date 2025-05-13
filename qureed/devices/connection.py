@@ -1,12 +1,14 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from enum import Enum
+from typing import TYPE_CHECKING, Union, Literal
 
 from .exceptions import PortDirectionException
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from qureed.devices.generic_device import GenericDevice
     from qureed.signals import GenericSignal
+
 
 @dataclass(frozen=True)
 class Connection:
@@ -19,6 +21,7 @@ class Connection:
     def get_next_device_and_port(self):
         return self.sink_device, self.sink_port
 
+
 def resolve_connection_direction(
     local_device: GenericDevice,
     local_port: Union[str, Enum],
@@ -26,7 +29,7 @@ def resolve_connection_direction(
     remote_device: GenericDevice,
     remote_port: Union[str, Enum],
     remote_dir: Literal["input", "output"],
-    ):
+):
     if local_dir == "output" and remote_dir == "input":
         return local_device, local_port, remote_device, remote_port
     if local_dir == "input" and remote_dir == "output":

@@ -209,7 +209,7 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
 
     @property
     @abstractmethod
-    def gui_name(self) -> str:
+    def gui_name(self) -> str:  # pragma: no cover
         """
         Returns:
         --------

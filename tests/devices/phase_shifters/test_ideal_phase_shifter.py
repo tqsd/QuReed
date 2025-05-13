@@ -62,7 +62,10 @@ class TestIdealPhaseShifter(unittest.TestCase):
         self.sim_env.process(simulate_receive())
         self.sim_env.process(assert_env_not_changed())
 
-        self.sim_env.run(until=1e-8)
+        # self.sim_env.run(until=1e-8)
+        sim = Simulation()
+        sim.run(until=1e-8)
+
         self.assertEqual(len(start_end_signals), 2)
         v = env.fock.state[1, 0]
         self.assertAlmostEqual(v.real, -1.0, places=6)
