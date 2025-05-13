@@ -36,3 +36,10 @@ class Simulation:
 
     def run(self, *args, **kwargs):
         self.simpy_env.run(*args, **kwargs)
+
+    @classmethod
+    def reset(cls):
+        """
+        Reset the singleton instance for test isolation.
+        """
+        cls._instance = None
