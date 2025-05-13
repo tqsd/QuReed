@@ -42,12 +42,34 @@ class GenericDetectorDevice(GenericDevice, ABC):
     gui_icon:
         Returns a symbolic constant representing the icon for detector
         devices. Subclasses can reimlement `gui_icon`.
+
+    Example:
+    --------
+    >>> class IdealDetector(GenericDetectorDevice):
+    ...     @des_proc(backend="photon_weave"):
+    ...     def proc_pw(self):
+    ...         while True:
+    ...             signal = yield self.receive(self.Ports.input)
+    ...             if signal.type is QOPSignalType.END:
+    ...                 envelope = signal.payload
+    ...                 outcome = envelope.measure()
+    ...                 fock_measurement = outcome[envelope.fock]
+    ...                 polarization_measurement = outcome[
+    ...                     envelope.polarization
+    ...                 ]
+    ...                 out_signal = IntSignal(
+    ...                     value = fock_measurement,
+    ...                     metadata = {
+    ...                         "polarization": polarization_measurement
+    ...                     }
+    ...                 )
+    ...                 self.send(self.Ports.output, out_signal)
     """
 
     properties: Dict[str, Dict[str, Any]] = {}
 
     # <<< static hint for LSP autocomplete >>>
-    class Prots(Enum):
+    class Ports(Enum):
         input = "input"
         output = "output"
 
@@ -62,4 +84,4 @@ class GenericDetectorDevice(GenericDevice, ABC):
 
     @property
     def gui_icon(self) -> str:
-        return icon_list.N_PHOTON_SOURCE
+        return icon_list.DETECTOR
