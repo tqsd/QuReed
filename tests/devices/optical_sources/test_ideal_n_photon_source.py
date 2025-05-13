@@ -1,5 +1,6 @@
 import unittest
 
+from qureed.simulation import Simulation
 from qureed.devices import IdealNPhotonSource
 from qureed.signals import IntSignal, TriggerSignal, QuantumOpticalPulseSignal
 
@@ -8,6 +9,9 @@ class TestIdealNPhotonSource(unittest.TestCase):
     def setUp(self):
         self.device = IdealNPhotonSource()
         self.env = self.device.sim_env
+
+    def tearDown(self):
+        Simulation.reset()
 
     def test_port_definitions(self):
         ports = self.device.port_definitions

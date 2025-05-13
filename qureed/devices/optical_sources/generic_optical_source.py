@@ -14,7 +14,7 @@ class GenericOpticalSourceDevice(GenericDevice, ABC):
     QuReed simulation framework.
 
     `GenericOpticalSourceDevice` provides a common foundation for
-    detices that emit quantum optical states, typically in response
+    devices that emit quantum optical states, typically in response
     to a received `TriggerSignal`.
 
     Key Features:
@@ -32,7 +32,7 @@ class GenericOpticalSourceDevice(GenericDevice, ABC):
     - Reimplement `port_definitions` accordingly
     - Implement the simulation logic using one or more `@des_proc`
       methods (backend specific)
-    - Optionally override the `gui_icon` property to change the sourc's icon.
+    - Optionally override the `gui_icon` property to change the source's icon.
 
     Ports:
     ------

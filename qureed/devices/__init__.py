@@ -10,6 +10,7 @@ from .port import Port
 
 from .clocks import GenericClockDevice, ConstantClock
 from .optical_sources import GenericOpticalSourceDevice, IdealNPhotonSource
+from .detectors import GenericDetectorDevice, IdealDetector
 
 
 __all__ = [
@@ -20,4 +21,6 @@ __all__ = [
     "ConstantClock",
     "GenericOpticalSourceDevice",
     "IdealNPhotonSource",
+    "GenericDetectorDevice",
+    "IdealDetector",
 ]

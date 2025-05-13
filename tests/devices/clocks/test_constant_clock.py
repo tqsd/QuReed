@@ -1,12 +1,13 @@
 import unittest
 import simpy
 
+from qureed.simulation import Simulation
 from qureed.devices.clocks.constant_clock import ConstantClock
-from qureed.signals import TriggerSignal
 
 
 class Receiver:
     """A simple receiver to collect signals for testing."""
+
     def __init__(self, env):
         self.env = env
         self.inbox = []
@@ -22,6 +23,9 @@ class Receiver:
 
 
 class TestConstantClock(unittest.TestCase):
+    def tearDown(self) -> None:
+        Simulation.reset()
+
     def test_emits_ticks_at_constant_rate(self):
         env = simpy.Environment()
         clock = ConstantClock()
@@ -31,9 +35,11 @@ class TestConstantClock(unittest.TestCase):
         clock.set_property("frequency", 2.0)  # 2 Hz → every 0.5s
         clock.sim_env = env  # override environment
         clock._inboxes = {"tick": simpy.Store(env)}  # mock inbox
-        clock._connected_ports["tick"] = type("Conn", (), {
-            "get_next_device_and_port": lambda s: (receiver, "tick")
-        })()
+        clock._connected_ports["tick"] = type(
+            "Connnection",
+            (),
+            {"get_next_device_and_port": lambda s: (receiver, "tick")},
+        )()
 
         # Register the process
         env.process(clock.proc())
@@ -50,5 +56,5 @@ class TestConstantClock(unittest.TestCase):
         self.assertEqual(actual_times, expected_times)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
