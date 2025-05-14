@@ -422,7 +422,7 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
             return
 
         connection = self._connected_ports[local_port]
-        if connection is not None:
+        if connection is not None and not signal.terminate:
             target_device, remote_port = connection.get_next_device_and_port()
             target_device.deliver(remote_port, signal)
 
