@@ -28,6 +28,13 @@ class GenericSignal(ABC):
     metadata: Dict[str, Any] = field(default_factory=dict)
     terminate: bool = False
 
+    def cleanup(self):
+        """
+        Optional cleanup logic, called when the signal is sent but also
+        terminated.
+        """
+        pass
+
     def __repr__(self):
         return (
             f"<{self.__class__.__name__} "
