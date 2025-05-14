@@ -224,7 +224,7 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
 
     @property
     @abstractmethod
-    def gui_icon(self) -> str:
+    def gui_icon(self) -> str:  # pragma: no cover
         """
         Returns:
         --------
@@ -236,7 +236,7 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
     # --- Public Configuration
     def set_property(self, property_name: str, value: Any) -> None:
         """
-        Sets a device property.
+        Sets a device property after validating and coercing the value.
 
         Arguments:
         ----------
@@ -247,22 +247,29 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
 
         Raises:
         -------
-            AttributeError: If the property doesn't exist
-            TypeError: If value has wrong type.
+        AttributeError:
+            If the property doesn't exist
+        TypeError:
+            If value has wrong type.
         """
-        if property_name not in self.properties.keys():
+        props = self.properties
+
+        if property_name not in props:
             raise AttributeError(
                 f"{self.__class__.__name__} has no property {property_name}"
             )
-        if type(self.properties[property_name]["type"]) is str:
-            tm = type_mapping[self.properties[property_name]["type"]]
-            self.properties[property_name]["type"] = tm
-        if not isinstance(value, self.properties[property_name]["type"]):
+
+        prop_def = props[property_name]
+
+        # Type Check
+        allowed_types, coercer = type_mapping[prop_def["type"].__name__]
+
+        if not isinstance(value, allowed_types):
             raise TypeError(
                 f"{property_name} Expected ",
                 f"{self.properties[property_name]['type']}, got {type(value)}",
             )
-        self.properties[property_name]["value"] = value
+        self.properties[property_name]["value"] = coercer(value)
 
     def get_property(self, property_name: str) -> Any:
         """

@@ -1,6 +1,7 @@
 import unittest
 
 from simpy import Store
+from enum import Enum
 
 from qureed.simulation import Simulation
 from qureed.devices import GenericDevice, des_proc, Port
@@ -20,15 +21,26 @@ class DummyDevice(GenericDevice):
         }
     }
 
+    class Ports(Enum):
+        input = "input"
+        output = "output"
+        _in = "_in"
+
     port_definitions = {
         "input": Port(direction="input", signal_type=GenericQuantumSignal),
         "output": Port(direction="output", signal_type=GenericQuantumSignal),
-        "in": Port(direction="input", signal_type=DummySignal),
+        "_in": Port(direction="input", signal_type=DummySignal),
     }
 
     reference = None
-    gui_name = "DummyDevice"
-    gui_icon = None
+
+    @property
+    def gui_name(self) -> str:
+        return "DummyDevice"
+
+    @property
+    def gui_icon(self) -> str:
+        return "None"
 
     @des_proc(backend="photon_weave")
     def proc(self):
@@ -46,13 +58,22 @@ class DummySource(GenericDevice):
         }
     }
 
+    class Ports(Enum):
+        output = "output"
+
     port_definitions = {
         "output": Port(direction="output", signal_type=GenericQuantumSignal)
     }
 
     reference = None
-    gui_name = "DummySource"
-    gui_icon = None
+
+    @property
+    def gui_name(self) -> str:
+        return "DummySource"
+
+    @property
+    def gui_icon(self) -> str:
+        return "None"
 
     @des_proc(backend="photon_weave")
     def proc(self):
@@ -63,13 +84,23 @@ class DummySource(GenericDevice):
 
 
 class MultiPortDevice(GenericDevice):
+    class Ports(Enum):
+        in1 = "in1"
+        in2 = "in2"
+
     port_definitions = {
         "in1": Port(direction="input", signal_type=GenericQuantumSignal),
         "in2": Port(direction="input", signal_type=GenericQuantumSignal),
     }
 
-    gui_name = "MultiPortDevice"
-    gui_icon = None
+    @property
+    def gui_name(self) -> str:
+        return "MultiPortDevice"
+
+    @property
+    def gui_icon(self) -> str:
+        return "None"
+
     reference = None
 
     @des_proc(backend="photon_weave")
@@ -111,13 +142,17 @@ class TestDeviceInitialization(unittest.TestCase):
         self.assertIsNotNone(device._connected_ports)
         self.assertIsNotNone(device._inboxes)
 
-        for port in ["input", "output", "in"]:
+        for port in ["input", "output", "_in"]:
             self.assertIn(port, device._connected_ports)
             self.assertIsNone(device._connected_ports[port])
             self.assertTrue(isinstance(device._inboxes[port], Store))
 
 
 class TestPropertyHandling(unittest.TestCase):
+
+    def tearDown(self) -> None:
+        Simulation().reset()
+
     def test_get_property(self):
         device = DummySource()
         self.assertIsNone(device.get_property("name"))
@@ -169,7 +204,7 @@ class TestConnectionLogic(unittest.TestCase):
     def test_correct_signal_type(self):
         device1 = DummyDevice()
         device2 = DummyDevice()
-        device1.connect(device1.Ports.output, device2, device2.Ports["in"])
+        device1.connect(device1.Ports.output, device2, device2.Ports["_in"])
         connection = device1._connected_ports[device1.Ports.output.value]
         self.assertIs(connection.signal_type, GenericQuantumSignal)
 
