@@ -151,11 +151,16 @@ class IdealNPhotonSource(GenericOpticalSourceDevice):
 
             photon_num = self.get_property("photonNum")
             pulse_duration = self.get_property("pulseDuration")
+            central_wavelength = self.get_property("centralWavelength")
             env = Envelope()
             env.fock.state = photon_num
 
             start_signal, end_signal = QuantumOpticalPulseSignal.create_pair(
-                payload=env, metadata={"pulse_duration": pulse_duration}
+                payload=env,
+                metadata={
+                    "pulse_duration": pulse_duration,
+                    "central_wavelength": central_wavelength,
+                },
             )
 
             self.send(self.Ports.output, start_signal)
