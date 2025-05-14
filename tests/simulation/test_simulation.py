@@ -14,3 +14,7 @@ class TestSimulationClass(unittest.TestCase):
     def test_raises_unknown_backend(self):
         with self.assertRaises(UnknownBackendException):
             sim = Simulation(backend="fake_backend")
+        with self.assertRaises(UnknownBackendException):
+            Simulation().reset()
+            sim = Simulation()
+            sim.backend = "fake_backend"

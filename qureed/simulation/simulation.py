@@ -29,8 +29,20 @@ class Simulation:
                 raise UnknownBackendException(
                     f"Backend is not known. Registered backends: {_BACKENDS}"
                 )
-            self.backend = backend
+            self._backend = backend
             self.initialized = True
+
+    @property
+    def backend(self) -> str:
+        return self._backend
+
+    @backend.setter
+    def backend(self, backend: str) -> None:
+        if backend not in _BACKENDS:
+            raise UnknownBackendException(
+                f"Backend is not known. Registered backends: {_BACKENDS}"
+            )
+        self._backend = backend
 
     def run(self, *args, **kwargs):
         self.simpy_env.run(*args, **kwargs)
