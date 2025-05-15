@@ -253,4 +253,4 @@ class TestAnyReceive(unittest.TestCase):
 
         self.assertEqual(len(results), 1)
         self.assertIs(results[0][0], signal)
-        self.assertEqual(results[0][1], "in1")
+        self.assertEqual(results[0][1], device.Ports.in1)

@@ -484,7 +484,7 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
         signals = []
         for triggered_event, signal in result.items():
             port = event_to_port[triggered_event]
-            signals.append((signal, port))
+            signals.append((signal, self.Ports(port)))
 
         return signals
 
