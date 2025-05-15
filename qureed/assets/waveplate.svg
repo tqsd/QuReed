@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="50"
+   height="40"
+   viewBox="0 0 13.229166 10.583334"
+   version="1.1"
+   id="svg1"
+   inkscape:export-filename="wigner_control.png"
+   inkscape:export-xdpi="200"
+   inkscape:export-ydpi="200"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   sodipodi:docname="waveplate.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#000000"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="13.690523"
+     inkscape:cx="33.052061"
+     inkscape:cy="13.11126"
+     inkscape:window-width="1902"
+     inkscape:window-height="1038"
+     inkscape:window-x="1926"
+     inkscape:window-y="30"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1">
+    <rect
+       x="11.481768"
+       y="10.819813"
+       width="31.439689"
+       height="27.118725"
+       id="rect6" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="opacity:0.99;fill:none;stroke:#ffffff;stroke-width:0.564999;stroke-linecap:round;stroke-opacity:1"
+       id="rect5"
+       width="7.8334551"
+       height="7.8334551"
+       x="2.6978557"
+       y="1.3749391"
+       ry="0.40776685" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;font-family:Cantarell;-inkscape-font-specification:Cantarell;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#ffffff;fill-opacity:0;stroke:none;stroke-width:0.24;stroke-linecap:round;stroke-linejoin:round"
+       x="3.6526179"
+       y="5.2916665"
+       id="text1"><tspan
+         sodipodi:role="line"
+         id="tspan1"
+         style="stroke-width:0.24;fill:#ffffff;fill-opacity:0;stroke:none"
+         x="3.6526179"
+         y="5.2916665" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.07449px;font-family:Cantarell;-inkscape-font-specification:Cantarell;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#ffffff;fill-opacity:0;stroke:none;stroke-width:0.277194;stroke-linecap:round;stroke-linejoin:round"
+       x="6.667552"
+       y="6.7055149"
+       id="text2"><tspan
+         sodipodi:role="line"
+         id="tspan2"
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0.277194"
+         x="6.667552"
+         y="6.7055149">WP</tspan></text>
+  </g>
+</svg>
