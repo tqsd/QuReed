@@ -48,7 +48,6 @@ Accuracy:    100.00%
 ```
 
 ## Devices Used
-|----------------------|------------------------------------|
 | Device               | Role                               |
 |----------------------|------------------------------------|
 | RandomBasisTrigger   | Alice's bit/basis generator        |
@@ -56,4 +55,3 @@ Accuracy:    100.00%
 | IdealTunableWaveplate| Applies polarization rotations     |
 | RandomBasisDetection | Bob's basis selection and detector |
 | ConstantClock        | Drives time in simulation          |
-|----------------------|------------------------------------|
