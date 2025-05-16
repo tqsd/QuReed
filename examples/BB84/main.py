@@ -9,6 +9,7 @@ from qureed.devices.waveplates.ideal_tunable_waveplate import (
 )
 from random_basis_trigger import RandomBasisTrigger
 from random_basis_detection import RandomBasisDetection
+from custom_fiber import CustomFiber
 
 
 def quantum_key_check(alice_key: List[int], bob_key: List[int]) -> None:
@@ -91,8 +92,13 @@ def BB84() -> None:
     B_itwp.connect(B_itwp.Ports.output, B_rbd, B_rbd.Ports.input)
 
     # --- INTERCONNECTION ---
+
+    fiber = CustomFiber()
+    fiber.set_property("length", 1000)
+
     # Connect Alice's waveplate output to Bob's waveplate input
-    A_itwp.connect(A_itwp.Ports.output, B_itwp, B_itwp.Ports.input)
+    A_itwp.connect(A_itwp.Ports.output, fiber, fiber.Ports.input)
+    fiber.connect(fiber.Ports.output, B_itwp, B_itwp.Ports.input)
 
     # Classical communication: Basis confirmation
     A_rbt.connect(
