@@ -1,8 +1,52 @@
 import functools
 import types
-from typing import Callable
 
 from qureed.backends import _BACKENDS, UnknownBackendException
+from qureed.logging import setup_logger
+from qureed.logging.loggers import LoggerCategory
+
+
+def _wrap_and_log_process(self, gen, name):
+    """
+    Flatten a generator that may yield sub-generators (like any_receive),
+    log every real SimPy Event it emits, and return a new generator.
+    """
+    logger = setup_logger(LoggerCategory.GLOBAL)
+    def wrapped():
+        result = None
+        try:
+            while True:
+                yielded = gen.send(result)
+
+                # Flatten sub-generators
+                if isinstance(yielded, types.GeneratorType):
+                    subgen = yielded
+                    subres = None
+                    try:
+                        while True:
+                            ev = subgen.send(subres)
+                            meta = getattr(ev, "_des_meta", None)
+                            desc = f"{type(ev).__name__} ({meta})" if meta else type(ev).__name__
+                            logger.debug(f"{name} yielded (sub): {desc}")
+                            subres = yield ev
+                    except StopIteration as stop:
+                        result = stop.value
+                        continue
+
+                # Normal SimPy Event
+                meta = getattr(yielded, "_des_meta", None)
+                desc = f"{type(yielded).__name__} ({meta})" if meta else type(yielded).__name__
+                #print("SHOULD LOG")
+                #print(f"{name} -> {desc}")
+                logger.debug(f"{name} -> {desc}")
+                result = yield yielded
+
+        except StopIteration:
+            logger.debug(f"{name} completed")
+
+    return wrapped()
+
+
 
 def des_proc(method=None, *, backend=None):
     """
@@ -47,6 +91,7 @@ def des_proc(method=None, *, backend=None):
     TypeError
         If the decorated method does not return a generator.
     """
+
     def decorate(func):
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
@@ -56,11 +101,13 @@ def des_proc(method=None, *, backend=None):
                     f"{self.__class__.__name__}.{method.__name__} "
                     "is not a generator. Generator Required"
                 )
-            return gen
+            proc_name = f"{self.__class__.__name__}.{func.__name__}"
+            return _wrap_and_log_process(self, gen, proc_name)
+
         wrapper._is_des_process = True
         wrapper._supported_backend = backend
         return wrapper
-    
+
     if method is None:
         # Called as @des_proc(backend=...)
         return decorate

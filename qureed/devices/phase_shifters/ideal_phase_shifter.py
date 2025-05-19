@@ -14,7 +14,8 @@ class IdealPhaseShifter(GenericPhaseShifter):
     and when an `END`-type signal is received, it applies a phase shift of
     an angle `phi` (in radians) to the Fock state contained in the signal.
     The phase value is configurable via the `phi` property or dynamically
-    using a `FloatSignal` on the `phi` port.
+    using a `FloatSignal` on the `phi` port. Both `START` and `END` signals
+    are emitted with `1.5e-10`s delay.
 
     Ports:
     ------
@@ -42,6 +43,10 @@ class IdealPhaseShifter(GenericPhaseShifter):
     >>> ps = IdealPhaseShifter()
     >>> ps.set_property("phi", 3.1415)
     """
+
+    def __init__(self, uid=None, **kwargs):
+        super().__init__(uid, **kwargs)
+        self.delay = 3e-10
 
     @property
     def gui_name(self) -> str:
@@ -76,9 +81,9 @@ class IdealPhaseShifter(GenericPhaseShifter):
         while True:
             signal = yield self.receive(self.Ports.input)
             if signal.type is QOPSignalType.START:
-                self.send(self.Ports.output, signal)
+                self._send_with_delay(self.Ports.output, signal)
             elif signal.type is QOPSignalType.END:
                 phi = float(self.get_property("phi"))
                 ps_op = Operation(FockOperationType.PhaseShift, phi=phi)
                 signal.payload.fock.apply_operation(ps_op)
-                self.send(self.Ports.output, signal)
+                self._send_with_delay(self.Ports.output, signal)

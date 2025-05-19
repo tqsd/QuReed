@@ -11,7 +11,7 @@ setup(
     description="Simulating quantum experiments with realistic device models",
     license="Apache 2.0",
     packages=find_packages(where="."),
-    install_requires=["photon_weave==0.1.7", "jinja2", "simpy", "mpmath"],
+    install_requires=["photon_weave==0.1.8", "jinja2", "simpy", "mpmath"],
     package_data={
         "qureed": ["templates/*.jinja", "assets/*.png"],
     },

@@ -97,5 +97,9 @@ class IdealDetector(GenericDetectorDevice):
                     value=fock_measurement,
                     metadata={"polarization": polarization_measurement},
                 )
+                self.log(
+                    f"Measured F{fock_measurement}, P{
+                        polarization_measurement}"
+                )
                 yield self.sim_env.timeout(delay)
                 self.send(self.Ports.output, out_signal)

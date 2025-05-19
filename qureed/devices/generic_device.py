@@ -1,4 +1,5 @@
 from __future__ import annotations
+import traceback
 
 """
 Defines the abstract base class `GenericDevice`, which provides a reusable
@@ -27,7 +28,6 @@ import warnings
 
 import simpy
 
-from qureed.extra import Loggers, get_custom_logger
 from qureed.signals.generic_signal import GenericSignal
 from qureed.simulation import Simulation
 from qureed.utils import type_mapping
@@ -154,17 +154,21 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
         **kwargs: Any
             Additional arguments for extension/customization
         """
+        super().__init__(uid=uid, **kwargs)
         self.uid = uid if uid else uuid.uuid4()
+        self.delay = 0
         self.properties = deepcopy(self._merge_properties())
 
         self.simulation = Simulation()
+        self.simulation.register_device(self)
         self.sim_env = self.simulation.simpy_env
-        self.logger = get_custom_logger(Loggers.Custom, device=self)
 
+        # self._inboxes: Dict[str, simpy.Store] = {
+        #    port: simpy.Store(self.sim_env) for port in self.ports
+        # }
         self._inboxes: Dict[str, simpy.Store] = {
             port: simpy.Store(self.sim_env) for port in self.ports
         }
-
         self._connected_ports: Dict[str, Optional[Connection]] = {
             normalize_port(port): None for port in self.ports
         }
@@ -426,9 +430,24 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
         if connection is not None and not signal.terminate:
             target_device, remote_port = connection.get_next_device_and_port()
             target_device.deliver(remote_port, signal)
+            self.loggers["FLOW"].debug(
+                f"{self.name} | Sent signal {signal} "
+                f"to {target_device.name}:{remote_port}"
+            )
 
         if signal.terminate:
             signal.cleanup()
+
+    def _send_with_delay(self, port: str | Enum, signal: GenericSignal):
+        """
+        Sends the signal with a delay
+        """
+
+        def __send():
+            yield self.sim_env.timeout(self.delay)
+            self.send(port, signal)
+
+        self.sim_env.process(__send())
 
     def receive(self, local_port: str | Enum) -> Any:
         """
@@ -444,7 +463,9 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
             SimPy event representing the incoming signal.
         """
         local_port = normalize_port(local_port)
-        return self._inboxes[local_port].get()
+        event = self._inboxes[local_port].get()
+        event._des_meta = f"receive({local_port})"
+        return event
 
     def any_receive(self, *ports: Union[str, Enum]):
         """
@@ -466,6 +487,7 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
             `KeyError`: If any of the ports is not valid.
         """
         normalized_ports = [normalize_port(p) for p in ports]
+        yield self.sim_env.timeout(0)
 
         for port in normalized_ports:
             if port not in self._inboxes:
@@ -477,9 +499,19 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
             port: self._inboxes[port].get() for port in normalized_ports
         }
         event_to_port = {evt: port for port, evt in named_gets.items()}
-
+        self.loggers["FLOW"].debug(
+            f"{self.name} Waiting for next signas to arrive"
+        )
         event = simpy.events.AnyOf(self.sim_env, list(named_gets.values()))
         result = yield event
+        self.log("Some signal received")
+
+        # --- Cancel all gets that didn't fire ---
+        triggered = set(result.keys())
+        for port, get_event in named_gets.items():
+            if get_event not in triggered:
+                self.loggers["FLOW"].debug(f"Canceling {get_event}")
+                get_event.cancel()
 
         signals = []
         for triggered_event, signal in result.items():
@@ -500,7 +532,13 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
             Signal instance to enqueue
         """
         local_port = normalize_port(local_port)
+
         self._inboxes[local_port].put(signal)
+        self.loggers["FLOW"].debug(
+            f"{self.name} | Received {signal} "
+            f"at {local_port}"
+            f" into inbox id({id(self._inboxes[local_port])})"
+        )
 
     # --- Dunder methods
     def __repr__(self):

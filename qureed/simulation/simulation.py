@@ -1,10 +1,12 @@
-"""
-Simulation Module
-"""
-
+from __future__ import annotations
+from typing import List, TYPE_CHECKING, Optional
 import simpy
 
 from qureed.backends import _BACKENDS, UnknownBackendException
+
+if TYPE_CHECKING:
+    from examples.BB84.custom_fiber import GenericDevice
+    from qureed.devices.connection import Connection
 
 
 class Simulation:
@@ -30,6 +32,8 @@ class Simulation:
                 )
             self._backend = backend
             self.initialized = True
+            self.devices: List["GenericDevice"] = []
+            self.connections: List["Connection"] = []
 
     @property
     def backend(self) -> str:
@@ -52,3 +56,46 @@ class Simulation:
         Reset the singleton instance for test isolation.
         """
         cls._instance = None
+
+    def register_device(self, device: GenericDevice):
+        self.devices.append(device)
+
+    def enable_logging(
+        self, *, name_contains: str | None = None, all: bool = False
+    ) -> None:
+        """
+        Turn on logging for devices.
+
+        Parameters
+        ----------
+        name_contains : str, optional
+            Substring (case‐insensitive) to match against:
+            - device.gui_name
+            - device class name
+            - device.properties['name'].value
+        all : bool
+            If True, enable logging on *all* devices (ignores name_contains).
+        """
+        if all:
+            for d in self.devices:
+                d.logging = True
+            return
+
+        if not name_contains:
+            return
+
+        key = name_contains.lower()
+        for d in self.devices:
+            # gui_name or class name
+            gui = d.gui_name.lower()
+            cls = d.__class__.__name__.lower()
+
+            # explicit "name" property value if present
+            val = ""
+            try:
+                val = str(d.properties["name"]["value"]).lower()
+            except Exception:
+                pass
+
+            if key in gui or key in cls or key in val:
+                d.logging = True

@@ -1,6 +1,8 @@
+import logging
 from typing import List, Tuple
 from qureed.simulation import Simulation
 from qureed.devices.clocks.constant_clock import ConstantClock
+from qureed.logging import setup_logger, LoggerCategory
 from qureed.devices.optical_sources.ideal_n_photon_source import (
     IdealNPhotonSource,
 )
@@ -74,6 +76,7 @@ def BB84() -> None:
     A_rbt = RandomBasisTrigger()
     A_rbt.set_property("frequency", FREQUENCY)
     A_sps = IdealNPhotonSource()
+    A_sps.set_property("name", "SPS")
     A_itwp = IdealTunableWaveplate()
 
     A_clock.connect(A_clock.Ports.tick, A_rbt, A_rbt.Ports.clk)
@@ -108,6 +111,9 @@ def BB84() -> None:
         B_rbd.Ports.basis_confirm_out, A_rbt, A_rbt.Ports.basis_confirm_in
     )
 
+    # --- ENABLE LOGGING ---
+    Simulation().enable_logging(name_contains="ideal")
+
     # --- RUN SIMULATION ---
     Simulation().run(until=15)
 
@@ -116,4 +122,5 @@ def BB84() -> None:
 
 
 if __name__ == "__main__":
+    logger = setup_logger(LoggerCategory.GLOBAL, level=logging.DEBUG)
     BB84()

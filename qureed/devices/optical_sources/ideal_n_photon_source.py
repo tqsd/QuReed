@@ -116,6 +116,7 @@ class IdealNPhotonSource(GenericOpticalSourceDevice):
         while True:
             int_signal = yield self.receive(self.Ports.photon_num)
             self.set_property("photonNum", int(int_signal.value))
+            self.log(f"Photon number updated: {int_signal.value}")
 
     @des_proc(backend="photon_weave")
     def proc_pw(self):
@@ -163,6 +164,7 @@ class IdealNPhotonSource(GenericOpticalSourceDevice):
                 },
             )
 
+            self.log(f"Created a state |{photon_num},H>")
             self.send(self.Ports.output, start_signal)
             yield self.sim_env.timeout(mpf(5 * pulse_duration))
             self.send(self.Ports.output, end_signal)

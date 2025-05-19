@@ -7,8 +7,8 @@ from .generic_quantum_signal import GenericQuantumSignal
 
 
 class QOPSignalType(StrEnum):
-    START = "start"
-    END = "end"
+    START = "START"
+    END = "END"
 
 
 @dataclass(kw_only=True)
@@ -80,3 +80,10 @@ class QuantumOpticalPulseSignal(GenericQuantumSignal):
         start.pair = end
         end.pair = start
         return start, end
+
+    def __repr__(self) -> str:
+        wl = self.metadata.get("central_wavelength", None)
+        if wl is not None:
+            return f"<QOPSignal {self.type.name}, λ={wl:.2e}>"
+        else:
+            return f"<QOPSignal {self.type.name}>"

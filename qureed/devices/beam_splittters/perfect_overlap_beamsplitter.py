@@ -1,4 +1,6 @@
 from typing import Dict, Tuple, Union, Any, cast
+import sys
+import traceback
 
 from qureed.simulation.simulation import Simulation
 from .generic_beam_splitter import GenericBeamSplitterDevice
@@ -105,6 +107,10 @@ class PerfectOverlapBeamSplitter(GenericBeamSplitterDevice):
         ts = self.sim_env.now
         for wl, signals in starts.items():
             for sig in [starts[wl][k] for k in signals.keys()]:
+                if f"_{id(self)}_ts" in sig.metadata:
+                    raise Exception(
+                        f"Overwriting exisitng signals ts metadata, {id(sig)} "
+                    )
                 sig.metadata[f"_{id(self)}_ts"] = ts
 
             entry = {
@@ -180,13 +186,6 @@ class PerfectOverlapBeamSplitter(GenericBeamSplitterDevice):
             )
         return method(signal_1, signal_2)
 
-    def _send_with_delay(self, port, signal):
-        def __send():
-            yield self.sim_env.timeout(self.delay)
-            self.send(port, signal)
-
-        self.sim_env.process(__send())
-
     def _extract_starts(
         self,
         received: list[
@@ -260,9 +259,13 @@ class PerfectOverlapBeamSplitter(GenericBeamSplitterDevice):
         for wl, signals in list(starts.items()):
             if len(signals) == 1:
                 port = next(iter(signals))
-                other = self.Ports.B if port is self.Ports.A else self.Ports.B
+                other = self.Ports.B if port is self.Ports.A else self.Ports.A
                 generated_start, _ = self._generate_signals(signals[port])
                 generated_start.metadata[f"_{id(self)}_gen"] = True
+                self.log(
+                    f"Generated synthetic |0> START for λ={wl:.2e} on "
+                    f"port {other}."
+                )
                 starts[wl][other] = generated_start
         return starts
 
@@ -309,6 +312,8 @@ class PerfectOverlapBeamSplitter(GenericBeamSplitterDevice):
                     ].pair
                 if entry not in ready:
                     ready.append(entry)
+        if ready:
+            self.log("Has END signals to mix and send")
         return ready
 
     def _mix_and_send(
@@ -330,8 +335,8 @@ class PerfectOverlapBeamSplitter(GenericBeamSplitterDevice):
            Entry containing the signals to mix and send
         """
         if set(entry.get("ends", {})) == {self.Ports.A, self.Ports.B}:
-            sigA = entry["starts"][self.Ports.A]
-            sigB = entry["starts"][self.Ports.B]
+            sigA = entry["starts"][self.Ports.A].pair
+            sigB = entry["starts"][self.Ports.B].pair
             self._mixing_process(sigA, sigB)
             self._send_with_delay(self.Ports.C, sigA)
             self._send_with_delay(self.Ports.D, sigB)
@@ -357,7 +362,7 @@ class PerfectOverlapBeamSplitter(GenericBeamSplitterDevice):
         - Input: `A` (`QuantumOpticalPulseSignal`)
         - Input: `B` (`QuantumOpticalPulseSignal`)
         - Output: `C` (`QuantumOpticalPulseSignal`)
-        - OInput: `D` (`QuantumOpticalPulseSignal`)
+        - Output: `D` (`QuantumOpticalPulseSignal`)
 
         Behavior:
         ---------
@@ -371,17 +376,35 @@ class PerfectOverlapBeamSplitter(GenericBeamSplitterDevice):
             with the delay.
         """
         while True:
-            received = yield from self.any_receive(self.Ports.A, self.Ports.B)
+            try:
+                received = yield self.any_receive(self.Ports.A, self.Ports.B)
+                signals = [
+                    (r[1], r[0].type.value, r[0].sender.name) for r in received
+                ]
 
-            starts = self._extract_starts(received)
-            completed_starts = self._complete_missing_starts(starts)
-            if completed_starts:
-                self._store_and_send_starts(completed_starts)
+                starts = self._extract_starts(received)
+                completed_starts = self._complete_missing_starts(starts)
+                if completed_starts:
+                    self._store_and_send_starts(completed_starts)
 
-            to_mix = self._extract_ends(received)
-            print(len(to_mix))
-            for entry in to_mix:
-                self._mix_and_send(entry)
+                to_mix = self._extract_ends(received)
+                for entry in to_mix:
+                    self._mix_and_send(entry)
+            except Exception as e:
+                print(
+                    f"\n--- Exception in {
+                        self.name} ({self.__class__.__name__}) ---"
+                )
+                print(f"Simulation time: {self.sim_env.now}")
+                print(f"Last received signals: {received!r}")
+                print(f"Signals in buffer ({len(self._buffer)}):")
+                for b in self._buffer:
+                    print(b)
+                print("--- Traceback ---")
+                traceback.print_exception(
+                    type(e), e, e.__traceback__, file=sys.stderr
+                )
+                raise  # optionally re-raise to crash the simulation
 
     # <<< PHOTON WEAVE SPECIFIC METHODS >>>
 
@@ -409,7 +432,7 @@ class PerfectOverlapBeamSplitter(GenericBeamSplitterDevice):
         new_envelope = Envelope()
         return QuantumOpticalPulseSignal.create_pair(
             payload=new_envelope,
-            metadata=signal.metadata,
+            metadata=dict(signal.metadata),
         )
 
     def _mixing_process_photon_weave(

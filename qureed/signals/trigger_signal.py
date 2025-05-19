@@ -8,3 +8,6 @@ class TriggerSignal(GenericSignal):
     """
     Trigger Signal, does not contain any payload
     """
+
+    def __repr__(self) -> str:
+        return "<TriggerSignal>"
