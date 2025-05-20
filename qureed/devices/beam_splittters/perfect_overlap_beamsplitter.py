@@ -125,10 +125,10 @@ class PerfectOverlapBeamSplitter(GenericBeamSplitterDevice):
         self, signal: QuantumOpticalPulseSignal
     ) -> Tuple[QuantumOpticalPulseSignal, QuantumOpticalPulseSignal]:
         """
-        Dispatches signal generation to the backend-specific impementation.
+        Dispatches signal generation to the backend-specific implementation.
 
         This is used to synthesize a matching `START` signal (vacuum) when
-        only one `START` is received for a given wacelength. The backend-
+        only one `START` is received for a given wavelength. The backend-
         specific method is determined by the currently active simulation
         backend.
 
@@ -147,7 +147,7 @@ class PerfectOverlapBeamSplitter(GenericBeamSplitterDevice):
         method = getattr(self, method_name, None)
         if method is None:
             raise NotImplementedError(
-                "_generate_starts method not implemented for backend "
+                "_generate_signals method not implemented for backend "
                 f"{Simulation().backend}; expected method {method_name}"
             )
         return method(signal)
