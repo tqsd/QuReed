@@ -37,3 +37,6 @@ pip install git+https://github.com/tqsd/QuReed.git@simpy
 - In-code docstrings and examples
 - Full API reference (coming soon)
 - Sphinx documentation build planned
+
+
+## Roadmap

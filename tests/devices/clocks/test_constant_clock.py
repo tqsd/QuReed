@@ -21,6 +21,10 @@ class Receiver:
         while True:
             yield self.store.get()
 
+    @property
+    def name(self) -> str:
+        return "Receiver"
+
 
 class TestConstantClock(unittest.TestCase):
     def tearDown(self) -> None:

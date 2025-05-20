@@ -9,6 +9,11 @@ from qureed.signals import QuantumOpticalPulseSignal
 
 from photon_weave.state.envelope import Envelope
 
+class DummySender():
+    @property
+    def name(self) -> str:
+        return "Dummy Sender"
+
 
 class TestPerfectOverlapBeamSplitter(unittest.TestCase):
     def setUp(self):
@@ -204,6 +209,9 @@ class TestPerfectOverlapBeamSplitter(unittest.TestCase):
         sig_start, sig_end = QuantumOpticalPulseSignal.create_pair(
             payload=env, metadata={"central_wavelength": 1550e-9}
         )
+        _sender = DummySender()
+        sig_start.sender = _sender
+        sig_end.sender = _sender
 
         def signal_feed():
             device.deliver(device.Ports.A, sig_start)
@@ -250,11 +258,16 @@ class TestPerfectOverlapBeamSplitter(unittest.TestCase):
         env2 = Envelope()
         env2.fock.state = 1
         sig1_start, sig1_end = QuantumOpticalPulseSignal.create_pair(
-            payload=env1, metadata={"central_wavelength": 1550e-9}
+            payload=env1, metadata={"central_wavelength": 1550e-9}, 
         )
         sig2_start, sig2_end = QuantumOpticalPulseSignal.create_pair(
-            payload=env2, metadata={"central_wavelength": 1550e-9}
+            payload=env2, metadata={"central_wavelength": 1550e-9},
         )
+
+        _sender = DummySender()
+        for sig in [sig1_start, sig1_end, sig2_start, sig2_end]:
+            sig.sender = _sender
+
 
         def signal_feed():
             device.deliver(device.Ports.A, sig1_start)
