@@ -108,5 +108,5 @@ class LossyFiber(GenericFiber):
         rho = signal.payload.fock.trace_out()
         err = QuantumFockErrorBound()
         err.compute(rho, loss_channel)
-
         signal.payload.fock.apply_kraus(loss_channel, identity_check=False)
+        signal.errors.append(err)

@@ -2,6 +2,8 @@ from abc import ABC
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
+from qureed.errors.generic_error import GenericError
+
 
 @dataclass(kw_only=True)
 class GenericSignal(ABC):
@@ -27,6 +29,7 @@ class GenericSignal(ABC):
     sender: Optional[Any] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
     terminate: bool = False
+    errors: list[GenericError] = field(default_factory=list)
 
     def cleanup(self):
         """
