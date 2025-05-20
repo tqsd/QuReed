@@ -11,7 +11,7 @@ from qureed.simulation.simulation import Simulation
 
 
 def time_bin_encoding(alpha: float, beta: float):
-    FREQUENCY = 100
+    FREQUENCY = 1000
     clk = ConstantClock()
     clk.set_property("name", "CLK")
     clk.set_property("frequency", FREQUENCY)
@@ -78,7 +78,8 @@ def time_bin_encoding(alpha: float, beta: float):
     clk_measurement.connect(clk_measurement.Ports.tick, m, m.Ports.clk)
 
     sim = Simulation()
-    #sim.enable_logging(name_contains="perfect")
+    # Device based logs configuration
+    # sim.enable_logging(name_contains="perfect")
     sim.enable_logging(name_contains="TBE")
     sim.enable_logging(name_contains="DET")
     Simulation().run(until=1)
@@ -87,7 +88,10 @@ def time_bin_encoding(alpha: float, beta: float):
     # Flatten the measurements into a list
     m.plot()
 
+
 if __name__ == "__main__":
+    # Set up the loggers
+    # Change logging level to logging.DEBUG to enable the logs
     setup_logger(LoggerCategory.GLOBAL, level=logging.WARNING)
     setup_logger(LoggerCategory.FLOW, level=logging.WARNING)
     

@@ -26,19 +26,77 @@ class RoundMeasurements:
 
 
 class TBEMeasurement(GenericDevice):
+    """
+        Custom Time Bin Encoding Measurement device
+
+        This device simulates the detection and time-bin-resolved measurement
+        prosecc at the end of a quantum photonic experiment. It collects photon
+        detection events for each pulse and port (top/bottom) in every round,
+        storing results for later statistical analysis.
+
+        Functionality:
+        --------------
+        - Collects detection results for three sequential pulses ("first",
+          "second", "third") for each round of the experiment.
+        - For each pulse, records wether a photon was detected in the "top"
+          (port `A`) or "bottom" (port `B`) detector.
+        - Synchronizes measurements with an external clock signal (on `clk` port).
+
+        Ports:
+        ------
+        - A (input): `QuantumOpticalPulseSignal`
+            Receives `QuantumOpticalPulseSignal` for top detector.
+        - B (input): `QuantumOpticalPulseSignal`
+            Receives `QuantumOpticalPulseSignal` for bottom detector.
+
+        GUI Metadata:
+        -------------
+        - gui_name: str
+            Returns "TBE Measurement".
+        - gui_icon: str
+            Uses the detector icon from the asset list.
+
+        Measurement Data Structure:
+        ---------------------------
+        - Measurements are stored as a list of `RoundMeasurements`, each
+        containing three `Measurement` objects ("first", "second", "third")
+        where each `Measurement` has:
+          - top (int): 1 if photon detected at port `A`, else 0
+          - bot (int): 1 if photon detected at port `B`, else 0
+
+        Backend Compatibility:
+        ----------------------
+        - photon_weave: Measurement logic implemented in `proc_pw()`
+
+        Methods:
+        --------
+    plot()
+            Plots a histogram of the detection probabilities for each
+            pulse and port (top/bottom), averaged over all rounds.
+
+        Example:
+        --------
+        >>> m = TBEMeasurement()
+        >>> m.set_property("name", "TBE Measurement")
+        >>> # After running simulation
+        >>> m.plot()
+    """
 
     @property
     def gui_name(self) -> str:
-        return "TBS Measuremen"
+        return "TBE Measurement"
 
     @property
     def gui_icon(self) -> str:
         return icon_list.DETECTOR
 
+    # <<< type hints >>>
     class Ports(Enum):
         A = "A"
         B = "B"
         clk = "clk"
+
+    # <<< type hints >>>
 
     properties: Dict[str, Dict[str, Any]] = {}
 
@@ -57,6 +115,26 @@ class TBEMeasurement(GenericDevice):
 
     @des_proc
     def clk_proc(self):
+        """
+        Clock-triggered round management process.
+
+        Waits for a rising edge (signal) on the `clk` port to mark the end of
+        a measurement round. When triggered:
+        - Increments the round counter.
+        - Appends the accumulated `RoundMeasurements` of the current round to
+          the internal measurement list.
+        - Prints the current round's measurements for debugging purposes.
+        - Initializes a new, empty `RoundMEasurements` for next round.
+        - Resets the pulse counter to zero ( for time bin position tracking).
+
+        This process enables the device to separate time-resolved measurement
+        results by expiremental round (e.g., for reperted trials with a clock
+        or trigger pulse).
+
+        Returns:
+        --------
+        None
+        """
         while True:
             yield self.receive(self.Ports.clk)
             self._round += 1
@@ -68,6 +146,37 @@ class TBEMeasurement(GenericDevice):
 
     @des_proc(backend="photon_weave")
     def proc_pw(self):
+        """
+        PhotonWeave backend: main pulse-resolved measurement process.
+
+        Waits for signals on the `A` and `B` ports, which correspond to the top
+        and bottom detectors of the device. On reception of at least one `END`
+        type signal (indicating the end of a photon pulse):
+
+        - Instantiates a `Measurement` object for this pulse.
+        - For each received `END` signal, performs a measurement on the
+          signal's payload (the quantum state) and records the detection
+          outcome (0 or 1) int the `Measurement` object for appropriate port
+          (top or bottom)
+        - Assigns the pulse measurement to the appropriate time-bin (first,
+          second, third) within the current round, based on the internal pulse
+          counter.
+        - Increments the pulse counter to prepare for the next detection.
+
+        This process enables the device to accumulate time- and port-resolved
+        photon detection statistics, as needed for time-bin encoding
+        experiments.
+
+        Notes:
+        ------
+        - Only `END` type signals are measured (i.e., actual detection events).
+        - Expects that each round will have exactly three pulses per port.
+
+        Returns:
+        --------
+        None
+
+        """
         while True:
             signals = yield from self.any_receive(self.Ports.A, self.Ports.B)
             self.log(
@@ -96,6 +205,31 @@ class TBEMeasurement(GenericDevice):
                 self._pulse += 1
 
     def plot(self):
+        """
+        Plots detection probabilites per time bin and port.
+
+        Computs the average detection probability for each of the six outcomes:
+        (top/.bottom x first/second/third pulse) across all measurement rounds.
+
+        Displays a histogram with bars for:
+        - Top Pulse 1, Bot Pulse 1
+        - Top Pulse 2, Bot Pulse 2
+        - Top Pulse 3, Bot Pulse 3
+
+        Y-axis: Detection probability (0.0 to 1.0)
+        X-axis: Pulse/port label
+
+        Example output:
+        ---------------
+        |      |      |      |
+        |   |  |   |  |   |  |
+        |___|__|___|__|___|__|
+         TP1 BP1 TP2 BP2 TP3 BP3
+
+        Returns:
+        --------
+        None
+        """
         top_first = jnp.array([rm.first.top for rm in self._measurements])
         bot_first = jnp.array([rm.first.bot for rm in self._measurements])
         top_second = jnp.array([rm.second.top for rm in self._measurements])
