@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, cast
 from examples.BB84.custom_fiber import QuantumOpticalPulseSignal
 from qureed.constants import C0
 from qureed.devices.fiber.generic_fiber import GenericFiber
@@ -9,6 +9,40 @@ from qureed.simulation.simulation import Simulation
 
 
 class LossyFiber(GenericFiber):
+    r"""
+    Lossy Fiber Device
+
+    An optical *single-mode* fiber segment that introduces both **temporal
+    delay** and **photon-number attenuation** to traversing quantum optical
+    pulses. The component is passive and fully described by its physical
+    parameters (`length`, `n`, `loss`).
+
+    Ports
+    -----
+    - input (input)  : Accepts a `QuantumOpticalPulseSignal`
+    - output (outpu) : Emits attenuated and delayed `QuantumOpticalPulseSignal`
+
+    Properties:
+    -----------
+    - length : `float`
+        Physical fiber length *L* in meters.
+    loss : float
+        Linear attenuation coefficient :math:`\alpha \;[\text{m}^{-1}]`.
+        The *power* transmission is given by
+    n : float
+        Effective group refractive index :math:`n` (determines propagation
+        speed).
+
+    Backend Compatibility
+    ---------------------
+    * **photon_weave** – uses ``_attenuate_photon_weave`` which constructs a
+      Kraus representation of the lossy bosonic channel and attaches a
+      :class:`QuantumFockErrorBound` object describing the incurred truncation
+      error.
+    * **other backends** – must implement ``_attenuate_<backend>()`` following
+      the naming convention.  A :class:`NotImplementedError` is raised if the
+      method is missing.
+    """
 
     properties: Dict[str, Dict[str, Any]] = {
         "length": {"type": float, "value": 100},  # meters
@@ -32,6 +66,12 @@ class LossyFiber(GenericFiber):
         ----------
         signal: `QuantumOpticalPulseSignal`
             The signal to attenuate
+
+        Raises:
+        -------
+        NotImplementedError
+            If the current bacend does **not** implement the expected helper
+            function.
         """
         method_name = f"_attenuate_{Simulation().backend}"
         method = getattr(self, method_name, None)
@@ -44,6 +84,16 @@ class LossyFiber(GenericFiber):
 
     @des_proc
     def proc(self):
+        """
+        Main device coroutine (backend-agnotic)
+
+        The process simply introduces a *propagation delay* of
+        ``length / (c0 / n)`` and subsequently applies the backend-specific
+        attenuation when *END*0marker of the pulse arrives. The *START*
+        marker is forwarded immediately (after delay) so that downstream
+        components can allocate resources while the quantum state is still
+        travelling.
+        """
         length = self.get_property("length")
         n = self.get_property("n")
         v = C0 / n
@@ -51,14 +101,36 @@ class LossyFiber(GenericFiber):
         while True:
             signal = yield self.receive(self.Ports.input)
             if signal.type is QOPSignalType.START:
-                self._send_with_delay(signal)
+                self._send_with_delay(self.Ports.output, signal)
                 continue
             self._attenuate(signal)
-            self._send_with_delay(signal)
+            self._send_with_delay(self.Ports.output, signal)
 
     def _compute_attenuation_channel_pw(self, d: int):
-        """
-        Computes the attenuation channel
+        r"""
+        Returns Kraus operators of the lossy bosonic channel (dimension *d*).
+
+        The loss channel is expressed as a set of *d* Kraus operators
+        :math:`\{C_k\}` where
+
+        .. math::
+
+            C_k = \sum_{n=k}^{d-1}\sqrt{\binom{n}{k}\,\eta^{\,n-k}\,(1-\eta)^k}
+                    |n-k\rangle\langle n|.
+
+        with :math:`\eta = e^{-\alpha L}`.  The implementation follows
+        *Scarani, Finite‑dimensional bosonic channels* (2013) and uses JAX for
+        efficient array construction.
+
+        Parameters
+        ----------
+        d : int
+            Cut‑off dimension of the truncated Fock space.
+
+        Returns
+        -------
+        list[ArrayLike]
+            A list of *d* complex‑valued Kraus matrices of shape ``(d, d)``.
         """
         import jax.numpy as jnp
         from jax.scipy.special import gammaln
@@ -98,15 +170,22 @@ class LossyFiber(GenericFiber):
         signal: `QuantumOpticalPulseSignal`
             The signal to attenuate
         """
+        from photon_weave.state.envelope import Envelope
+
+        env = cast(Envelope, signal.payload)
+
         loss_channel = self._compute_attenuation_channel_pw(
-            signal.payload.fock.dimensions
+            env.fock.dimensions
         )
         # Ensure that we have density matrix
-        signal.payload.fock.expand()
-        signal.payload.fock.expand()
+        env.fock.expand()
+        env.fock.expand()
 
-        rho = signal.payload.fock.trace_out()
+        rho = env.fock.trace_out()
         err = QuantumFockErrorBound()
         err.compute(rho, loss_channel)
-        signal.payload.fock.apply_kraus(loss_channel, identity_check=False)
+        err.description = "Error due to lossy fiber"
+
+        env.fock.apply_kraus(loss_channel, identity_check=False)
+
         signal.errors.append(err)
