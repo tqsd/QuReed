@@ -21,6 +21,6 @@ class GenericValueSignal(GenericSignal):
         return (
             f"<{self.__class__.__name__} "
             f"ts={self.timestamp} "
-            f"val={self.value}"
+            f"val={self.value} "
             f"metadata={self.metadata}>"
         )

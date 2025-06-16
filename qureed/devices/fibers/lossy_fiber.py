@@ -1,10 +1,12 @@
 from typing import Dict, Any, cast
-from examples.BB84.custom_fiber import QuantumOpticalPulseSignal
 from qureed.constants import C0
-from qureed.devices.fiber.generic_fiber import GenericFiber
+from qureed.devices.fibers.generic_fiber import GenericFiber
 from qureed.devices.wrappers import des_proc
-from qureed.errors.generic_fock_error_bound import QuantumFockErrorBound
-from qureed.signals.quantum_optical_pulse_signal import QOPSignalType
+from qureed.errors.quantum_fock_error_bound import QuantumFockErrorBound
+from qureed.signals.quantum_optical_pulse_signal import (
+    QOPSignalType,
+    QuantumOpticalPulseSignal,
+)
 from qureed.simulation.simulation import Simulation
 
 
@@ -48,6 +50,7 @@ class LossyFiber(GenericFiber):
         "length": {"type": float, "value": 100},  # meters
         "loss": {"type": float, "value": 4.6e-5},  # per-meter attenuation
         "n": {"type": float, "value": 1.45},  # refractive index
+        "phaseShift": {"type": bool, "value": True},  # phase shift toggle
     }
 
     @property
@@ -82,6 +85,21 @@ class LossyFiber(GenericFiber):
             )
         return method(signal)
 
+    def _phase_shift(self, signal: QuantumOpticalPulseSignal) -> None:
+        """
+        Dispathes signal phase shifting to the backend-specific implementation.
+
+        This is used to phase shift the signal according to the `length`, `n`,
+        and `central_wavelength` of the signal.
+        """
+        method_name = f"_phase_shift_{Simulation().backend}"
+        method = getattr(self, method_name, None)
+        if method is None:
+            raise NotImplementedError(
+                "_phase_shift method not implemented for backend"
+                f"{Simulation().backend}; expected method {method_name}"
+            )
+
     @des_proc
     def proc(self):
         """
@@ -104,6 +122,8 @@ class LossyFiber(GenericFiber):
                 self._send_with_delay(self.Ports.output, signal)
                 continue
             self._attenuate(signal)
+            if self.get_property("phaseShift"):
+                self._phase_shift(signal)
             self._send_with_delay(self.Ports.output, signal)
 
     def _compute_attenuation_channel_pw(self, d: int):
@@ -187,5 +207,33 @@ class LossyFiber(GenericFiber):
         err.description = "Error due to lossy fiber"
 
         env.fock.apply_kraus(loss_channel, identity_check=False)
+        env.fock.contract()
 
         signal.errors.append(err)
+
+    def _phase_shift_photon_weave(
+        self, signal: QuantumOpticalPulseSignal
+    ) -> None:
+        """
+        Phase shift for the Photon Weave.
+
+        Computes required phase shift based on the `length` and `n` and
+        `central_wavelength` of the incomming signal.
+
+        Arguments:
+        ----------
+        signal: `QuantumOpticalpulseSignal`
+            The signal to phase shift.
+        """
+        import jax.numpy as jnp
+        from photon_weave.state.envelope import Envelope
+        from photon_weave.operation import Operation, FockOperationType
+
+        wavelength = signal.metadata.get("centralWavelength", 1)
+        n = self.get_property("n")
+        L = self.get_property("length")
+
+        phi = (2 * jnp.pi * n * L) / wavelength
+        env = cast(Envelope, signal.payload)
+        op = Operation(FockOperationType.PhaseShift, phi=phi)
+        env.fock.apply_operation(op)

@@ -218,3 +218,6 @@ flycheck_*.el
 .vscode
 .\vscode
 ./vscode
+
+*storybook.log
+storybook-static
