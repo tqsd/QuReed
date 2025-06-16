@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict
 from enum import Enum
 from qureed.devices.wrappers import des_proc
-from qureed.signals import QuantumOpticalPulseSignal, QOPSignalType
+from qureed.signals import IntSignal, QOPSignalType
 from qureed.devices import GenericDevice
 from qureed.assets import icon_list
 from qureed.devices.port import Port
@@ -14,8 +14,8 @@ from qureed.signals.trigger_signal import TriggerSignal
 
 @dataclass
 class Measurement:
-    top: int = -1
-    bot: int = -1
+    top: int = 0
+    bot: int = 0
 
 
 @dataclass
@@ -98,11 +98,15 @@ class TBEMeasurement(GenericDevice):
 
     # <<< type hints >>>
 
-    properties: Dict[str, Dict[str, Any]] = {}
+    properties: Dict[str, Dict[str, Any]] = {
+        "first_pulse_delay": {"type": float, "value": 6e-9},
+        "pulse_spacing": {"type": float, "value": 1e-9},
+        "time_tolerance": {"type": float, "value": 0.5e-9},
+    }
 
     port_definitions = {
-        "A": Port(direction="input", signal_type=QuantumOpticalPulseSignal),
-        "B": Port(direction="input", signal_type=QuantumOpticalPulseSignal),
+        "A": Port(direction="input", signal_type=IntSignal),
+        "B": Port(direction="input", signal_type=IntSignal),
         "clk": Port(direction="input", signal_type=TriggerSignal),
     }
 
@@ -112,6 +116,7 @@ class TBEMeasurement(GenericDevice):
         self._pulse = 0
         self._measurements = []
         self._current_round_measurements = RoundMeasurements()
+        self._round_start_time = 0
 
     @des_proc
     def clk_proc(self):
@@ -139,70 +144,73 @@ class TBEMeasurement(GenericDevice):
             yield self.receive(self.Ports.clk)
             self._round += 1
             self._measurements.append(self._current_round_measurements)
-            print(self._current_round_measurements)
             self._current_round_measurements = RoundMeasurements()
+            self._round_start_time = self.sim_env.now
 
             self._pulse = 0
 
-    @des_proc(backend="photon_weave")
-    def proc_pw(self):
+    @des_proc()
+    def proc(self):
         """
-        PhotonWeave backend: main pulse-resolved measurement process.
+        Photon detection process for time-bin-resolved measurements.
 
-        Waits for signals on the `A` and `B` ports, which correspond to the top
-        and bottom detectors of the device. On reception of at least one `END`
-        type signal (indicating the end of a photon pulse):
+        This process listens for incoming `IntSignal` events on the `A` (top)
+        and `B` (bottom) ports. Upon receiving signals, it determines to which
+        time-bin (pulse) each detection belongs by comparing the signal's
+        arrival time to the known round start time and configured pulse timing
+        parameters.
 
-        - Instantiates a `Measurement` object for this pulse.
-        - For each received `END` signal, performs a measurement on the
-          signal's payload (the quantum state) and records the detection
-          outcome (0 or 1) int the `Measurement` object for appropriate port
-          (top or bottom)
-        - Assigns the pulse measurement to the appropriate time-bin (first,
-          second, third) within the current round, based on the internal pulse
-          counter.
-        - Increments the pulse counter to prepare for the next detection.
+        For each valid detection:
+        - Computes the pulse index based on the arrival time, the first pulse
+          delay, and the pulse spacing.
+        - If the computed pulse index is within the expected range (0 to 2),
+          it updates the corresponding `Measurement` record for that pulse in
+          the current round.
+        - If multiple signals are received for the same pulse and port, the
+          detection is treated as binary: once `top` or `bot` is set to `1`,
+          it remains `1` and is not overwritten by subsequent signals.
 
-        This process enables the device to accumulate time- and port-resolved
-        photon detection statistics, as needed for time-bin encoding
-        experiments.
+        Pulses that arrive outside the expected timing window are ignored.
 
         Notes:
         ------
-        - Only `END` type signals are measured (i.e., actual detection events).
-        - Expects that each round will have exactly three pulses per port.
+        - This method uses floor division to robustly map arrival times to
+          pulse bins.
+        - Multiple signals received simultaneously are processed in one loop.
+        - This design handles missing pulses naturally: if no signal arrives
+          for a given time-bin, the measurement remains zero.
 
         Returns:
         --------
         None
-
         """
         while True:
             signals = yield from self.any_receive(self.Ports.A, self.Ports.B)
-            self.log(
-                f"Received {len(signals)} Signals [R:{
-                    self._round}, P:{self._pulse}])"
-            )
-            if any(s[0].type == QOPSignalType.END for s in signals):
-                print("RECEIVED END")
-                m = Measurement()
-                for s in signals:
-                    if s[0].type == QOPSignalType.END:
-                        outcome = s[0].payload.measure()
-                        outcome = int(outcome[s[0].payload.fock])
-                        if s[1] == self.Ports.A:
-                            m.top = outcome
-                        if s[1] == self.Ports.B:
-                            m.bot = outcome
-                match self._pulse:
-                    case 0:
-                        self._current_round_measurements.first = m
-                    case 1:
-                        self._current_round_measurements.second = m
-                    case 2:
-                        self._current_round_measurements.third = m
+            arrival_time = self.sim_env.now
 
-                self._pulse += 1
+            delta = float(
+                arrival_time
+                - self._round_start_time
+                - self.get_property("first_pulse_delay")
+            )
+            pulse_index = int(delta // self.get_property("pulse_spacing"))
+            match pulse_index:
+                case 0:
+                    m = self._current_round_measurements.first
+                case 1:
+                    m = self._current_round_measurements.second
+                case 2:
+                    m = self._current_round_measurements.third
+                case _:
+                    continue
+
+            for s in signals:
+                signal_obj, port = s
+                result = 1 if int(signal_obj.value) > 0 else 0
+                if port == self.Ports.A:
+                    m.top = max(m.top, result)
+                elif port == self.Ports.B:
+                    m.bot = max(m.bot, result)
 
     def plot(self):
         """

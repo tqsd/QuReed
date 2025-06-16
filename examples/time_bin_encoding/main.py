@@ -4,14 +4,15 @@ from qureed.devices.clocks import ConstantClock
 from qureed.devices.optical_sources import IdealNPhotonSource
 from qureed.devices.phase_shifters import IdealPhaseShifter
 from qureed.devices.beam_splittters import PerfectOverlapBeamSplitter
-from qureed.devices.detectors import IdealDetector
+from qureed.devices.detectors import IdealDetector, ImperfectDetector
 from qureed.logging import setup_logger, LoggerCategory
 from custom_tbe_measurement import TBEMeasurement
 from qureed.simulation.simulation import Simulation
 
 
 def time_bin_encoding(alpha: float, beta: float):
-    FREQUENCY = 1000
+    # FREQUENCY OF SENDING PULSES
+    FREQUENCY = 1000  # /second
     clk = ConstantClock()
     clk.set_property("name", "CLK")
     clk.set_property("frequency", FREQUENCY)
@@ -32,7 +33,6 @@ def time_bin_encoding(alpha: float, beta: float):
     det = IdealDetector()
     det.set_property("name", "DET")
 
-
     ps2 = IdealPhaseShifter()
     ps2.set_property("phi", float(beta))
     ps2.set_property("name", "PS2")
@@ -45,6 +45,13 @@ def time_bin_encoding(alpha: float, beta: float):
     clk_measurement = ConstantClock()
     clk_measurement.set_property("name", "CLK_M")
     clk_measurement.set_property("frequency", FREQUENCY)
+
+    detA = ImperfectDetector()
+    detB = ImperfectDetector()
+    #detA = IdealDetector()
+    #detB = IdealDetector()
+
+
     m = TBEMeasurement()
     m.set_property("name", "TBE MEASURE")
     # CONNECTS
@@ -71,8 +78,12 @@ def time_bin_encoding(alpha: float, beta: float):
     ps2.connect(ps2.Ports.output, bs4, bs4.Ports.A)
 
     # Second MZI > Measurement
-    bs4.connect(bs4.Ports.C, m, m.Ports.A)
-    bs4.connect(bs4.Ports.D, m, m.Ports.B)
+    bs4.connect(bs4.Ports.C, detA, detA.Ports.input)
+    bs4.connect(bs4.Ports.D, detB, detB.Ports.input)
+
+    # Detectors > Measurement Device
+    detA.connect(detA.Ports.output, m, m.Ports.A)
+    detB.connect(detA.Ports.output, m, m.Ports.B)
 
     # > Measurement
     clk_measurement.connect(clk_measurement.Ports.tick, m, m.Ports.clk)
@@ -82,7 +93,7 @@ def time_bin_encoding(alpha: float, beta: float):
     # sim.enable_logging(name_contains="perfect")
     sim.enable_logging(name_contains="TBE")
     sim.enable_logging(name_contains="DET")
-    Simulation().run(until=1)
+    Simulation().run(until=0.1)
 
     # Create a plot
     # Flatten the measurements into a list
@@ -94,5 +105,4 @@ if __name__ == "__main__":
     # Change logging level to logging.DEBUG to enable the logs
     setup_logger(LoggerCategory.GLOBAL, level=logging.WARNING)
     setup_logger(LoggerCategory.FLOW, level=logging.WARNING)
-    
     time_bin_encoding(jnp.pi/2,  0)
