@@ -31,7 +31,7 @@ def time_bin_encoding(alpha: float, beta: float):
     bs2.set_property("name", "BS2")
 
     det = IdealDetector()
-    det.set_property("name", "DET")
+    det.set_property("name", "DUMP")
 
     ps2 = IdealPhaseShifter()
     ps2.set_property("phi", float(beta))
@@ -48,15 +48,22 @@ def time_bin_encoding(alpha: float, beta: float):
 
     detA = ImperfectDetector()
     detB = ImperfectDetector()
+
+    detA.set_property("name", "DET A")
+    detB.set_property("name", "DET B")
+
     # Set the imperfections
-    detA.set_property("deadTime", 5e-9)
-    detB.set_property("deadTime", 5e-9)
+    deadTime = 35e-9
+    detA.set_property("deadTime", deadTime)
+    detB.set_property("deadTime", deadTime)
 
-    detA.set_property("detectorJitter", 1e-9)
-    detB.set_property("detectorJitter", 1e-9)
+    detectorJitter = 200e-12
+    detA.set_property("detectorJitter", detectorJitter)
+    detB.set_property("detectorJitter", detectorJitter)
 
-    detA.set_property("darkCountRateHz", 1e5)  # 10 MHz dark counts
-    detB.set_property("darkCountRateHz", 1e5)
+    darkCountRateHz = 100
+    detA.set_property("darkCountRateHz", darkCountRateHz)
+    detB.set_property("darkCountRateHz", darkCountRateHz)
     # detA = IdealDetector()
     # detB = IdealDetector()
 
@@ -101,7 +108,7 @@ def time_bin_encoding(alpha: float, beta: float):
     # sim.enable_logging(name_contains="perfect")
     sim.enable_logging(name_contains="TBE")
     sim.enable_logging(name_contains="DET")
-    Simulation().run(until=0.01)
+    Simulation().run(until=0.1)
 
     # Create a plot
     # Flatten the measurements into a list

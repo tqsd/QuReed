@@ -194,6 +194,8 @@ class TBEMeasurement(GenericDevice):
                 - self.get_property("first_pulse_delay")
             )
             pulse_index = int(delta // self.get_property("pulse_spacing"))
+
+            self.log(f"classsifying pulse: {pulse_index}")
             match pulse_index:
                 case 0:
                     m = self._current_round_measurements.first
@@ -244,7 +246,15 @@ class TBEMeasurement(GenericDevice):
         bot_second = jnp.array([rm.second.bot for rm in self._measurements])
         top_third = jnp.array([rm.third.top for rm in self._measurements])
         bot_third = jnp.array([rm.third.bot for rm in self._measurements])
-
+        total_detected = (
+            top_first.sum()
+            + bot_first.sum()
+            + top_second.sum()
+            + bot_second.sum()
+            + top_third.sum()
+            + bot_third.sum()
+        )
+        print(f"DETECTION PERCENT: {total_detected}")
         bars = [
             ("Top Pulse 1", jnp.mean(top_first)),
             ("Bot Pulse 1", jnp.mean(bot_first)),

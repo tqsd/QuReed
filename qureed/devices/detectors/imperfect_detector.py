@@ -108,6 +108,7 @@ class ImperfectDetector(GenericDetectorDevice):
             signal.value <= 0
             or self.sim_env.now < self._last_measurement + dead_time
         ):
+            self.log("Detection during dead time")
             return
         self._last_measurement = self.sim_env.now
         self.send(self.Ports.output, signal)
@@ -185,6 +186,7 @@ class ImperfectDetector(GenericDetectorDevice):
         while dark_count_rate > 0:
             next_dark_count = random.expovariate(dark_count_rate)
             yield self.sim_env.timeout(next_dark_count)
+            self.log("Scheduling dark count")
             out_signal = self.measure(dark_count=True)
             self.send_with_dark_time(out_signal)
 
