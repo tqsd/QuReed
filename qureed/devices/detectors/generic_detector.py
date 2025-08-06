@@ -39,8 +39,7 @@ class GenericDetectorDevice(GenericDevice, ABC):
 
     GUI Metadata:
     -------------
-    gui_icon:
-        Returns a symbolic constant representing the icon for detector
+    gui_icon:        Returns a symbolic constant representing the icon for detector
         devices. Subclasses can reimlement `gui_icon`.
 
     Example:

@@ -1,6 +1,6 @@
 import unittest
 
-from qureed.devices.fiber.generic_fiber import GenericFiber
+from qureed.devices.fibers.generic_fiber import GenericFiber
 from qureed.signals.quantum_optical_pulse_signal import (
     QuantumOpticalPulseSignal,
 )

@@ -48,9 +48,17 @@ def time_bin_encoding(alpha: float, beta: float):
 
     detA = ImperfectDetector()
     detB = ImperfectDetector()
-    #detA = IdealDetector()
-    #detB = IdealDetector()
+    # Set the imperfections
+    detA.set_property("deadTime", 5e-9)
+    detB.set_property("deadTime", 5e-9)
 
+    detA.set_property("detectorJitter", 1e-9)
+    detB.set_property("detectorJitter", 1e-9)
+
+    detA.set_property("darkCountRateHz", 1e5)  # 10 MHz dark counts
+    detB.set_property("darkCountRateHz", 1e5)
+    # detA = IdealDetector()
+    # detB = IdealDetector()
 
     m = TBEMeasurement()
     m.set_property("name", "TBE MEASURE")
@@ -83,7 +91,7 @@ def time_bin_encoding(alpha: float, beta: float):
 
     # Detectors > Measurement Device
     detA.connect(detA.Ports.output, m, m.Ports.A)
-    detB.connect(detA.Ports.output, m, m.Ports.B)
+    detB.connect(detB.Ports.output, m, m.Ports.B)
 
     # > Measurement
     clk_measurement.connect(clk_measurement.Ports.tick, m, m.Ports.clk)
@@ -93,7 +101,7 @@ def time_bin_encoding(alpha: float, beta: float):
     # sim.enable_logging(name_contains="perfect")
     sim.enable_logging(name_contains="TBE")
     sim.enable_logging(name_contains="DET")
-    Simulation().run(until=0.1)
+    Simulation().run(until=0.01)
 
     # Create a plot
     # Flatten the measurements into a list
@@ -105,4 +113,4 @@ if __name__ == "__main__":
     # Change logging level to logging.DEBUG to enable the logs
     setup_logger(LoggerCategory.GLOBAL, level=logging.WARNING)
     setup_logger(LoggerCategory.FLOW, level=logging.WARNING)
-    time_bin_encoding(jnp.pi/2,  0)
+    time_bin_encoding(jnp.pi / 2, 0)
