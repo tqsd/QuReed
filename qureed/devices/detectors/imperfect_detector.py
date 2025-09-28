@@ -103,11 +103,11 @@ class ImperfectDetector(GenericDetectorDevice):
           window.
         - If within dead time or the signal is vacuum, it's suppressed.
         """
+        if signal.value <= 0:
+            return
+
         dead_time = self.get_property("deadTime")
-        if (
-            signal.value <= 0
-            or self.sim_env.now < self._last_measurement + dead_time
-        ):
+        if self.sim_env.now < self._last_measurement + dead_time:
             self.log("Detection during dead time")
             return
         self._last_measurement = self.sim_env.now

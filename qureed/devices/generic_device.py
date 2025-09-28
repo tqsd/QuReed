@@ -504,7 +504,6 @@ class GenericDevice(DeviceLoggingMixin, ABC, metaclass=DeviceMeta):
         )
         event = simpy.events.AnyOf(self.sim_env, list(named_gets.values()))
         result = yield event
-        self.log("Some signal received")
 
         # --- Cancel all gets that didn't fire ---
         triggered = set(result.keys())

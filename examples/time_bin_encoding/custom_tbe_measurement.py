@@ -1,5 +1,6 @@
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
+import matplotlib
 
 from dataclasses import dataclass, field
 from typing import Any, Dict
@@ -232,38 +233,42 @@ class TBEMeasurement(GenericDevice):
                 elif port == self.Ports.B:
                     m.bot = max(m.bot, click)
 
-    def plot(self):
+    def plot(
+        self, show: bool = True, return_axes: bool = False
+    ) -> matplotlib.figure.Figure:
         """
-        Plots detection probabilites per time bin and port.
+        Plot detection probabilities and return the Matplotlib Figure
+        (and optionally the Axes if return_axes=True).
 
-        Computs the average detection probability for each of the six outcomes:
-        (top/.bottom x first/second/third pulse) across all measurement rounds.
+        Parameters
+        ----------
+        show : bool
+            Call plt.show() before returning.
+        return_axes : bool
+            If True, return (fig, ax); else return fig.
 
-        Displays a histogram with bars for:
-        - Top Pulse 1, Bot Pulse 1
-        - Top Pulse 2, Bot Pulse 2
-        - Top Pulse 3, Bot Pulse 3
-
-        Y-axis: Detection probability (0.0 to 1.0)
-        X-axis: Pulse/port label
-
-        Example output:
-        ---------------
-        |      |      |      |
-        |   |  |   |  |   |  |
-        |___|__|___|__|___|__|
-         TP1 BP1 TP2 BP2 TP3 BP3
-
-        Returns:
-        --------
-        None
+        Returns
+        -------
+        matplotlib.figure.Figure  or  (Figure, Axes)
         """
+
+        # Handle empty measurement list gracefully
+        if not self._measurements:
+            fig, ax = plt.subplots(figsize=(8, 2.5))
+            ax.text(0.5, 0.5, "No measurements yet", ha="center", va="center")
+            ax.axis("off")
+            if show:
+                plt.show()
+            return (fig, ax) if return_axes else fig
+
+        # Collect counts
         top_first = jnp.array([rm.first.top for rm in self._measurements])
         bot_first = jnp.array([rm.first.bot for rm in self._measurements])
         top_second = jnp.array([rm.second.top for rm in self._measurements])
         bot_second = jnp.array([rm.second.bot for rm in self._measurements])
         top_third = jnp.array([rm.third.top for rm in self._measurements])
         bot_third = jnp.array([rm.third.bot for rm in self._measurements])
+
         total_detected = (
             top_first.sum()
             + bot_first.sum()
@@ -272,22 +277,34 @@ class TBEMeasurement(GenericDevice):
             + top_third.sum()
             + bot_third.sum()
         )
-        print(f"DETECTION PERCENT: {total_detected}")
-        bars = [
-            ("Top Pulse 1", jnp.mean(top_first)),
-            ("Bot Pulse 1", jnp.mean(bot_first)),
-            ("Top Pulse 2", jnp.mean(top_second)),
-            ("Bot Pulse 2", jnp.mean(bot_second)),
-            ("Top Pulse 3", jnp.mean(top_third)),
-            ("Bot Pulse 3", jnp.mean(bot_third)),
+        print(f"DETECTION COUNT: {int(total_detected)}")
+
+        labels = [
+            "Top Pulse 1",
+            "Bot Pulse 1",
+            "Top Pulse 2",
+            "Bot Pulse 2",
+            "Top Pulse 3",
+            "Bot Pulse 3",
+        ]
+        # Cast to plain floats so Matplotlib is happy even with JAX arrays
+        probabilities = [
+            float(jnp.mean(top_first)),
+            float(jnp.mean(bot_first)),
+            float(jnp.mean(top_second)),
+            float(jnp.mean(bot_second)),
+            float(jnp.mean(top_third)),
+            float(jnp.mean(bot_third)),
         ]
 
-        labels, probabilities = zip(*bars)
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.bar(labels, probabilities)
+        ax.set_ylim(0, 1.1)
+        ax.set_ylabel("Detection Probability")
+        ax.set_title("Detection probability per pulse and port")
+        fig.tight_layout()
 
-        plt.figure(figsize=(8, 4))
-        plt.bar(labels, probabilities)
-        plt.ylim(0, 1.1)
-        plt.ylabel("Detection Probability")
-        plt.title("Detection probability per pulse and port")
-        plt.tight_layout()
-        plt.show()
+        if show:
+            plt.show()
+
+        return (fig, ax) if return_axes else fig

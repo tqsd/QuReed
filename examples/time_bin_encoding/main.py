@@ -92,11 +92,14 @@ def validate_tbe_config(
 
 def time_bin_encoding(alpha: float, beta: float):
     # FREQUENCY OF SENDING PULSES
-    FREQUENCY = 1000  # /second
+    FREQUENCY = 2000  # /second
     N_FIBER = 1.45  # refractive index for the fiber
     MZI_DELAY = 50e-6  # delay introduced by the fiber in the long arm
-    TIME_TOLERANCE = 25e-6
+    TIME_TOLERANCE = 12.5e-6
     LENGTH = fiber_length_for_delay(MZI_DELAY, N_FIBER)
+    DEAD_TIME = 24e-6  # 25e-6
+    DETECTOR_JITTER = 200e-12
+    DARK_COUNT_HZ = 10000
 
     validate_tbe_config(
         frequency_hz=FREQUENCY,
@@ -104,8 +107,8 @@ def time_bin_encoding(alpha: float, beta: float):
         pulse_spacing=MZI_DELAY,
         time_tolerance=TIME_TOLERANCE,
         num_pulses=3,
-        dead_time=35e-9,
-        detector_jitter=200e-12,
+        dead_time=DEAD_TIME,
+        detector_jitter=DETECTOR_JITTER,
     )
     clk = ConstantClock()
     clk.set_property("name", "CLK")
@@ -160,15 +163,15 @@ def time_bin_encoding(alpha: float, beta: float):
     detB.set_property("name", "DET B")
 
     # Set the imperfections
-    deadTime = 35e-9
+    deadTime = DEAD_TIME
     detA.set_property("deadTime", deadTime)
     detB.set_property("deadTime", deadTime)
 
-    detectorJitter = 200e-12
+    detectorJitter = DETECTOR_JITTER
     detA.set_property("detectorJitter", detectorJitter)
     detB.set_property("detectorJitter", detectorJitter)
 
-    darkCountRateHz = 100
+    darkCountRateHz = DARK_COUNT_HZ
     detA.set_property("darkCountRateHz", darkCountRateHz)
     detB.set_property("darkCountRateHz", darkCountRateHz)
     # detA = IdealDetector()
@@ -227,7 +230,8 @@ def time_bin_encoding(alpha: float, beta: float):
 
     # Create a plot
     # Flatten the measurements into a list
-    m.plot()
+    fig = m.plot()
+    fig.savefig(f"DC={DARK_COUNT_HZ}_DT={DEAD_TIME}.png")
 
 
 if __name__ == "__main__":
