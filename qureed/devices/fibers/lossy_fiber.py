@@ -99,6 +99,7 @@ class LossyFiber(GenericFiber):
                 "_phase_shift method not implemented for backend"
                 f"{Simulation().backend}; expected method {method_name}"
             )
+        return method(signal)
 
     @des_proc
     def proc(self):
@@ -121,8 +122,12 @@ class LossyFiber(GenericFiber):
             if signal.type is QOPSignalType.START:
                 self._send_with_delay(self.Ports.output, signal)
                 continue
-            self._attenuate(signal)
+            loss = self.get_property("loss")
+            if loss > 0.0:
+                self.log(f"Attenuating: {loss}")
+                self._attenuate(signal)
             if self.get_property("phaseShift"):
+                self.log("Shifting Phase")
                 self._phase_shift(signal)
             self._send_with_delay(self.Ports.output, signal)
 

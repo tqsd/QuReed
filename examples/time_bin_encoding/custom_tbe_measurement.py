@@ -118,6 +118,26 @@ class TBEMeasurement(GenericDevice):
         self._current_round_measurements = RoundMeasurements()
         self._round_start_time = 0
 
+    def configure_timing(
+        self,
+        first_pulse_delay: float,
+        pulse_spacing: float,
+        time_tolerance: float,
+    ):
+        """
+        Convenience setter with a safety check that gates don't overlap.
+        Requires: pulse_spacing >= 2 * time_tolerance
+        """
+        if pulse_spacing < 2 * time_tolerance:
+            raise ValueError(
+                f"pulse_spacing ({
+                    pulse_spacing}) must be >= 2 * time_tolerance ({2*time_tolerance}) "
+                "to avoid overlapping gates."
+            )
+        self.set_property("first_pulse_delay", first_pulse_delay)
+        self.set_property("pulse_spacing", pulse_spacing)
+        self.set_property("time_tolerance", time_tolerance)
+
     @des_proc
     def clk_proc(self):
         """
@@ -186,33 +206,31 @@ class TBEMeasurement(GenericDevice):
         """
         while True:
             signals = yield from self.any_receive(self.Ports.A, self.Ports.B)
-            arrival_time = self.sim_env.now
-
-            delta = float(
-                arrival_time
-                - self._round_start_time
-                - self.get_property("first_pulse_delay")
+            t_arr = float(self.sim_env.now)
+            t0 = float(self.get_property("first_pulse_delay")) + float(
+                self._round_start_time
             )
-            pulse_index = int(delta // self.get_property("pulse_spacing"))
+            dt = float(self.get_property("pulse_spacing"))
+            tol = float(self.get_property("time_tolerance"))
 
-            self.log(f"classsifying pulse: {pulse_index}")
-            match pulse_index:
-                case 0:
-                    m = self._current_round_measurements.first
-                case 1:
-                    m = self._current_round_measurements.second
-                case 2:
-                    m = self._current_round_measurements.third
-                case _:
-                    continue
+            centers = (t0, t0 + dt, t0 + 2 * dt)
+            diffs = [abs(t_arr - c) for c in centers]
+            k = int(jnp.argmin(jnp.array(diffs)))
+            if diffs[k] > tol:
+                continue  # outside all gates
 
-            for s in signals:
-                signal_obj, port = s
-                result = 1 if int(signal_obj.value) > 0 else 0
+            m = [
+                self._current_round_measurements.first,
+                self._current_round_measurements.second,
+                self._current_round_measurements.third,
+            ][k]
+
+            for sig, port in signals:
+                click = 1 if int(sig.value) > 0 else 0
                 if port == self.Ports.A:
-                    m.top = max(m.top, result)
+                    m.top = max(m.top, click)
                 elif port == self.Ports.B:
-                    m.bot = max(m.bot, result)
+                    m.bot = max(m.bot, click)
 
     def plot(self):
         """
