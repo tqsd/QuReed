@@ -18,6 +18,7 @@ setup(
     include_package_data=True,
     entry_points={
         "console_scripts": [
+            "qureed=qureed.cli:main",
             "qureed-template=qureed.cli:main",
             "qureed-gui=qureed.gui.main:start",
             "qureed-execute=qureed.simulation.simulate_from_json:main",
