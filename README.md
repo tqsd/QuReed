@@ -10,7 +10,7 @@
 
 ## Repository Structure
 ```bash
-qureed/
+src/qureed/
 ├── devices/               # Built-in quantum/classical device models
 ├── simulation/            # Simulation orchestration and scheduling
 ├── signals/               # Signal types and propagation mechanics

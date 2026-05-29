@@ -128,10 +128,62 @@ qureed_cli/
 or, if keeping the repo simpler:
 
 ```text
-qureed/cli/
+src/qureed/cli/
 ```
 
 The CLI may import QuReed devices during spec generation. The future GUI server should prefer loading generated specs instead of importing every device at startup.
+
+---
+
+## Dependency Boundaries
+
+The QuReed simulation core is the bottom layer. Core modules include:
+
+```text
+src/qureed/devices/
+src/qureed/signals/
+src/qureed/backends/
+src/qureed/simulation/
+src/qureed/errors/
+src/qureed/logging/
+src/qureed/utils/
+```
+
+Core modules must not import interface-layer modules:
+
+```text
+src/qureed/cli/
+src/qureed/project/
+src/qureed/registry/
+src/qureed/specs/
+src/qureed/diagram/
+src/qureed/scriptgen/
+src/qureed/runtime/
+src/qureed/server/       # future
+src/qureed/web/          # future
+src/qureed/gui_server/   # future
+```
+
+Allowed dependency direction:
+
+```text
+future web frontend -> future server -> qureed/runtime
+qureed/cli -> qureed/runtime
+qureed/runtime -> qureed/project
+qureed/runtime -> qureed/registry
+qureed/runtime -> qureed/specs
+qureed/runtime -> qureed/diagram
+qureed/runtime -> qureed/scriptgen
+qureed/registry -> qureed core
+qureed/specs -> qureed core during generation only
+qureed/diagram -> generated JSON specs
+qureed/scriptgen -> diagrams + generated JSON specs
+qureed core -> imports none of the interface/server/web layers
+```
+
+The runtime service is the stable boundary for future GUI/server code. CLI and future FastAPI handlers should call `src/qureed/runtime/service.py` where practical instead of reaching directly into lower-level helpers.
+
+Generated device specs and diagram JSON are the GUI-safe data boundary. Future GUI/server startup should prefer reading generated JSON specs instead of importing every runtime device.
 
 ---
 
@@ -155,20 +207,21 @@ qureed_web
   Svelte + TypeScript + PixiJS frontend
 ```
 
-Dependency direction:
+Legacy architecture sketch:
 
 ```text
-qureed_web -> qureed_server -> qureed_specs / qureed
-qureed_cli -> qureed
-qureed -> imports none of the GUI/server/CLI layers
+qureed_web -> qureed_server -> qureed/runtime -> qureed_specs / qureed
+qureed_cli -> qureed/runtime
+qureed core -> imports none of the GUI/server/CLI/runtime layers
 ```
 
 Forbidden:
 
 ```text
-qureed -> qureed_server
-qureed -> qureed_web
-qureed -> qureed_cli
+qureed core -> qureed_server
+qureed core -> qureed_web
+qureed core -> qureed_cli
+qureed core -> qureed/runtime
 ```
 
 ---
@@ -326,25 +379,27 @@ Do NOT:
 
 ---
 
-### Planned Internal Structure
+### Current Internal Structure
 
-Suggested structure:
+Current structure:
 
 ```text
-qureed/
-  devices/
-  simulation/
-  signals/
-  backends/
+src/qureed/
+  devices/       # simulation core
+  simulation/    # simulation core
+  signals/       # simulation core
+  backends/      # simulation core
 
-  cli/
-  specs/
-  gui_server/
-
-frontend/
+  project/       # qureed.toml loading and path resolution
+  registry/      # device registry/discovery
+  specs/         # static device spec generation/validation
+  diagram/       # diagram JSON model/loading/validation
+  scriptgen/     # diagram-to-script generation
+  runtime/       # stable service facade for CLI/server/tests
+  cli/           # command-line presentation layer
 ```
 
-The frontend source may live outside the Python package during development.
+Future frontend source may live outside the Python package during development.
 
 Built frontend assets may later be copied into the Python package for distribution.
 
@@ -376,4 +431,3 @@ The future GUI should be:
 * backend-agnostic where practical
 
 The frontend should consume generated device specifications and communicate with a lightweight local FastAPI server.
-

@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from qureed.cli import main
+from qureed.cli.main import main
+from qureed.project import ProjectNotFoundError, load_project
 
 
 def test_project_init_creates_qureed_toml(tmp_path: Path, capsys) -> None:
@@ -16,8 +17,16 @@ def test_project_init_creates_qureed_toml(tmp_path: Path, capsys) -> None:
     assert project_file.exists()
     assert (project_dir / "devices").is_dir()
     assert (project_dir / "specs" / "devices").is_dir()
+    assert (project_dir / "diagrams").is_dir()
+    assert (project_dir / "scripts").is_dir()
     assert list((project_dir / "specs" / "devices").glob("*.json"))
-    assert 'name = "demo"' in project_file.read_text(encoding="utf-8")
+    project_text = project_file.read_text(encoding="utf-8")
+    assert 'name = "demo"' in project_text
+    assert "[paths]" in project_text
+    assert 'custom_devices = ["devices"]' in project_text
+    assert 'specs = "specs/devices"' in project_text
+    assert 'diagrams = "diagrams"' in project_text
+    assert 'scripts = "scripts"' in project_text
     assert "Created" in capsys.readouterr().out
 
 
@@ -33,11 +42,66 @@ def test_project_init_no_specs_skips_generation(
     assert exit_code == 0
     assert (project_dir / "devices").is_dir()
     assert (project_dir / "specs" / "devices").is_dir()
+    assert (project_dir / "diagrams").is_dir()
+    assert (project_dir / "scripts").is_dir()
     assert not list((project_dir / "specs" / "devices").glob("*.json"))
     assert "Generated" not in capsys.readouterr().out
 
 
-def test_devices_list_includes_builtin_source(capsys) -> None:
+def test_project_loader_discovers_from_nested_directory(
+    tmp_path: Path, monkeypatch
+) -> None:
+    project_dir = tmp_path / "example"
+    assert main(["project", "init", str(project_dir), "--no-specs"]) == 0
+    nested = project_dir / "diagrams" / "nested"
+    nested.mkdir(parents=True)
+    monkeypatch.chdir(nested)
+
+    project = load_project()
+
+    assert project.root == project_dir.resolve()
+    assert project.path == (project_dir / "qureed.toml").resolve()
+    assert project.name == "example"
+
+
+def test_project_loader_resolves_paths_relative_to_root(
+    tmp_path: Path,
+) -> None:
+    project_dir = tmp_path / "example"
+    assert main(["project", "init", str(project_dir), "--no-specs"]) == 0
+
+    project = load_project(project_dir / "scripts")
+
+    assert project.custom_device_paths == (
+        (project_dir / "devices").resolve(),
+    )
+    assert project.spec_output_path == (
+        project_dir / "specs" / "devices"
+    ).resolve()
+    assert project.diagrams_path == (project_dir / "diagrams").resolve()
+    assert project.scripts_path == (project_dir / "scripts").resolve()
+
+
+def test_project_loader_missing_project_error(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    try:
+        load_project()
+    except ProjectNotFoundError as exc:
+        assert "No qureed.toml found" in str(exc)
+    else:
+        raise AssertionError("Expected ProjectNotFoundError")
+
+
+def test_devices_list_includes_builtin_source(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    project_dir = tmp_path / "example"
+    assert main(["project", "init", str(project_dir), "--no-specs"]) == 0
+    monkeypatch.chdir(project_dir)
+
     exit_code = main(["devices", "list"])
 
     assert exit_code == 0
@@ -89,7 +153,29 @@ def test_devices_list_includes_project_source(
     assert "custom_devices.CustomDevice" in output
 
 
-def test_devices_inspect_accepts_class_path(capsys) -> None:
+def test_devices_list_works_from_nested_project_directory(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    project_dir = tmp_path / "example"
+    assert main(["project", "init", str(project_dir), "--no-specs"]) == 0
+    nested = project_dir / "scripts"
+    monkeypatch.chdir(nested)
+
+    exit_code = main(["devices", "list"])
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "lossy_fiber" in output
+    assert "builtin" in output
+
+
+def test_devices_inspect_accepts_class_path(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    project_dir = tmp_path / "example"
+    assert main(["project", "init", str(project_dir), "--no-specs"]) == 0
+    monkeypatch.chdir(project_dir)
+
     exit_code = main(
         [
             "devices",
@@ -168,6 +254,22 @@ def test_specs_validate_accepts_generated_specs(
     assert main(["specs", "validate"]) == 0
 
     assert "Validated" in capsys.readouterr().out
+
+
+def test_specs_list_works_from_nested_project_directory(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    project_dir = tmp_path / "example"
+    assert main(["project", "init", str(project_dir)]) == 0
+    nested = project_dir / "scripts"
+    monkeypatch.chdir(nested)
+
+    exit_code = main(["specs", "list"])
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "class_path" in output
+    assert "qureed.devices.fibers.lossy_fiber.LossyFiber" in output
 
 
 def load_specs(spec_dir: Path) -> dict[str, dict]:

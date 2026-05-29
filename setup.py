@@ -10,7 +10,8 @@ setup(
     author_email="simon.sekavcnik@tum.de",
     description="Simulating quantum experiments with realistic device models",
     license="Apache 2.0",
-    packages=find_packages(where="."),
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
     install_requires=["photon_weave==0.1.8", "jinja2", "simpy", "mpmath"],
     package_data={
         "qureed": ["templates/*.jinja", "assets/*.png"],
@@ -18,8 +19,8 @@ setup(
     include_package_data=True,
     entry_points={
         "console_scripts": [
-            "qureed=qureed.cli:main",
-            "qureed-template=qureed.cli:main",
+            "qureed=qureed.cli.main:main",
+            "qureed-template=qureed.cli.main:main",
             "qureed-gui=qureed.gui.main:start",
             "qureed-execute=qureed.simulation.simulate_from_json:main",
         ],

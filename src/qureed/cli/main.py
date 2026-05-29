@@ -5,25 +5,30 @@ import inspect
 import os
 import sys
 from pathlib import Path
-from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
 
-from qureed.device_registry import (
-    BuiltinDeviceProvider,
-    DeviceDiscoveryError,
-    DeviceRegistry,
-    ProjectDeviceProvider,
-    camel_to_snake,
-    describe_device,
+from qureed.cli.devices import (
+    devices_inspect_command,
+    devices_list_command,
 )
-from qureed.project import create_project, load_project
-from qureed.specs import generate_device_specs, validate_device_specs
+from qureed.cli.diagrams import (
+    diagrams_create_command,
+    diagrams_validate_command,
+)
+from qureed.cli.project import project_init_command
+from qureed.cli.scripts import scripts_generate_command
+from qureed.cli.specs import specs_generate_command, specs_validate_command
+from qureed.cli.specs import specs_list_command
+from qureed.diagram import DiagramError
+from qureed.project import ProjectConfigError
+from qureed.registry import DeviceDiscoveryError, camel_to_snake
+from qureed.scriptgen import ScriptGenerationError
 
 
 def get_template_env():
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    templates_path = os.path.join(dir_path, "templates")
+    package_root = Path(__file__).resolve().parent.parent
+    templates_path = package_root / "templates"
     return Environment(loader=FileSystemLoader(templates_path))
 
 
@@ -158,6 +163,40 @@ def build_parser() -> argparse.ArgumentParser:
         "validate", help="Validate generated device specs"
     )
     specs_validate.set_defaults(func=specs_validate_command)
+    specs_list = specs_subparsers.add_parser(
+        "list", help="List generated device specs"
+    )
+    specs_list.set_defaults(func=specs_list_command)
+
+    diagrams = subparsers.add_parser(
+        "diagrams", help="Create and validate diagram JSON"
+    )
+    diagrams_subparsers = diagrams.add_subparsers(
+        dest="diagrams_command", required=True
+    )
+    diagrams_create = diagrams_subparsers.add_parser(
+        "create", help="Create an empty diagram"
+    )
+    diagrams_create.add_argument("path", help="Diagram path")
+    diagrams_create.set_defaults(func=diagrams_create_command)
+    diagrams_validate = diagrams_subparsers.add_parser(
+        "validate", help="Validate a diagram"
+    )
+    diagrams_validate.add_argument("path", help="Diagram path")
+    diagrams_validate.set_defaults(func=diagrams_validate_command)
+
+    scripts = subparsers.add_parser(
+        "scripts", help="Generate Python scripts from diagrams"
+    )
+    scripts_subparsers = scripts.add_subparsers(
+        dest="scripts_command", required=True
+    )
+    scripts_generate = scripts_subparsers.add_parser(
+        "generate", help="Generate a Python script from a diagram"
+    )
+    scripts_generate.add_argument("diagram_path", help="Diagram path")
+    scripts_generate.add_argument("--output", help="Output script path")
+    scripts_generate.set_defaults(func=scripts_generate_command)
 
     template = subparsers.add_parser(
         "template", help="Create a device template interactively"
@@ -172,127 +211,6 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def build_registry(project=None) -> DeviceRegistry:
-    project = project if project is not None else load_project()
-    return DeviceRegistry(
-        [BuiltinDeviceProvider(), ProjectDeviceProvider(project)]
-    )
-
-
-def project_init_command(args: argparse.Namespace) -> int:
-    path = create_project(Path(args.path), name=args.name)
-    print(f"Created {path}")
-    if not args.no_specs:
-        project = load_project(path.parent)
-        if project is None:
-            raise DeviceDiscoveryError(f"Could not load project at {path}")
-        result = generate_device_specs(build_registry(project), project)
-        print(
-            f"Generated {len(result.written)} device specs "
-            f"in {result.output_dir}"
-        )
-        for warning in result.warnings:
-            print(f"warning: {warning}", file=sys.stderr)
-    return 0
-
-
-def devices_list_command(args: argparse.Namespace) -> int:
-    registry = build_registry()
-    rows = [
-        (
-            record.id,
-            record.source,
-            record.category,
-            record.display_name,
-            record.class_path,
-        )
-        for record in registry.all()
-    ]
-    print_table(("id", "source", "category", "name", "class_path"), rows)
-    return 0
-
-
-def devices_inspect_command(args: argparse.Namespace) -> int:
-    registry = build_registry()
-    record = registry.find(args.identifier)
-    data = describe_device(record)
-    print_device(data)
-    return 0
-
-
-def specs_generate_command(args: argparse.Namespace) -> int:
-    project = require_project()
-    result = generate_device_specs(build_registry(project), project)
-    print(
-        f"Generated {len(result.written)} device specs "
-        f"in {result.output_dir}"
-    )
-    for warning in result.warnings:
-        print(f"warning: {warning}", file=sys.stderr)
-    return 0
-
-
-def specs_validate_command(args: argparse.Namespace) -> int:
-    project = require_project()
-    result = validate_device_specs(project)
-    if result.valid:
-        print(f"Validated {len(result.checked)} device specs")
-        return 0
-
-    for error in result.errors:
-        print(f"error: {error}", file=sys.stderr)
-    return 1
-
-
-def require_project():
-    project = load_project()
-    if project is None:
-        raise DeviceDiscoveryError(
-            "No qureed.toml found; run 'qureed project init' first"
-        )
-    return project
-
-
-def print_table(headers: tuple[str, ...], rows: list[tuple[Any, ...]]) -> None:
-    widths = [
-        max(len(str(row[index])) for row in [headers, *rows])
-        for index in range(len(headers))
-    ]
-    print(
-        "  ".join(header.ljust(widths[i]) for i, header in enumerate(headers))
-    )
-    print("  ".join("-" * width for width in widths))
-    for row in rows:
-        print(
-            "  ".join(
-                str(value).ljust(widths[i]) for i, value in enumerate(row)
-            )
-        )
-
-
-def print_device(data: dict[str, Any]) -> None:
-    print(f"id: {data['id']}")
-    print(f"source: {data['source']}")
-    print(f"class_path: {data['class_path']}")
-    print(f"display_name: {data['display_name']}")
-    print(f"category: {data['category']}")
-    print("properties:")
-    for prop in data["properties"]:
-        print(
-            f"  - {prop['name']}: type={prop['type']} "
-            f"default={prop['default']!r}"
-        )
-    print("ports:")
-    for port in data["ports"]:
-        print(
-            f"  - {port['name']}: direction={port['direction']} "
-            f"signal_type={port['signal_type']}"
-        )
-    if data["doc"]:
-        summary = data["doc"].splitlines()[0]
-        print(f"summary: {summary}")
-
-
 def main(argv: list[str] | None = None) -> int:
     if os.path.basename(sys.argv[0]) == "qureed-template":
         return template_main(argv)
@@ -301,7 +219,14 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         return args.func(args)
-    except (DeviceDiscoveryError, FileExistsError, KeyError) as exc:
+    except (
+        DeviceDiscoveryError,
+        FileExistsError,
+        KeyError,
+        ProjectConfigError,
+        DiagramError,
+        ScriptGenerationError,
+    ) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 

@@ -7,30 +7,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from qureed.device_registry import (
+from qureed.project import QureedProject
+from qureed.registry import (
     DeviceRecord,
     DeviceRegistry,
     read_property_without_instance,
     try_import_class,
 )
-from qureed.project import QureedProject
-
 
 DEVICE_SPEC_DIR = Path("specs") / "devices"
-REQUIRED_DEVICE_SPEC_KEYS = {
-    "id",
-    "class_path",
-    "module",
-    "class_name",
-    "source",
-    "gui_name",
-    "category",
-    "icon",
-    "properties",
-    "ports",
-    "doc",
-    "warnings",
-}
 
 
 @dataclass(frozen=True)
@@ -40,20 +25,10 @@ class SpecGenerationResult:
     warnings: tuple[str, ...]
 
 
-@dataclass(frozen=True)
-class SpecValidationResult:
-    checked: tuple[Path, ...]
-    errors: tuple[str, ...]
-
-    @property
-    def valid(self) -> bool:
-        return not self.errors
-
-
 def generate_device_specs(
     registry: DeviceRegistry, project: QureedProject
 ) -> SpecGenerationResult:
-    output_dir = project.root / DEVICE_SPEC_DIR
+    output_dir = project.spec_output_path
     output_dir.mkdir(parents=True, exist_ok=True)
 
     written: list[Path] = []
@@ -76,59 +51,6 @@ def generate_device_specs(
         written=tuple(sorted(written)),
         warnings=tuple(warnings),
     )
-
-
-def validate_device_specs(project: QureedProject) -> SpecValidationResult:
-    spec_dir = project.root / DEVICE_SPEC_DIR
-    errors: list[str] = []
-    checked: list[Path] = []
-
-    if not spec_dir.exists():
-        return SpecValidationResult(
-            checked=(),
-            errors=(f"{spec_dir} does not exist",),
-        )
-
-    for path in sorted(spec_dir.glob("*.json")):
-        checked.append(path)
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            errors.append(f"{path}: invalid JSON: {exc}")
-            continue
-
-        errors.extend(validate_device_spec(data, path))
-
-    if not checked:
-        errors.append(f"{spec_dir} contains no device spec JSON files")
-
-    return SpecValidationResult(checked=tuple(checked), errors=tuple(errors))
-
-
-def validate_device_spec(data: Any, path: Path) -> list[str]:
-    errors: list[str] = []
-    if not isinstance(data, dict):
-        return [f"{path}: expected a JSON object"]
-
-    missing = sorted(REQUIRED_DEVICE_SPEC_KEYS.difference(data))
-    if missing:
-        errors.append(f"{path}: missing keys: {', '.join(missing)}")
-
-    for key in ("id", "class_path", "module", "class_name", "source"):
-        if key in data and not isinstance(data[key], str):
-            errors.append(f"{path}: {key} must be a string")
-
-    if data.get("source") not in {"builtin", "project"}:
-        errors.append(f"{path}: source must be 'builtin' or 'project'")
-
-    for key in ("properties", "ports", "doc"):
-        if key in data and not isinstance(data[key], dict):
-            errors.append(f"{path}: {key} must be an object")
-
-    if "warnings" in data and not isinstance(data["warnings"], list):
-        errors.append(f"{path}: warnings must be a list")
-
-    return errors
 
 
 def build_device_spec(record: DeviceRecord) -> dict[str, Any]:

@@ -3,6 +3,7 @@ This module handles execution from json schemes
 """
 
 import argparse
+import importlib
 import json
 import logging
 import pickle
@@ -12,10 +13,46 @@ import sys
 from logging.handlers import SocketHandler
 from pathlib import Path
 
+from qureed.devices.generic_device import GenericDevice
 from qureed.extra import Loggers, get_custom_logger
-from qureed.gui.board.board import get_class_from_string
-from qureed.gui.board.ports import BoardConnector
-from qureed.gui.simulation import SimulationWrapper
+from qureed.simulation import Simulation
+
+
+def get_class_from_string(class_path: str):
+    module_name, _, class_name = class_path.rpartition(".")
+    if not module_name:
+        raise ValueError(f"Expected fully qualified class path: {class_path}")
+    module = importlib.import_module(module_name)
+    return getattr(module, class_name)
+
+
+class JsonSimulationWrapper:
+    def __init__(self):
+        self.simulation = Simulation()
+
+    def add_device(self, device: GenericDevice) -> None:
+        if device not in self.simulation.devices:
+            self.simulation.register_device(device)
+
+    def get_device(self, uid: str) -> GenericDevice:
+        for device in self.simulation.devices:
+            if str(device.uid) == str(uid):
+                return device
+        raise KeyError(f"Unknown device uuid: {uid}")
+
+    def create_connection(
+        self,
+        *,
+        sig,
+        dev1: GenericDevice,
+        port_label_1: str,
+        dev2: GenericDevice,
+        port_label_2: str,
+    ) -> None:
+        dev1.connect(port_label_1, dev2, port_label_2)
+
+    def run_des(self, duration: float) -> None:
+        self.simulation.run(until=duration)
 
 
 class LengthPrefixedSocketHandler(logging.handlers.SocketHandler):
@@ -33,7 +70,7 @@ class JsonExecution:
         self.simulation_type = kwargs.get("sim_type")
         self.duration = kwargs.get("duration")
         self.port = kwargs.get("port")
-        self.sw = SimulationWrapper()
+        self.sw = JsonSimulationWrapper()
         self.schemes = {}
 
         base_path = Path(self.main_scheme).parent

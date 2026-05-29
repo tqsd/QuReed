@@ -162,6 +162,12 @@ class DeviceRegistry:
         return matches[0]
 
 
+def build_registry(project: QureedProject | None = None) -> DeviceRegistry:
+    return DeviceRegistry(
+        [BuiltinDeviceProvider(), ProjectDeviceProvider(project)]
+    )
+
+
 def import_class(class_path: str) -> type:
     module_name, separator, class_name = class_path.rpartition(".")
     if not separator:
