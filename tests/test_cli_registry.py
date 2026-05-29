@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from qureed.cli.main import main
-from qureed.project import ProjectNotFoundError, load_project
+from qureed.interface.project import ProjectNotFoundError, load_project
 
 
 def test_project_init_creates_qureed_toml(tmp_path: Path, capsys) -> None:
@@ -270,6 +270,38 @@ def test_specs_list_works_from_nested_project_directory(
     output = capsys.readouterr().out
     assert "class_path" in output
     assert "qureed.devices.fibers.lossy_fiber.LossyFiber" in output
+
+
+def test_gui_command_starts_packaged_gui(monkeypatch) -> None:
+    calls = []
+
+    def fake_run_gui(**kwargs):
+        calls.append(kwargs)
+
+    monkeypatch.setattr("qureed.gui.main.run_gui", fake_run_gui)
+
+    exit_code = main(
+        [
+            "gui",
+            "--host",
+            "127.0.0.2",
+            "--port",
+            "8123",
+            "--project-root",
+            ".",
+            "--open",
+        ]
+    )
+
+    assert exit_code == 0
+    assert calls == [
+        {
+            "host": "127.0.0.2",
+            "port": 8123,
+            "project_root": ".",
+            "open_browser": True,
+        }
+    ]
 
 
 def load_specs(spec_dir: Path) -> dict[str, dict]:

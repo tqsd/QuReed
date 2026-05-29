@@ -4,8 +4,8 @@ import argparse
 import sys
 from pathlib import Path
 
-from qureed.project import QureedProject, load_project
-from qureed.runtime import load_project as load_runtime_project
+from qureed.interface.project import QureedProject, load_project
+from qureed.interface.runtime import load_project as load_runtime_project
 
 
 def diagrams_create_command(args: argparse.Namespace) -> int:

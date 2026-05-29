@@ -4,8 +4,8 @@ import argparse
 import sys
 from pathlib import Path
 
-from qureed.project import create_project
-from qureed.runtime import load_project
+from qureed.interface.project import create_project
+from qureed.interface.runtime import load_project
 
 
 def project_init_command(args: argparse.Namespace) -> int:

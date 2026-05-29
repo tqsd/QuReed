@@ -153,37 +153,51 @@ Core modules must not import interface-layer modules:
 
 ```text
 src/qureed/cli/
-src/qureed/project/
-src/qureed/registry/
-src/qureed/specs/
-src/qureed/diagram/
-src/qureed/scriptgen/
-src/qureed/runtime/
-src/qureed/server/       # future
-src/qureed/web/          # future
-src/qureed/gui_server/   # future
+src/qureed/server/
+src/qureed/gui/
+src/qureed/interface/
+src/qureed/project/      # compatibility wrapper only
+src/qureed/registry/     # compatibility wrapper only
+src/qureed/specs/        # compatibility wrapper only
+src/qureed/diagram/      # compatibility wrapper only
+src/qureed/scriptgen/    # compatibility wrapper only
+src/qureed/runtime/      # compatibility wrapper only
 ```
 
 Allowed dependency direction:
 
 ```text
-future web frontend -> future server -> qureed/runtime
-qureed/cli -> qureed/runtime
-qureed/runtime -> qureed/project
-qureed/runtime -> qureed/registry
-qureed/runtime -> qureed/specs
-qureed/runtime -> qureed/diagram
-qureed/runtime -> qureed/scriptgen
-qureed/registry -> qureed core
-qureed/specs -> qureed core during generation only
-qureed/diagram -> generated JSON specs
-qureed/scriptgen -> diagrams + generated JSON specs
+frontend/ -> qureed/server -> qureed/interface/runtime
+qureed/cli -> qureed/interface/runtime
+qureed/interface/runtime -> qureed/interface/project
+qureed/interface/runtime -> qureed/interface/registry
+qureed/interface/runtime -> qureed/interface/specs
+qureed/interface/runtime -> qureed/interface/diagram
+qureed/interface/runtime -> qureed/interface/scriptgen
+qureed/interface/registry -> qureed core
+qureed/interface/specs -> qureed core during generation only
+qureed/interface/diagram -> generated JSON specs
+qureed/interface/scriptgen -> diagrams + generated JSON specs
 qureed core -> imports none of the interface/server/web layers
 ```
 
-The runtime service is the stable boundary for future GUI/server code. CLI and future FastAPI handlers should call `src/qureed/runtime/service.py` where practical instead of reaching directly into lower-level helpers.
+The runtime service is the stable boundary for GUI/server code. CLI and
+FastAPI handlers should call `src/qureed/interface/runtime/service.py` where
+practical instead of reaching directly into lower-level helpers.
 
 Generated device specs and diagram JSON are the GUI-safe data boundary. Future GUI/server startup should prefer reading generated JSON specs instead of importing every runtime device.
+
+Frontend source must stay outside the Python package in `frontend/`. Packaged
+build artifacts may later live under `src/qureed/gui/static/`.
+
+The frontend is a Svelte + TypeScript + Vite app. It must communicate through
+the server HTTP API and must not import Python modules or depend on QuReed
+Python internals. Node tooling is only for frontend development and must not be
+required for a normal `pip install qureed`.
+
+The packaged GUI is launched through `qureed gui`. Do not add a separate
+root-level GUI console command. Built frontend assets may be served from
+`src/qureed/gui/static/`, but frontend source must remain in `frontend/`.
 
 ---
 
@@ -210,18 +224,18 @@ qureed_web
 Legacy architecture sketch:
 
 ```text
-qureed_web -> qureed_server -> qureed/runtime -> qureed_specs / qureed
-qureed_cli -> qureed/runtime
-qureed core -> imports none of the GUI/server/CLI/runtime layers
+frontend/ -> qureed/server -> qureed/interface/runtime -> generated specs / qureed core
+qureed/cli -> qureed/interface/runtime
+qureed core -> imports none of the GUI/server/CLI/interface layers
 ```
 
 Forbidden:
 
 ```text
-qureed core -> qureed_server
-qureed core -> qureed_web
-qureed core -> qureed_cli
-qureed core -> qureed/runtime
+qureed core -> qureed/server
+qureed core -> frontend/
+qureed core -> qureed/cli
+qureed core -> qureed/interface
 ```
 
 ---

@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from qureed.cli.main import main
-from qureed.runtime import load_project
+from qureed.interface.runtime import load_project
 
 
 def test_runtime_device_listing(tmp_path: Path) -> None:

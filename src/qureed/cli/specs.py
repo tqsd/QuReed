@@ -4,7 +4,7 @@ import argparse
 import sys
 
 from qureed.cli.devices import print_table
-from qureed.runtime import load_project
+from qureed.interface.runtime import load_project
 
 
 def specs_generate_command(args: argparse.Namespace) -> int:

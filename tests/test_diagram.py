@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from qureed.cli.main import main
-from qureed.diagram import (
+from qureed.interface.diagram import (
     Diagram,
     DiagramConnection,
     DiagramDevice,

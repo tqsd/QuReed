@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 
 from qureed.cli.main import main
-from qureed.project import load_project
-from qureed.scriptgen import generate_script_from_file
+from qureed.interface.project import load_project
+from qureed.interface.scriptgen import generate_script_from_file
 
 
 def test_script_generation_is_deterministic(tmp_path: Path) -> None:

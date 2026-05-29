@@ -1,15 +1,3 @@
-from qureed.scriptgen.generator import (
-    ScriptGenerationError,
-    ScriptGenerationResult,
-    default_script_output_path,
-    generate_script,
-    generate_script_from_file,
-)
+"""Compatibility wrapper for :mod:`qureed.interface.scriptgen`."""
 
-__all__ = [
-    "ScriptGenerationError",
-    "ScriptGenerationResult",
-    "default_script_output_path",
-    "generate_script",
-    "generate_script_from_file",
-]
+from qureed.interface.scriptgen import *  # noqa: F401,F403

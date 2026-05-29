@@ -20,10 +20,10 @@ from qureed.cli.project import project_init_command
 from qureed.cli.scripts import scripts_generate_command
 from qureed.cli.specs import specs_generate_command, specs_validate_command
 from qureed.cli.specs import specs_list_command
-from qureed.diagram import DiagramError
-from qureed.project import ProjectConfigError
-from qureed.registry import DeviceDiscoveryError, camel_to_snake
-from qureed.scriptgen import ScriptGenerationError
+from qureed.interface.diagram import DiagramError
+from qureed.interface.project import ProjectConfigError
+from qureed.interface.registry import DeviceDiscoveryError, camel_to_snake
+from qureed.interface.scriptgen import ScriptGenerationError
 
 
 def get_template_env():
@@ -198,6 +198,20 @@ def build_parser() -> argparse.ArgumentParser:
     scripts_generate.add_argument("--output", help="Output script path")
     scripts_generate.set_defaults(func=scripts_generate_command)
 
+    gui = subparsers.add_parser("gui", help="Start the local QuReed GUI")
+    gui.add_argument("--host", default="127.0.0.1")
+    gui.add_argument("--port", type=int, default=8000)
+    gui.add_argument(
+        "--project-root",
+        help="Project directory containing qureed.toml",
+    )
+    gui.add_argument(
+        "--open",
+        action="store_true",
+        help="Open the GUI in the default browser",
+    )
+    gui.set_defaults(func=gui_command)
+
     template = subparsers.add_parser(
         "template", help="Create a device template interactively"
     )
@@ -209,6 +223,18 @@ def build_parser() -> argparse.ArgumentParser:
         )
     )
     return parser
+
+
+def gui_command(args) -> int:
+    from qureed.gui.main import run_gui
+
+    run_gui(
+        host=args.host,
+        port=args.port,
+        project_root=args.project_root,
+        open_browser=args.open,
+    )
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:

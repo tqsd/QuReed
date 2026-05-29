@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from typing import Any
 
-from qureed.runtime import load_project
+from qureed.interface.runtime import load_project
 
 
 def devices_list_command(args: argparse.Namespace) -> int:

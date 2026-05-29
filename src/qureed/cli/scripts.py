@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from qureed.runtime import load_project
+from qureed.interface.runtime import load_project
 
 
 def scripts_generate_command(args: argparse.Namespace) -> int:
