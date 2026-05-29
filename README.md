@@ -42,6 +42,11 @@ npm install
 npm run dev
 ```
 
+Tailwind is configured through `frontend/tailwind.config.cjs` and
+`frontend/postcss.config.cjs`. Use `npm run check` for the Svelte/TypeScript
+type check and `npm run build` to refresh the packaged GUI assets under
+`src/qureed/gui/static/`.
+
 Start the local server separately from a QuReed project:
 
 ```bash

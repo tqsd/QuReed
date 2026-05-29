@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -24,14 +25,14 @@ def test_frontend_static_routes_are_served(tmp_path: Path) -> None:
     project_dir = create_project_with_specs(tmp_path)
 
     index_response = request(project_dir, "GET", "/")
-    asset_response = request(
-        project_dir, "GET", "/assets/qureed-gui.css"
-    )
 
     assert index_response.status_code == 200
     assert "QuReed" in index_response.text
-    assert asset_response.status_code == 200
-    assert ".appShell" in asset_response.text
+    asset_paths = re.findall(r'/(assets/[^"]+\.(?:js|css))', index_response.text)
+    assert asset_paths
+    for asset_path in asset_paths:
+        asset_response = request(project_dir, "GET", f"/{asset_path}")
+        assert asset_response.status_code == 200
 
 
 def test_project_route(tmp_path: Path) -> None:

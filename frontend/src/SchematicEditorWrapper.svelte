@@ -20,6 +20,17 @@
     onPlaceDevice(event.clientX - rect.left, event.clientY - rect.top);
   }
 
+  function handleSurfaceKeydown(event: KeyboardEvent) {
+    if (!pendingSpec || (event.key !== 'Enter' && event.key !== ' ')) {
+      return;
+    }
+
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    onPlaceDevice(rect.width / 2, rect.height / 2);
+  }
+
   function specFor(device: DiagramDevice): DeviceSpec | undefined {
     return specsByClassPath.get(device.type);
   }
@@ -42,6 +53,7 @@
     role="button"
     tabindex="0"
     onclick={handleSurfaceClick}
+    onkeydown={handleSurfaceKeydown}
   >
     {#if diagram.devices.length === 0}
       <div class="schematicPlaceholder">
