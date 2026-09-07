@@ -1,0 +1,647 @@
+{
+  "schema_version": 1,
+  "name": "Depleted-pump demonstration (assumed stronger interaction)",
+  "model": "Coupled classical depleted transient",
+  "devices": [
+    {
+      "uuid": "ca000924-7677-5629-9a15-85ee0b07c2b6",
+      "device": "fm_generator.FmGenerator",
+      "name": "Laser FM",
+      "location": [
+        28,
+        170
+      ],
+      "values": {
+        "frequency_hz": 699000,
+        "excursion_hz": 47000000000,
+        "excursion_convention": "peak-to-peak",
+        "group_velocity_m_s": 204000000,
+        "delay_s": 1.4306151645207439e-06,
+        "correlation_order": 1,
+        "phase_rad": 0
+      }
+    },
+    {
+      "uuid": "451ee276-1617-551f-a8de-2bbf5b540d9e",
+      "device": "cw_laser.CwLaser",
+      "name": "Shared CW laser",
+      "location": [
+        28,
+        340
+      ],
+      "values": {
+        "power_w": 0.02,
+        "wavelength_nm": 1550
+      }
+    },
+    {
+      "uuid": "58c7d96c-f041-5ea5-9120-6dd411089ece",
+      "device": "splitter.Splitter",
+      "name": "50:50 splitter",
+      "location": [
+        160,
+        340
+      ],
+      "values": {
+        "pump_fraction": 0.5,
+        "loss_db": 0
+      }
+    },
+    {
+      "uuid": "23f719c0-0aac-5a96-a4ee-0dfa443ab16e",
+      "device": "probe_rf_generator.ProbeRfGenerator",
+      "name": "Probe RF sweep",
+      "location": [
+        292,
+        50
+      ],
+      "values": {
+        "frequency_start_hz": 10600000000,
+        "frequency_stop_hz": 11100000000,
+        "frequency_step_hz": 2000000
+      }
+    },
+    {
+      "uuid": "59d8ffc6-ed80-55dd-8b53-4d76efbbe4ca",
+      "device": "probe_eom.ProbeEom",
+      "name": "Probe EOM",
+      "location": [
+        292,
+        170
+      ],
+      "values": {
+        "eom_loss_db": 20
+      }
+    },
+    {
+      "uuid": "a67f84c1-45ce-5d5a-9a88-6f71fafe5420",
+      "device": "polarization_controller.PolarizationController",
+      "name": "Probe PC",
+      "location": [
+        424,
+        170
+      ],
+      "values": {
+        "pc_overlap": 1
+      }
+    },
+    {
+      "uuid": "f97b1cb3-4855-5ae5-91e2-e79b2d65f8ea",
+      "device": "optical_isolator.OpticalIsolator",
+      "name": "Probe isolator",
+      "location": [
+        556,
+        170
+      ],
+      "values": {
+        "isolator_loss_db": 0.5
+      }
+    },
+    {
+      "uuid": "cad1b75d-8a87-5efc-bdb8-3e0a16511fec",
+      "device": "pump_eom.PumpEom",
+      "name": "Pump EOM",
+      "location": [
+        292,
+        340
+      ],
+      "values": {
+        "eom_loss_db": 3,
+        "modulation_depth": 0.2
+      }
+    },
+    {
+      "uuid": "fa756127-da92-5f05-af0f-f19f4665d770",
+      "device": "edfa.Edfa",
+      "name": "Pump EDFA",
+      "location": [
+        424,
+        340
+      ],
+      "values": {
+        "edfa_gain_db": 13,
+        "edfa_max_w": 0.2
+      }
+    },
+    {
+      "uuid": "b5c41536-35f9-5a8f-96f2-323bdb21822e",
+      "device": "circulator.Circulator",
+      "name": "Circulator",
+      "location": [
+        556,
+        340
+      ],
+      "values": {
+        "circulator_loss_db": 0.5
+      }
+    },
+    {
+      "uuid": "a3de4f98-109d-5521-b8c4-d2413da5b235",
+      "device": "fiber_segment.FiberSegment",
+      "name": "Fiber 1",
+      "location": [
+        688,
+        340
+      ],
+      "values": {
+        "length_m": 0.1,
+        "resonance_hz": 10850000000,
+        "linewidth_hz": 27000000,
+        "gain_per_w_m": 0.5,
+        "attenuation_db_km": 0.2
+      }
+    },
+    {
+      "uuid": "453f02c8-10f5-5094-9fce-14e30d60dd33",
+      "device": "fiber_segment.FiberSegment",
+      "name": "Fiber 2",
+      "location": [
+        820,
+        340
+      ],
+      "values": {
+        "length_m": 0.1,
+        "resonance_hz": 10850000000,
+        "linewidth_hz": 27000000,
+        "gain_per_w_m": 0.5,
+        "attenuation_db_km": 0.2
+      }
+    },
+    {
+      "uuid": "6527eb8d-f09c-5949-bba9-25ac81f3ba57",
+      "device": "fiber_segment.FiberSegment",
+      "name": "Fiber 3 (shifted)",
+      "location": [
+        952,
+        340
+      ],
+      "values": {
+        "length_m": 0.1,
+        "resonance_hz": 10900000000,
+        "linewidth_hz": 27000000,
+        "gain_per_w_m": 0.5,
+        "attenuation_db_km": 0.2
+      }
+    },
+    {
+      "uuid": "a5cd2fcd-199a-5304-9d7e-b5d46116ba10",
+      "device": "fiber_segment.FiberSegment",
+      "name": "Fiber 4",
+      "location": [
+        1084,
+        340
+      ],
+      "values": {
+        "length_m": 0.1,
+        "resonance_hz": 10850000000,
+        "linewidth_hz": 27000000,
+        "gain_per_w_m": 0.5,
+        "attenuation_db_km": 0.2
+      }
+    },
+    {
+      "uuid": "5c810495-49b6-5da0-a460-f3d6b582e25a",
+      "device": "pump_terminator.PumpTerminator",
+      "name": "Pump output",
+      "location": [
+        1216,
+        340
+      ],
+      "values": {}
+    },
+    {
+      "uuid": "f1c13eb1-a3d5-530d-b9e1-84cb7e07636f",
+      "device": "pump_reference.PumpReference",
+      "name": "Pump AM + ref",
+      "location": [
+        292,
+        480
+      ],
+      "values": {
+        "modulation_hz": 100000,
+        "phase_deg": 0
+      }
+    },
+    {
+      "uuid": "41698e93-f428-545a-8626-cbbc0005978b",
+      "device": "photodetector.Photodetector",
+      "name": "Probe detector",
+      "location": [
+        556,
+        600
+      ],
+      "values": {
+        "responsivity_a_w": 0.9,
+        "transimpedance_v_a": 10000,
+        "bandwidth_hz": 1100000,
+        "max_voltage_v": 10
+      }
+    },
+    {
+      "uuid": "93e467e4-4fa6-5dfb-a8b5-f05eca0ed9e0",
+      "device": "lock_in.LockIn",
+      "name": "Lock-in X / Y",
+      "location": [
+        820,
+        600
+      ],
+      "values": {
+        "reference_phase_deg": 0,
+        "time_constant_s": 0.001,
+        "filter_order": 1,
+        "dwell_s": 0.01
+      }
+    },
+    {
+      "uuid": "8e07520b-5edc-5819-a9a6-bef4c9335386",
+      "device": "scan_controller.ScanController",
+      "name": "Position scan",
+      "location": [
+        1084,
+        600
+      ],
+      "values": {
+        "target_m": 0.25,
+        "start_m": 0.025,
+        "stop_m": 0.375,
+        "step_m": 0.01,
+        "cell_m": 0.002,
+        "position_control": "frequency",
+        "background_subtraction": false
+      }
+    }
+  ],
+  "connections": [
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "451ee276-1617-551f-a8de-2bbf5b540d9e",
+          "port": "optical"
+        },
+        {
+          "device_uuid": "58c7d96c-f041-5ea5-9120-6dd411089ece",
+          "port": "optical"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "58c7d96c-f041-5ea5-9120-6dd411089ece",
+          "port": "pump"
+        },
+        {
+          "device_uuid": "cad1b75d-8a87-5efc-bdb8-3e0a16511fec",
+          "port": "optical"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "58c7d96c-f041-5ea5-9120-6dd411089ece",
+          "port": "probe"
+        },
+        {
+          "device_uuid": "59d8ffc6-ed80-55dd-8b53-4d76efbbe4ca",
+          "port": "optical"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "cad1b75d-8a87-5efc-bdb8-3e0a16511fec",
+          "port": "pump"
+        },
+        {
+          "device_uuid": "fa756127-da92-5f05-af0f-f19f4665d770",
+          "port": "pump_in"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "fa756127-da92-5f05-af0f-f19f4665d770",
+          "port": "pump_out"
+        },
+        {
+          "device_uuid": "b5c41536-35f9-5a8f-96f2-323bdb21822e",
+          "port": "pump_in"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "b5c41536-35f9-5a8f-96f2-323bdb21822e",
+          "port": "pump_out"
+        },
+        {
+          "device_uuid": "a3de4f98-109d-5521-b8c4-d2413da5b235",
+          "port": "pump_in"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "59d8ffc6-ed80-55dd-8b53-4d76efbbe4ca",
+          "port": "probe"
+        },
+        {
+          "device_uuid": "a67f84c1-45ce-5d5a-9a88-6f71fafe5420",
+          "port": "probe_in"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "a67f84c1-45ce-5d5a-9a88-6f71fafe5420",
+          "port": "probe_out"
+        },
+        {
+          "device_uuid": "f97b1cb3-4855-5ae5-91e2-e79b2d65f8ea",
+          "port": "probe_in"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "f97b1cb3-4855-5ae5-91e2-e79b2d65f8ea",
+          "port": "probe_out"
+        },
+        {
+          "device_uuid": "a5cd2fcd-199a-5304-9d7e-b5d46116ba10",
+          "port": "probe_in"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "a3de4f98-109d-5521-b8c4-d2413da5b235",
+          "port": "probe_out"
+        },
+        {
+          "device_uuid": "b5c41536-35f9-5a8f-96f2-323bdb21822e",
+          "port": "probe_in"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "b5c41536-35f9-5a8f-96f2-323bdb21822e",
+          "port": "detector_out"
+        },
+        {
+          "device_uuid": "41698e93-f428-545a-8626-cbbc0005978b",
+          "port": "probe"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "a5cd2fcd-199a-5304-9d7e-b5d46116ba10",
+          "port": "pump_out"
+        },
+        {
+          "device_uuid": "5c810495-49b6-5da0-a460-f3d6b582e25a",
+          "port": "pump"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "a3de4f98-109d-5521-b8c4-d2413da5b235",
+          "port": "pump_out"
+        },
+        {
+          "device_uuid": "453f02c8-10f5-5094-9fce-14e30d60dd33",
+          "port": "pump_in"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "453f02c8-10f5-5094-9fce-14e30d60dd33",
+          "port": "probe_out"
+        },
+        {
+          "device_uuid": "a3de4f98-109d-5521-b8c4-d2413da5b235",
+          "port": "probe_in"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "453f02c8-10f5-5094-9fce-14e30d60dd33",
+          "port": "pump_out"
+        },
+        {
+          "device_uuid": "6527eb8d-f09c-5949-bba9-25ac81f3ba57",
+          "port": "pump_in"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "6527eb8d-f09c-5949-bba9-25ac81f3ba57",
+          "port": "probe_out"
+        },
+        {
+          "device_uuid": "453f02c8-10f5-5094-9fce-14e30d60dd33",
+          "port": "probe_in"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "6527eb8d-f09c-5949-bba9-25ac81f3ba57",
+          "port": "pump_out"
+        },
+        {
+          "device_uuid": "a5cd2fcd-199a-5304-9d7e-b5d46116ba10",
+          "port": "pump_in"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.OpticalSignal",
+      "conn": [
+        {
+          "device_uuid": "a5cd2fcd-199a-5304-9d7e-b5d46116ba10",
+          "port": "probe_out"
+        },
+        {
+          "device_uuid": "6527eb8d-f09c-5949-bba9-25ac81f3ba57",
+          "port": "probe_in"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.ElectricalSignal",
+      "conn": [
+        {
+          "device_uuid": "ca000924-7677-5629-9a15-85ee0b07c2b6",
+          "port": "fm"
+        },
+        {
+          "device_uuid": "451ee276-1617-551f-a8de-2bbf5b540d9e",
+          "port": "fm"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.ElectricalSignal",
+      "conn": [
+        {
+          "device_uuid": "8e07520b-5edc-5819-a9a6-bef4c9335386",
+          "port": "fm_control"
+        },
+        {
+          "device_uuid": "ca000924-7677-5629-9a15-85ee0b07c2b6",
+          "port": "control"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.ElectricalSignal",
+      "conn": [
+        {
+          "device_uuid": "8e07520b-5edc-5819-a9a6-bef4c9335386",
+          "port": "rf_control"
+        },
+        {
+          "device_uuid": "23f719c0-0aac-5a96-a4ee-0dfa443ab16e",
+          "port": "control"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.ElectricalSignal",
+      "conn": [
+        {
+          "device_uuid": "23f719c0-0aac-5a96-a4ee-0dfa443ab16e",
+          "port": "rf"
+        },
+        {
+          "device_uuid": "59d8ffc6-ed80-55dd-8b53-4d76efbbe4ca",
+          "port": "rf"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.ElectricalSignal",
+      "conn": [
+        {
+          "device_uuid": "f1c13eb1-a3d5-530d-b9e1-84cb7e07636f",
+          "port": "modulation"
+        },
+        {
+          "device_uuid": "cad1b75d-8a87-5efc-bdb8-3e0a16511fec",
+          "port": "modulation"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.ElectricalSignal",
+      "conn": [
+        {
+          "device_uuid": "f1c13eb1-a3d5-530d-b9e1-84cb7e07636f",
+          "port": "reference"
+        },
+        {
+          "device_uuid": "93e467e4-4fa6-5dfb-a8b5-f05eca0ed9e0",
+          "port": "reference"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.ElectricalSignal",
+      "conn": [
+        {
+          "device_uuid": "41698e93-f428-545a-8626-cbbc0005978b",
+          "port": "voltage"
+        },
+        {
+          "device_uuid": "93e467e4-4fa6-5dfb-a8b5-f05eca0ed9e0",
+          "port": "voltage"
+        }
+      ]
+    },
+    {
+      "signal": "bocda_model.devices.ElectricalSignal",
+      "conn": [
+        {
+          "device_uuid": "93e467e4-4fa6-5dfb-a8b5-f05eca0ed9e0",
+          "port": "measurement"
+        },
+        {
+          "device_uuid": "8e07520b-5edc-5819-a9a6-bef4c9335386",
+          "port": "measurement"
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "paper_values": [
+      "699 kHz FM",
+      "47 GHz reported bandwidth (convention caveat)",
+      "27 MHz intrinsic gain FWHM",
+      "100 kHz pump intensity tag"
+    ],
+    "assumptions": [
+      "Four 10 cm regions; third shifted from 10.85 to 10.90 GHz",
+      "Demonstration powers, receiver gains, and SBS coefficient",
+      "External delay 1/fm, correlation order 1; not the paper path",
+      "Explicit probe multiplier 50 and SBS gain multiplier 100 to make depletion visible; not paper settings"
+    ],
+    "excursion_note": "Default total span 47 GHz. See docs/source-audit.md. Reported nominal 3 cm is not imposed on computed PSF.",
+    "status": "Exploratory numerical model, not calibrated experimental prediction"
+  },
+  "extensions": {
+    "dynamics": {
+      "cells": 40,
+      "duration_ns": 150.0,
+      "output_frames": 151,
+      "pump_scale": 1.0,
+      "probe_scale": 50.0,
+      "gain_scale": 100.0,
+      "offset_ghz": 10.9,
+      "fm_enabled": true,
+      "boundary_rise_ns": 2.0,
+      "initial_acoustic_scale": 0.0,
+      "convergence_check": true,
+      "refinement_rtol": 0.01,
+      "refinement_atol_w": 1e-09
+    }
+  }
+}
